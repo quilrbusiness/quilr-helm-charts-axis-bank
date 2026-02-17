@@ -1,0 +1,55 @@
+Reference: https://learn.microsoft.com/en-us/azure/aks/gpu-multi-instance?tabs=azure-cli
+
+az aks nodepool add   --resource-group <>   --cluster-name  <>  --name aisrvpl02   --node-vm-size Standard_NC24ads_A100_v4   --node-count 1   --gpu-instance-profile MIG1g  --node-taints aisrvpl02=true:NoSchedule
+ 
+
+helm repo add nvdp https://nvidia.github.io/k8s-device-plugin
+helm repo update
+
+
+helm upgrade --install nvdp nvdp/nvidia-device-plugin   --namespace nvidia-device-plugin   --create-namespace   --set migStrategy=single   --set gfd.enabled=false   --set securityContext.privileged=true   --set securityContext.runAsUser=0   --set securityContext.allowPrivilegeEscalation=true
+ 
+kubectl get node -o json  | jq '.items[].status.allocatable | with_entries(select(.key|test("nvidia.com")) )'
+ 
+kubectl get node -o json  | jq '.items[].status.capacity | with_entries(select(.key|test("nvidia.com")) )'
+
+
+nodeSelector:
+  agentpool: aisrvpl02
+
+tolerations:
+- key: "aisrvpl02"
+  operator: "Equal"
+  value: "true"
+  effect: "NoSchedule"
+
+
+helm upgrade --install nvdp nvdp/nvidia-device-plugin \
+  --namespace nvidia-device-plugin \
+  --reuse-values \ 
+  --set gpu-feature-discovery.enabled=true \
+  --set gpu-feature-discovery.image.repository=nvcr.io/nvidia/k8s-device-plugin \
+  --set gpu-feature-discovery.args="{--watch-interval=1m,--sleep-interval=30s}"
+
+
+Temporarily bypass affinity
+--------
+
+kubectl patch ds nvidia-device-plugin-daemonset -n nvidia-device-plugin --type='json' -p='[{"op": "remove", "path": "/spec/template/spec/affinity"}]'
+
+
+Manual labeling if GFD fails
+-------
+
+kubectl label nodes <gpu-node-names> \
+  feature.node.kubernetes.io/pci.present=true \
+  feature.node.kubernetes.io/pci-10de.present=true \
+  nvidia.com/gpu.present=true \
+  --overwrite
+
+--------------------
+
+az aks nodepool scale   --resource-group IIFL-Secops-Quilr-RG   --cluster-name Secops-Quilr-aks  --name aisrvp101   --node-count 0
+
+az aks nodepool add   --resource-group IIFL-Secops-Quilr-RG   --cluster-name  Secops-Quilr-aks  --name aisrvpl02   --node-vm-size Standard_NC24ads_A100_v4   --node-count 1   --gpu-instance-profile MIG2g  --node-taints aisrvpl02=true:NoSchedule
+
