@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.quilr.appname }}-configmap
+  namespace: {{ .Values.namespace | default "default" }}  # Use namespace from values.yaml
+data:
+  # Database Configuration
+  QUILR_DB_TYPE: "{{ .Values.configMap.QUILR_DB_TYPE }}"
+  QUILR_DB_PORT: "{{ .Values.configMap.QUILR_DB_PORT }}"
+  QUILR_DB_SSL: "{{ .Values.configMap.QUILR_DB_SSL }}"
+  # OAuth Configuration
+  ACCESS_TOKEN_EXPIRES_IN_VAL: "{{ .Values.configMap.ACCESS_TOKEN_EXPIRES_IN_VAL }}"
+  REFRESH_TOKEN_EXPIRES_IN_VAL: "{{ .Values.configMap.REFRESH_TOKEN_EXPIRES_IN_VAL }}"
+  OAUTH_LOGIN_SCOPES: "{{ .Values.configMap.OAUTH_LOGIN_SCOPES }}"
+  OAUTH_FAILURE_URL: "https://{{ .Values.configMap.weburl }}{{ .Values.configMap.OAUTH_FAILURE_URL }}"
+  OAUTH_SUCCESS_URL: "https://{{ .Values.configMap.weburl }}"
+  OAUTH_CALLBACK_URL: "https://{{ .Values.configMap.bffurl }}{{ .Values.configMap.OAUTH_CALLBACK_URL}}"
+  OAUTH_REFRESH_SCOPES: "{{ .Values.configMap.OAUTH_REFRESH_SCOPES }}"
+  OAUTH_COMMON_TENANT_ID: "{{ .Values.configMap.OAUTH_COMMON_TENANT_ID }}"
+  OAUTH_REFRESH_TOKEN_URL: "{{ .Values.configMap.OAUTH_REFRESH_TOKEN_URL }}"
+  QUILR_AUTH_COOKIE: "{{ .Values.configMap.QUILR_AUTH_COOKIE }}"
+  # Application and Dashboard Configuration
+  DASHBOARD_URL: "https://{{ .Values.configMap.weburl }}"
+  # Vault Configuration
+  VAULT_STORE_API: "http://instance-manager-service:8082{{ .Values.configMap.VAULT_STORE_API}}"
+  VAULT_FETCH_API: "http://instance-manager-service:8082{{ .Values.configMap.VAULT_FETCH_API}}"
+  # Email Service Configuration
+  EMAIL_REDIRECT_URL: "https://{{ .Values.configMap.bffurl }}"
+  EMAIL_SENDING_SERVICE_URL: "https://{{ .Values.configMap.bffurl }}{{ .Values.configMap.EMAIL_SENDING_SERVICE_URL}}"
+  # Search Service Configuration
+  SEARCH_SERVICE_URL: "https://{{ .Values.configMap.bffurl }}{{ .Values.configMap.SEARCH_SERVICE_URL}}"
+  # Integration and Tracking Configuration
+  OAUTH_ADMIN_CONSENT_URI: "https://{{ .Values.configMap.bffurl }}/auth/auth/admin-landing"
+  OAUTH_INTEGRATION_LIST_URL: "https://{{ .Values.configMap.bffurl }}/instance-manager/integrations"
+  OAUTH_INITIATE_FETCHING_URL: "https://{{ .Values.configMap.bffurl }}/instance-manager/onboarding/initiate?integrationId"
+  OAUTH_PERCENTAGE_TRACKING_URL: "https://{{ .Values.configMap.bffurl }}/content-tracking/pipelines/track/integration/"
+  # Static Content URLs
+  OAUTH_ACCESS_DENIED_HTML_URL: "{{ .Values.configMap.OAUTH_ACCESS_DENIED_HTML_URL }}"
+  OAUTH_WELCOME_EMAIL_HTML_URL: "{{ .Values.configMap.OAUTH_WELCOME_EMAIL_HTML_URL }}"
+  OAUTH_ACCESS_REQUEST_HTML_URL: "{{ .Values.configMap.OAUTH_ACCESS_REQUEST_HTML_URL }}"
+  OAUTH_ACCESS_GRANTED_HTML_URL: "{{ .Values.configMap.OAUTH_ACCESS_GRANTED_HTML_URL }}"
+  OAUTH_INVITAION_EMAIL_HTML_URL: "{{ .Values.configMap.OAUTH_INVITAION_EMAIL_HTML_URL }}"
+  OAUTH_ANALYSIS_EMAIL_HTML_URL: "{{ .Values.configMap.OAUTH_ANALYSIS_EMAIL_HTML_URL }}"
+  OAUTH_TRIAL_EXPIRED_HTML_URL: "{{ .Values.configMap.OAUTH_TRIAL_EXPIRED_HTML_URL }}"
+  WELCOME_EMAIL_URL: "{{ .Values.configMap.WELCOME_EMAIL_URL }}"
+  # Integration Redirect URLs
+  OAUTH_INTEGRATION_REDIRECT_URL: "https://{{ .Values.configMap.weburl }}{{ .Values.configMap.OAUTH_INTEGRATION_REDIRECT_URL}}"
+  OAUTH_INTEGRATION_FAILURE_URL: "https://{{ .Values.configMap.weburl }}{{ .Values.configMap.OAUTH_INTEGRATION_FAILURE_URL}}"
+  INTEGRATIONS_REDIRECT_URI: "https://{{ .Values.configMap.bffurl }}{{ .Values.configMap.INTEGRATIONS_REDIRECT_URI}}"
+  # OAuth Google Configuration
+  OAUTH_GOOGLE_CALLBACK_URL: "https://{{ .Values.configMap.bffurl }}{{ .Values.configMap.OAUTH_GOOGLE_CALLBACK_URL}}"
+  GOOGLE_LOGIN_SCOPES: "{{ .Values.configMap.GOOGLE_LOGIN_SCOPES }}"
+  OAUTH_GOOGLE_FAILURE_URL: "https://{{ .Values.configMap.weburl }}{{ .Values.configMap.OAUTH_GOOGLE_FAILURE_URL}}"
+  # Miscellaneous
+  SCHEMA_REGISTRY_URL: "{{ .Values.configMap.SCHEMA_REGISTRY_URL }}"
+  APPLICATION_URL: "{{ .Values.configMap.APPLICATION_URL }}"
+  OAUTH_USER_ROLE_API: "{{ .Values.configMap.OAUTH_USER_ROLE_API }}"
+  OAUTH_JUSTME_SCOPES: "{{ .Values.configMap.OAUTH_JUSTME_SCOPES }}"
+  #
+  OAUTH_GOOGLE_REDIRECT_URI : https://{{ .Values.configMap.bffurl }}/auth/auth/integration-admin-landing/google
+  BROWSER_EXT_SUCCESS_URI: "{{ .Values.configMap.BROWSER_EXT_SUCCESS_URI }}"
+  OAUTH_BROWSER_EXT_FAILURE_URL: "{{ .Values.configMap.OAUTH_BROWSER_EXT_FAILURE_URL }}"

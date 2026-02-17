@@ -1,0 +1,41 @@
+namespace: quilr
+quilr:
+  appname: dlp-default-classifier
+### for hpa.yaml
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 85
+image:
+  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/quilr-preprod/dlp-default-classifier
+  tag: latest
+  pullPolicy: Always
+service:
+  name: dlp-default-classifier
+  type: ClusterIP
+  port: 8091
+  targetPort: 8091
+vault:
+  addr: "https://vault.quilr.svc.cluster.local:8200"
+  role: "default"
+  path: "kubernetes"
+configMap:
+  APP_ENV: production
+  REGEX_PATTERNS_BASE: ./assets/patterns/
+  MODEL_BASE: /dlp-default-classifier
+  ENABLE_REGEX: 'False'
+  COLLECTOR_SERVICE_URL: http://dlp-data-collector:8093
+secretRef:
+  name: auth-key-public
+resources:
+  requests:
+    memory: "1024Mi"
+    cpu: "125m"
+  limits:
+    memory: "2Gi"
+    cpu: "1000m"
+secretName: azure-secret
+azurefileshare:
+  name: dlp-default-classifier-preprod

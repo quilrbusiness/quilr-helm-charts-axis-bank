@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.quilr.appname }}-configmap
+  namespace: {{ .Values.namespace | default "default" }}
+data:
+  SEARCH_API_HOST: "https://{{ .Values.configMap.bffurl }}{{ .Values.configMap.SEARCH_API_HOST}}"

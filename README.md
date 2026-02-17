@@ -1,2 +1,3 @@
-# quilr-helm-charts-axis-bank
-Helm chart for axis bank paas deployment
+# quilr-helm-charts
+Quilr organization services using Helm to deploy on Azure Kubernetes Service (AKS)
+

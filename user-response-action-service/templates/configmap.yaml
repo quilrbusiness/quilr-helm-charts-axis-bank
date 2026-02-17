@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.quilr.appname }}-configmap
+  namespace: {{ .Values.namespace | default "default" }}  # Use namespace from values.yaml
+data:
+  DATA_BASE_NAME: "{{ .Values.configMap.DATA_BASE_NAME }}"
+  RELATIVE_PATH_TO_ACCESS_FOLDER: "{{ .Values.configMap.RELATIVE_PATH_TO_ACCESS_FOLDER }}"
+  VAULT_CACERT: /{{ .Values.quilr.appname }}/certificates/ca_chain.pem
+  BFF_URL: "{{ .Values.configMap.BFF_URL }}"

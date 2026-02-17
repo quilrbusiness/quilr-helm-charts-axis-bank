@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.quilr.appname }}-configmap
+  namespace: {{ .Values.namespace | default "default" }} # Use namespace from values
+data:
+  NEXT_PUBLIC_BASE_URL: "https://{{ .Values.configMap.bffurl }}"
+  AUTH_COOKIE: "{{ .Values.configMap.AUTH_COOKIE }}"
+  NEXT_PUBLIC_EXT_AUTH_COOKIE: "{{ .Values.configMap.NEXT_PUBLIC_EXT_AUTH_COOKIE }}"
+  NEXT_PUBLIC_REFRESH_URL: "{{ .Values.configMap.NEXT_PUBLIC_REFRESH_URL }}"
+  NEXT_PUBLIC_AUTH_COOKIE: "{{ .Values.configMap.NEXT_PUBLIC_AUTH_COOKIE }}"
+  NEXT_PUBLIC_EXT_AUTH_COOKIE: "{{ .Values.configMap.NEXT_PUBLIC_EXT_AUTH_COOKIE }}"
+  NEXT_PUBLIC_IMAGE_URL: "https://{{ .Values.configMap.bffurl }}/instance-manager/profile-pic"

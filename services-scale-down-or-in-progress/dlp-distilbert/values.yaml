@@ -1,0 +1,38 @@
+namespace: quilr
+quilr:
+  appname: dlp-distilbert
+### for hpa.yaml
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 85
+image:
+  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/quilr-preprod/dlp-distilbert-gpu
+  tag: latest
+  pullPolicy: Always
+service:
+  name: dlp-distilbert
+  type: ClusterIP
+  port: 8095
+  targetPort: 8095
+vault:
+  addr: "https://vault.quilr.svc.cluster.local:8200"
+  role: "default"
+  path: "kubernetes"
+configMap:
+  MODEL_DIR: "/dlp-distilbert/distilbert_cpu_quantized/05-05-2025"
+  PORT: "8095"  
+secretRef:
+  name: auth-key-public
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "125m"
+  limits:
+    memory: "2Gi"
+    cpu: "2000m"
+secretName: azure-secret
+azurefileshare:
+  name: dlp-distilbert-preprod

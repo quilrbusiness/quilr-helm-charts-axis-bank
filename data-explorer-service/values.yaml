@@ -1,0 +1,41 @@
+namespace: quilr
+quilr:
+  appname: data-explorer-service
+configMap:
+  STATIC_DIR_LOCATION_SCREENS: "/data-explorer-service/screens"
+  STATIC_DIR_LOCATION_OPTIONS: "/data-explorer-service/options"
+  GRAPH_NAME: "neo4j"
+vault:
+  addr: "https://vault.quilr.svc.cluster.local:8200"
+  role: "default"
+  path: "kubernetes"
+image:
+  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/data-explorer-service
+  tag: latest
+  pullPolicy: Always
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "125m"
+  limits:
+    memory: "1024Mi"
+    cpu: "1000m"
+secretRef:
+  name: auth-key-public
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 85
+service:
+  name: data-explorer-service
+  type: ClusterIP
+  port: 8075
+  targetPort: 8075
+# Additional fields
+secretName: azure-secret
+azurefileshare:
+  name: data-explorer-service
+commonFileshare:
+  name: quilr-data-upload

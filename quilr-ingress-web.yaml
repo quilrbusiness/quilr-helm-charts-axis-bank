@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/service-upstream: "true"
+    nginx.ingress.kubernetes.io/server-alias: a9362f5e503b54885b19751ee9a47cbd-1361376267.us-east-1.elb.amazonaws.com 
+  name: quilr-ingress-web
+  namespace: quilr
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: poc.quilr.ai
+    http:
+      paths:
+      - backend:
+          service:
+            name: quilr-web
+            port:
+              number: 3000
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - poc.quilr.ai
+    secretName: quilr-tls-secret-prod-useast-skzzh

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.quilr.appname }}-configmap
+  namespace: {{ .Values.namespace | default "quilr" }}  # Use namespace from values.yaml
+data:
+  KAFKA_TOPIC_USER: "{{ .Values.configMap.KAFKA_TOPIC_USER }}"
+  KAFKA_TOPIC_APP: "{{ .Values.configMap.KAFKA_TOPIC_APP }}"
+  logging_level: "{{ .Values.configMap.logging_level }}"
+  FetchInterval: "{{ .Values.configMap.FetchInterval }}"

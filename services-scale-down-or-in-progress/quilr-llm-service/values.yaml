@@ -1,0 +1,47 @@
+## values.yaml
+#****************** for deployment.yaml ******************#
+namespace: quilr
+quilr:
+  appname: quilr-llm-service
+### for hpa.yaml
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 85
+vault:
+  addr: "https://vault.quilr.svc.cluster.local:8200"
+  role: "default"
+  path: "kubernetes"
+image:
+  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/quilr-preprod/quilr-llm-service
+  tag: latest
+  pullPolicy: Always
+configMap:
+  APP_STAGE: "prod"
+  DEBUG: "false"
+  LOG_LEVEL: "DEBUG"
+  PORT: "9074"
+  AZURE_OPENAI_ENDPOINT: "https://quilr-openai-latest.openai.azure.com/"
+  AZURE_OPENAI_DEPLOYMENT_NAME: "gpt-4o"
+  AZURE_OPENAI_API_VERSION: "2023-03-15-preview"
+  AZURE_OPENAI_MODEL_NAME: "gpt-4o"
+  GROQ_OPENAI_MODEL_NAME: "llama3-8b-8192"
+secretRef:
+  name: auth-key-public
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "125m"
+  limits:
+    memory: "1024Mi"
+    cpu: "1000m"
+    ###################service-name: quilr-web #################################################### 
+#****************** for service.yaml ******************#
+service:
+  name: quilr-llm-service
+  type: ClusterIP
+  port: 9074
+  targetPort: 9074
+#*******************************************************#
