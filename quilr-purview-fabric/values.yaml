@@ -20,8 +20,8 @@ vault:
 
 # Container image configuration
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/quilr-purview-fabric
-  tag: latest
+  repository: quilrdev.azurecr.io/quilr-purview-fabric
+  tag: latest_prod
   pullPolicy: Always
 
 configMap:

@@ -1,0 +1,16 @@
+az login
+select subscription
+"az account set --subscription b199dc31-354b-4d0e-b6fb-023bfbf8e72a"
+az account show 
+
+"az aks get-credentials --resource-group <> --name <> --overwrite-existing"
+
+kubelogin install:
+
+sudo  az aks install-cli
+kubelogin
+kubelogin convert-kubeconfig -l interactive
+
+Run this kubectl command to get node information:
+
+kubectl get nodes

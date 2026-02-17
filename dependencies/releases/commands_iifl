@@ -1,0 +1,6 @@
+export PGPASSWORD='gre@123345'
+
+
+
+
+psql -h secops-quilr-sql.postgres.database.azure.com -p 5432 -U sqladmin -d psqladmin -f customer-db.sql

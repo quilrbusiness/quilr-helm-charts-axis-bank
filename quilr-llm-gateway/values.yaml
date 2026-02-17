@@ -1,0 +1,44 @@
+namespace: quilr
+quilr:
+  appname: quilr-llm-gateway
+commonFileshare:
+  claimName: quilr-fileshare-pvc
+configMap: 
+#  QUILR_SERVER_URL: "https://dlp-platform.quilr.ai"
+  ADMIN_AUTH_TOKEN: "quilr6788"
+  LLM_PROXY_DATA_DIR: /quilr-llm-gateway
+  GUARD_URL: "http://quilr-dlp-guard:23333"
+  STAGE1_URL: "http://quilr-dlp-stage1:8095"
+  STAGE2_URL: "http://quilr-dlp-stage2:23333"
+  EDM_URL: "http://quilr-dlp-edm:3455"
+### for hpa.yaml
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 85
+image:
+  repository: quilrdev.azurecr.io/quilr-llm-gateway
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  name: quilr-llm-gateway
+  type: NodePort
+  port: 10000
+  targetPort: 10000
+  nodePort: 31043
+vault:
+  addr: "https://vault.quilr.svc.cluster.local:8200"
+  role: "default"
+  path: "kubernetes"
+secretRef:
+  name: auth-key-public
+secretName: azure-secret
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "50m"
+  limits:
+    memory: "2048Mi"
+    cpu: "1000m"

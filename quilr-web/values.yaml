@@ -2,7 +2,7 @@ namespace: quilr
 quilr:
   appname: quilr-web
 configMap:
-  bffurl: "poc.quilr.ai/bff"
+  bffurl: "quilr.axisbank.com/bff"
   AUTH_COOKIE: "quilr_web_auth"
   NEXT_PUBLIC_EXT_AUTH_COOKIE: "quilr_ext_auth"
   NEXT_PUBLIC_REFRESH_URL: "auth/auth/refresh"
@@ -13,9 +13,9 @@ vault:
   role: "default"
   path: "kubernetes"
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/quilr-web
-  tag: latest
-  pullPolicy: Always
+  repository: quilrdev.azurecr.io/quilr-web
+  tag: latest_iifl
+  pullPolicy: IfNotPresent
 resources:
   requests:
     memory: "512Mi"
@@ -25,6 +25,7 @@ resources:
     cpu: "1000m"
 secretRef:
   name: auth-key-public
+secretName: azure-secret
 hpa:
   enabled: true
   minReplicas: 1

@@ -1,7 +1,7 @@
 namespace: quilr
 quilr:
   appname: dlp-config-service
-  storagename: dlp-download-storage-prod-veg
+  storagename: dlp-download-storage-prod-sentara
 configMap:
   KAFKA_CONFIG_CONSUMER_TOPIC: "dlp-config-topic"
 vault:
@@ -9,8 +9,8 @@ vault:
   role: "default"
   path: "kubernetes"
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/dlp-config-service
-  tag: latest
+  repository: quilrdev.azurecr.io/dlp-config-service
+  tag: latest_prod
   pullPolicy: Always
 resources:
   requests:
@@ -35,6 +35,6 @@ service:
 # Additional fields
 secretName: azure-secret
 azurefileshare:
-  name: dlp-download-storage-prod-veg
+  name: secopsquilrstgfileshare
 secrets:
-  vaulttruststore: quilr-vault-truststore
+  vaulttruststore: quilr-vault-trustore

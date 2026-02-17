@@ -1,0 +1,122 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.quilr.appname }}
+  namespace: {{ .Values.namespace | default "quilr" }}  # Use namespace from values.yaml
+  labels:
+    app: {{ .Values.quilr.appname }}
+spec:
+  replicas: {{ .Values.hpa.minReplicas }}  # This will be managed by the HPA
+  selector:
+    matchLabels:
+      app: {{ .Values.quilr.appname }}
+  template:
+    metadata:
+      annotations:
+        vault.security.banzaicloud.io/vault-addr: "{{ .Values.vault.addr }}"
+        vault.security.banzaicloud.io/vault-env-passthrough: "VAULT_ADDR,VAULT_TOKEN"
+        vault.security.banzaicloud.io/vault-role: "{{ .Values.vault.role }}"
+        vault.security.banzaicloud.io/vault-skip-verify: "true"
+        vault.security.banzaicloud.io/vault-agent: "true"
+        vault.security.banzaicloud.io/vault-path: "{{ .Values.vault.path }}"
+      name: {{ .Values.quilr.appname }}
+      labels:
+        app: {{ .Values.quilr.appname }}
+    spec:
+      volumes:
+        - name: agent-secrets
+          emptyDir: {}
+      initContainers:
+        - name: wait-for-vault
+          image: quilrdev.azurecr.io/bitnamilegacy/quilr-tp:curl-8.5.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for Vault at {{ .Values.vault.addr }}..."
+              until curl -k -sSf {{ .Values.vault.addr }}/v1/sys/health; do
+                echo "Vault not ready, retrying in 5s..."
+                sleep 5
+              done
+              echo "Vault is ready!"
+      containers:
+        - name: {{ .Values.quilr.appname }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 5
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 5  
+          env:
+            - name: AZURE_BASE_URL
+              value: vault:secret/data/quilr-common-config-vault#AZURE_BASE_URL
+            - name: AZURE_OPENAI_API_KEY
+              value: vault:secret/data/quilr-common-config-vault#AZURE_OPENAI_API_KEY
+            - name: DEFAULT_KNOWLEDGE_HOST
+              value: vault:secret/data/quilr-common-config-vault#DEFAULT_KNOWLEDGE_HOST
+            - name: DEFAULT_KNOWLEDGE_PORT
+              value: vault:secret/data/quilr-common-config-vault#DEFAULT_KNOWLEDGE_PORT
+            - name: DEFAULT_KNOWLEDGE_USERNAME
+              value: vault:secret/data/quilr-common-config-vault#DEFAULT_KNOWLEDGE_USERNAME
+            - name: PG_USER
+              value: vault:secret/data/quilr-common-config-vault#PG_USER
+            - name: PG_HOST
+              value: vault:secret/data/quilr-common-config-vault#PG_HOST
+            - name: DEFAULT_KNOWLEDGE_PSWD
+              value: vault:secret/data/quilr-common-config-vault#DEFAULT_KNOWLEDGE_PSWD
+            - name: PG_PASSWORD
+              value: vault:secret/data/quilr-common-config-vault#PG_PASSWORD
+            - name: REDIS_PASSWORD
+              value: vault:secret/data/quilr-common-config-vault#REDIS_PASSWORD
+            - name: VAULT_TOKEN
+              value: vault:secret/data/quilr-common-config-vault#VAULT_TOKEN
+            - name: OAUTH_CLIENT_ID
+              value: vault:secret/data/quilr-common-config-vault#OAUTH_CLIENT_ID
+            - name: OAUTH_CLIENT_SECRET
+              value: vault:secret/data/quilr-common-config-vault#OAUTH_CLIENT_SECRET
+            - name: OPENAI_LATEST_API_KEY
+              value: vault:secret/data/quilr-common-config-vault#OPENAI_LATEST_API_KEY
+            - name: OPENAI_MINI_API_KEY
+              value: vault:secret/data/quilr-common-config-vault#OPENAI_MINI_API_KEY
+            - name: OPENAI_EMBEDDING_API_KEY
+              value: vault:secret/data/quilr-common-config-vault#OPENAI_EMBEDDING_API_KEY
+            - name: ELASTIC_USERNAME
+              value: vault:secret/data/quilr-common-config-vault#ELASTIC_USERNAME 
+            - name: ELASTIC_PASSWORD
+              value: vault:secret/data/quilr-common-config-vault#ELASTIC_PASSWORD
+            - name: OPENAI_API_KEY
+              value: "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"    
+            - name: ADMIN_QUILLY_APPID
+              value: "000f9729-0fb1-42d4-98fa-1dd38e68d681"
+            - name: ADMIN_QUILLY_APPSECRET
+              value: "t1d8Q~CcZLZKrnAP_CHV9W2nF29jfJ.LCufLeb~S"
+            - name: guardrails.enable
+              value: "true"
+            - name: guardrails
+              value: "/app/config"
+          envFrom:
+            - configMapRef:
+                name: quilr-common-config
+            - secretRef:
+                name: {{ .Values.secretRef.name }}
+            - configMapRef:
+                name: {{ .Values.quilr.appname }}-configmap
+          resources:
+            requests:
+              memory: {{ .Values.resources.requests.memory }}
+              cpu: {{ .Values.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.resources.limits.memory }}
+              cpu: {{ .Values.resources.limits.cpu }}

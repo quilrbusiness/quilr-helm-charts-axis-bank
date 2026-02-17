@@ -22,25 +22,39 @@ spec:
       labels:
         app: {{ .Values.quilr.appname }}
     spec:
+      initContainers:
+        - name: wait-for-vault
+          image: quilrdev.azurecr.io/bitnamilegacy/quilr-tp:curl-8.5.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for Vault at {{ .Values.vault.addr }}..."
+              until curl -k -sSf {{ .Values.vault.addr }}/v1/sys/health; do
+                echo "Vault not ready, retrying in 5s..."
+                sleep 5
+              done
+              echo "Vault is ready!"
       containers:
         - name: {{ .Values.quilr.appname }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.port }}
-          # readinessProbe:
-          #   tcpSocket:
-          #     port: {{ .Values.service.port }}
-          #   initialDelaySeconds: 90
-          #   periodSeconds: 5
-          #   timeoutSeconds: 5
-          #   failureThreshold: 5
-          # livenessProbe:
-          #   tcpSocket:
-          #     port: {{ .Values.service.port }}
-          #   initialDelaySeconds: 90
-          #   periodSeconds: 5
-          #   failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 90
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 5
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 90
+            periodSeconds: 5
+            failureThreshold: 5
           env:
             - name: SF_CONNECTION_STRING
               value: vault:secret/data/quilr-common-config-vault#SF_CONNECTION_STRING

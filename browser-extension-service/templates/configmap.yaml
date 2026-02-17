@@ -12,4 +12,3 @@ data:
   USER_DETAILS_TTL: "{{ .Values.configMap.USER_DETAILS_TTL }}"
   APP_DETAILS_TTL: "{{ .Values.configMap.APP_DETAILS_TTL }}"
   ORG_DOMAIN_TTL: "{{ .Values.configMap.ORG_DOMAIN_TTL }}"
-  TENANT_CONFIG_TTL: "{{ .Values.configMap.TENANT_CONFIG_TTL }}"

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: psql-test
+  namespace: quilr
+spec:
+  restartPolicy: Never
+  containers:
+  - name: psql
+    image: registry-1.docker.io/bitnami/postgresql:latest
+    command: ["sleep", "infinity"]
+

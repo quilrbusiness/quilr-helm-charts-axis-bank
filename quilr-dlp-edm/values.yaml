@@ -1,0 +1,36 @@
+namespace: quilr
+quilr:
+  appname: quilr-dlp-edm
+configMap:
+  EDM_SERVER_DATA_DIR: "/quilr-dlp-edm/"
+  EMBEDDING_MODEL_URL: "http://quilr-dlp-embeddings:8080"
+  STAGE2_URL: "http://quilr-dlp-stage2:23333"
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 85
+image:
+  repository: quilrdev.azurecr.io/quilr-dlp-edm
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  name: quilr-dlp-edm
+  type: ClusterIP
+  port: 3455
+  targetPort: 3455
+vault:
+  addr: "https://vault.quilr.svc.cluster.local:8200"
+  role: "default"
+  path: "kubernetes"
+secretRef:
+  name: auth-key-public
+secretName: azure-secret
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "125m"
+  limits:
+    memory: "1024Mi"
+    cpu: "1000m"

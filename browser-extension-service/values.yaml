@@ -1,6 +1,7 @@
 namespace: quilr
 quilr:
   appname: browser-extension-service
+  commonfileshare: quilr-data-upload
 configMap:
   RELAY_CONFIG_DIR: "/browser-extension-service/static/relays"
   LOOKUP_CONFIG_DIR: "/browser-extension-service/static/lookups"
@@ -10,15 +11,14 @@ configMap:
   USER_DETAILS_TTL: 600
   APP_DETAILS_TTL: 600
   ORG_DOMAIN_TTL: 600
-  TENANT_CONFIG_TTL: 600
 vault:
   addr: "https://vault.quilr.svc.cluster.local:8200"
   role: "default"
   path: "kubernetes"
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/browser-extension-service
-  tag: latest
-  pullPolicy: Always
+  repository: quilrdev.azurecr.io/browser-extension-service
+  tag: latest_prod
+  pullPolicy: IfNotPresent
 resources:
   requests:
     memory: "512Mi"
@@ -42,6 +42,4 @@ service:
 # Additional fields
 secretName: azure-secret
 azurefileshare:
-  name: browser-extension-service
-commonFileshare:
-  name: quilr-data-upload
+  name: secopsquilrstgfileshare

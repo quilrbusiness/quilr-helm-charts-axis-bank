@@ -20,7 +20,7 @@ configMap:
   KAFKA_CONFIG_INDEXER_CONSUMER_GROUPID: "dlp-indexer-groupid"
   KAFKA_CONFIG_INDEXER_CONSUMER_TOPIC: "dlp-indexer-topic"
   KAFKA_CONFIG_DEDUPLICATION_PRODUCER_TOPIC: "dlp-deduplication-topic"
-  FILES_DOWNLOAD_LOCATION: "/dlp-download-storage-prod-veg"
+  FILES_DOWNLOAD_LOCATION: "/dlp-download-storage-prod-sentara"
   DLP_DEDUPLICATION_SERVICE_URL: "http://dlp-deduplication-service:8041/dlp/dedup"
   REDIS_PORT: "6379"
   REDIS_TIMEOUT: "2000"
@@ -99,8 +99,8 @@ configMap:
   VAULT_PORT: "8200"
   ES_HOST: "https://quilr-db-elasticsearch:9200"
   ES_USER_NAME: "elastic"
-  DLP_DATA_DEFINITION_URL: "https://poc.quilr.ai/bff/dlp-data-definition"
+  DLP_DATA_DEFINITION_URL: "https://quilr.axisbank.com/bff/dlp-data-definition"
   OOB_DDs: 'PII,PFI,PHI,SECRET'
-
   AI_SERVICE_URL: 'http://quilr-ai-services:8050'
+
 

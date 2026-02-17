@@ -15,8 +15,8 @@ spec:
       activeDeadlineSeconds: {{ .Values.cronjob.activeDeadlineSeconds }}
       ttlSecondsAfterFinished: {{ .Values.cronjob.ttlSecondsAfterFinished }}
       backoffLimit: {{ .Values.cronjob.backoffLimit }}
-      completions: 2
-      parallelism: 2
+      completions: 1
+      parallelism: 1
       template:
         metadata:
           labels:
@@ -32,6 +32,20 @@ spec:
           volumes:
             - name: agent-secrets
               emptyDir: {}
+          initContainers:
+            - name: wait-for-vault
+              image: quilrdev.azurecr.io/bitnamilegacy/quilr-tp:curl-8.5.0
+              imagePullPolicy: IfNotPresent
+              command:
+                - sh
+                - -c
+                - |
+                  echo "Waiting for Vault at {{ .Values.vault.addr }}..."
+                  until curl -k -sSf {{ .Values.vault.addr }}/v1/sys/health; do
+                    echo "Vault not ready, retrying in 5s..."
+                    sleep 5
+                  done
+                  echo "Vault is ready!"
           containers:
             - name: {{ .Values.quilr.appname }}
               image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -50,8 +64,8 @@ spec:
                   value: vault:secret/data/quilr-common-config-vault#OAUTH_CLIENT_ID
                 - name: OAUTH_CLIENT_SECRET
                   value: vault:secret/data/quilr-common-config-vault#OAUTH_CLIENT_SECRET
-                - name: STORAGE_CONNECTION_STRING
-                  value: vault:secret/data/quilr-common-config-vault#STORAGE_CONNECTION_STRING
+                # - name: STORAGE_CONNECTION_STRING
+                #   value: vault:secret/data/quilr-common-config-vault#STORAGE_CONNECTION_STRING
                 - name: REDIS_PASSWORD
                   value: vault:secret/data/quilr-common-config-vault#REDIS_PASSWORD  
                 - name: DEFAULT_KNOWLEDGE_HOST
@@ -61,7 +75,7 @@ spec:
                 - name: DEFAULT_KNOWLEDGE_PSWD
                   value: vault:secret/data/quilr-common-config-vault#DEFAULT_KNOWLEDGE_PSWD
                 - name: DEFAULT_KNOWLEDGE_USERNAME
-                  value: vault:secret/data/quilr-common-config-vault#DEFAULT_KNOWLEDGE_USERNAME  
+                  value: vault:secret/data/quilr-common-config-vault#DEFAULT_KNOWLEDGE_USERNAME 
               envFrom:
                 - configMapRef:
                     name: quilr-common-config

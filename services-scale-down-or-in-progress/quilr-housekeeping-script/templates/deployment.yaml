@@ -22,6 +22,20 @@ spec:
             "vault.security.banzaicloud.io/vault-agent": "false"
             "vault.security.banzaicloud.io/vault-path": "{{ .Values.vault.path }}"
         spec:
+      initContainers:
+        - name: wait-for-vault
+          image: quilrdev.azurecr.io/bitnamilegacy/quilr-tp:curl-8.5.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for Vault at {{ .Values.vault.addr }}..."
+              until curl -k -sSf {{ .Values.vault.addr }}/v1/sys/health; do
+                echo "Vault not ready, retrying in 5s..."
+                sleep 5
+              done
+              echo "Vault is ready!"
           containers:
             - name: {{ .Values.quilr.appname }}
               image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

@@ -2,15 +2,15 @@ namespace: quilr
 quilr:
   appname: quilr-scoring-service
 configMap:
-  bffurl: "poc.quilr.ai/bff"
+  bffurl: "quilr.axisbank.com/bff"
   SEARCH_API_HOST: "/search"
 vault:
   addr: "https://vault.quilr.svc.cluster.local:8200"
   role: "default"
   path: "kubernetes"
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/quilr-scoring-service
-  tag: latest
+  repository: quilrdev.azurecr.io/quilr-scoring-service
+  tag: latest_prod
   pullPolicy: Always
 resources:
   requests:

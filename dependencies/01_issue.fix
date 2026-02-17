@@ -1,0 +1,9 @@
+UPDATE "public"."user" SET "password" = '$2a$10$In.lF7j.K0RnV/OcEtnoIOq75DdrSsrfDyMupxBFmTICV6.QU2qci' WHERE "email" = 'monitor@quilr.ai';
+
+m)*^QER7&!@S0oM
+
+
+INSERT INTO "user"("firstname","lastname","username","email","password","subscriberId","tenantIds","roleIds","groupIds","status","verification_status","createdby","updatedby","createdon","updatedon","deletedAt","accountType","emailSent","lastLogin")
+VALUES
+(E'Monitor',E'Quilr',E'monitor',E'monitor-iifl@quilr.ai',E'$2a$10$In.lF7j.K0RnV/OcEtnoIOq75DdrSsrfDyMupxBFmTICV6.QU2qci',E'1b88c4a4-257c-4f60-83ab-604cb5ba2c29',E'{6516562c-0372-4704-8858-978d27ca1f24}',E'{81569d9b-65e4-4cc1-8668-10c373dde677}',E'{12eade82-5018-4ac3-8972-53bcb447712e}',E'active',E'unverified',E'Quilr-Omega',E'Quilr-Omega',E'2024-11-22 10:55:10.070456',E'2025-05-26 13:54:38.968692',NULL,E'credentials',FALSE,1748267678973);
+

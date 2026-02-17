@@ -18,8 +18,8 @@ vault:
 
 # Container image configuration
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/quilr-intune-fabric
-  tag: latest
+  repository: quilrdev.azurecr.io/quilr-intune-fabric
+  tag: latest_prod
   pullPolicy: Always
 
 configMap:

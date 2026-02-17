@@ -64,12 +64,14 @@ spec:
             - configMapRef:
                 name: {{ .Values.quilr.appname }}-configmap
           volumeMounts:
-            - name: efs-vol
-              mountPath: /{{ .Values.quilr.appname }}
+            - name: {{ .Values.quilr.appname }}-vol
+              mountPath: /{{ .Values.quilr.appname }
               subPath: {{ .Values.quilr.appname }}
       volumes:
-        - name: efs-vol
-          persistentVolumeClaim:
-            claimName: efs-shared-pvc
+        - name: {{ .Values.quilr.appname }}-vol
+          azureFile:
+            readOnly: false
+            secretName: {{ .Values.secretName }}
+            shareName: {{ .Values.azurefileshare.name }}
         - name: agent-secrets
           emptyDir: {}

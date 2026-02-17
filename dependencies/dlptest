@@ -1,0 +1,9 @@
+curl 'http://quilr.axisbank.com/dlp/v2/stream/detect' \
+-X 'POST' \
+-H 'Content-Type: application/json' \
+-H 'Accept: */*' \
+-H 'Authorization: 6788' \
+-H 'Sec-Fetch-Site: same-origin' \
+-H 'Referer: http://quilr.axisbank.com/dlp/tryv2' \
+-H 'Host: quilr.axisbank.com' \
+--data-raw '{"text":"my ssn is 21313114","tenant_id":"unknowntenantid"}'

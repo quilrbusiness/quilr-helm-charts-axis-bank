@@ -9,9 +9,9 @@ vault:
   role: "default"
   path: "kubernetes"
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/quilr-playbook-service
-  tag: latest
-  pullPolicy: Always
+  repository: quilrdev.azurecr.io/quilr-playbook-service
+  tag: latest_prod
+  pullPolicy: IfNotPresent
 resources:
   requests:
     memory: "512Mi"
@@ -35,4 +35,4 @@ service:
 # Additional fields
 secretName: azure-secret
 azurefileshare:
-  name: quilr-playbook-service
+  name: secopsquilrstgfileshare

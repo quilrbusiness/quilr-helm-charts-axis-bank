@@ -1,0 +1,41 @@
+namespace: quilr
+quilr:
+  appname: quilr-dlp-server
+configMap: 
+  STAGE1_URL: "http://quilr-dlp-stage1:8095"
+  STAGE2_URL: "http://quilr-dlp-stage2:23333"
+  EDM_URL: "http://quilr-dlp-edm:3455"
+  GUARD_URL: "http://quilr-dlp-guard:23333"
+  DLP_SERVER_DATA_DIR: "/quilr-dlp-server"
+
+### for hpa.yaml
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 85
+image:
+  repository: quilrdev.azurecr.io/quilr-dlp-server
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  name: quilr-dlp-server
+  type: NodePort
+  port: 8000
+  targetPort: 8000
+  nodePort: 31443
+vault:
+  addr: "https://vault.quilr.svc.cluster.local:8200"
+  role: "default"
+  path: "kubernetes"
+secretRef:
+  name: auth-key-public
+secretName: azure-secret
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "50m"
+  limits:
+    memory: "1024Mi"
+    cpu: "1000m"

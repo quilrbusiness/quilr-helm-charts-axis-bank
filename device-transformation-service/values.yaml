@@ -15,8 +15,8 @@ vault:
   role: "default"
   path: "kubernetes"
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/device-transformation-service
-  tag: latest
+  repository: quilrdev.azurecr.io/device-transformation-service
+  tag: latest_prod
   pullPolicy: Always
 resources:
   requests:

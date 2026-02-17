@@ -2,14 +2,14 @@ namespace: quilr
 quilr:
   appname: copilot-workflow-executor
 configMap:
-  bffurl: "poc.quilr.ai/bff"
+  bffurl: "quilr.axisbank.com/bff"
 vault:
   addr: "https://vault.quilr.svc.cluster.local:8200"
   role: "default"
   path: "kubernetes"
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/copilot-workflow-executor
-  tag: latest
+  repository: quilrdev.azurecr.io/copilot-workflow-executor
+  tag: latest_prod
   pullPolicy: Always
 resources:
   requests:

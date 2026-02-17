@@ -12,8 +12,8 @@ vault:
   role: "default"
   path: "kubernetes"
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/content-lambda-service
-  tag: latest
+  repository: quilrdev.azurecr.io/content-lambda-service
+  tag: latest_prod
   pullPolicy: Always
 resources:
   requests:
@@ -38,4 +38,4 @@ service:
 # Additional fields
 secretName: azure-secret
 azurefileshare:
-  name: content-lambda-service
+  name: secopsquilrstgfileshare

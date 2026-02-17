@@ -1,0 +1,57 @@
+#****************** for deployment.yaml ******************#
+namespace: quilr
+quilr:
+  appname: quilr-agent-service
+
+### for hpa.yaml
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 85
+
+vault:
+  addr: "https://vault.quilr.svc.cluster.local:8200"
+  vault-env-passthrough: "VAULT_ADDR,VAULT_TOKEN"
+  role: "default"
+  path: "kubernetes"
+
+image:
+  repository: quilrdev.azurecr.io/quilr-agent-service
+  tag: latest_prod
+  pullPolicy: Always
+
+configMap:
+  logging_level: "INFO"
+  VERBOSE: "true"
+  inference_model: "gpt-4.1-mini"
+  instruction_model: "gpt-4.1"
+  neo4j.rag: langchain
+  neo4jrag.enable: "true"
+  DOCSTORE: "/app/docs"
+  rag_model: "gpt-4.1-mini"
+  guardrails: "/app/config"
+  TOKENIZERS_PARALLELISM: "false"
+  guardrails_enable: "true"
+  instructionfile: "/app/library/IntructionSet.txt"
+
+secretRef:
+  name: auth-key-public
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "125m"
+  limits:
+    memory: "1024Mi"
+    cpu: "1000m"
+
+#****************** for service.yaml ******************#
+service:
+  name: quilr-agent-service
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+#*******************************************************#
+

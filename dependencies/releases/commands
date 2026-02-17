@@ -1,0 +1,91 @@
+##########################################
+Postgress:
+
+export PGPASSWORD='Kdf562amkiDF!dv*QW'
+psql -h 10.8.133.12 -p 5432 -U psqladmin -d quilr
+update classificationrelease set published=FALSE;
+
+select * from public.instances where category = 'Identity';
+
+
+UPDATE public.instances 
+SET filters = '{"groups": {"include": ["Cyber Security"]}}'::jsonb
+WHERE instance_id = 'f97cdcdd-f523-4d8f-89ea-4bf06753f70f';
+ 
+
+UPDATE public.instances SET persist = true WHERE instance_id = 'f97cdcdd-f523-4d8f-89ea-4bf06753f70f';
+
+
+#To update classificationrelease Flag for any changes in content
+
+psql -h 10.8.133.12 -p 5432 -U psqladmin -d quilr -c "UPDATE classificationrelease SET published=FALSE;"
+
+# to See status
+psql -h 10.8.133.12 -p 5432 -U psqladmin -d quilr -c "SELECT published FROM classificationrelease;"
+
+
+###########################################
+VAULT:
+
+export VAULT_TOKEN=$(kubectl get secrets vault-unseal-keys --namespace=quilr -o jsonpath={.data.vault-root} | base64 --decode)
+export VAULT_SKIP_VERIFY=true
+export VAULT_ADDR="https://10.8.133.8:8200"
+
+vault kv get secret/quilr-common-config-vault 
+
+vault kv get secret/quilr-common-config-vault | grep CLIENT_SECRET
+
+vault kv patch secret/quilr-common-config-vault  CLIENT_SECRET='EV_8Q~0gnZ0JY5iTCFNFdgLbi~unTgqZ~9y83adf'
+
+vault kv patch secret/quilr-common-config-vault  MS_CLIENT_SECRET='EV_8Q~0gnZ0JY5iTCFNFdgLbi~unTgqZ~9y83adf'
+
+vault kv get secret/quilr-common-config-vault | egrep 'CLIENT_SECRET|MS_CLIENT_SECRET'
+
+
+
+
+export VAULT_ADDR=https://127.0.0.1:8200
+export VAULT_SKIP_VERIFY=true
+export VAULT_TOKEN=$(kubectl get secrets vault-unseal-keys --namespace=quilr -o jsonpath={.data.vault-root} | base64 --decode)
+
+
+kubectl -n quilr port-forward svc/vault 8200:8200 >/tmp/vault-pf.log 2>&1 & echo $! > /tmp/vault-pf.pid
+
+
+vault kv get secret/quilr-common-config-vault
+
+vault kv patch secret/quilr-common-config-vault  CLIENT_SECRET='EV_8Q~0gnZ0JY5iTCFNFdgLbi~unTgqZ~9y83adf'
+
+vault kv patch secret/quilr-common-config-vault  MS_CLIENT_SECRET='EV_8Q~0gnZ0JY5iTCFNFdgLbi~unTgqZ~9y83adf'
+
+vault kv get secret/quilr-common-config-vault | egrep 'CLIENT_SECRET|MS_CLIENT_SECRET'
+
+$(cat /tmp/vault-pf.pid) 2>/dev/null || pkill -f 'kubectl.*port-forward.*svc/vault.*8200'
+
+
+
+############### Clickhouse: ##########################
+ kubectl exec -it quilr-clickhouse-shard0-0 -n quilr --  clickhouse-client -h localhost -u quilradmin --password 'QU1lr$F345#we'
+
+
+############### Neo4j: ##########################
+ kubectl exec -it quilr-neo4j-0 -n quilr 
+
+ kubectl exec -it quilr-neo4j-0 -n quilr --  cypher-shell -u neo4j -p 'QUIuI23L*R$#%#&457Ip'
+
+neo4j@neo4j> MATCH (u:User)
+             RETURN count(u) AS userCount;
++-----------+
+| userCount |
++-----------+
+| 0         |
++-----------+
+
+1 row
+ready to start consuming query after 10 ms, results consumed after another 0 ms
+
+################# Redis: ##########################
+kubectl exec -it my-redis-master-0 -n quilr --  redis-cli -a "QuIId2RD6wK>)^LLRoO"
+
+ SMEMBERS Quilr:Fabric:Client
+SREM Quilr:Fabric:Client f97cdcdd-f523-4d8f-89ea-4bf06753f70f
