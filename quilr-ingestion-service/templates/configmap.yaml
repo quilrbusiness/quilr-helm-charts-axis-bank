@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ .Values.quilr.appname }}-configmap
-  namespace: {{ .Values.namespace | default "default" }}
-data:
-  QUILR_INGESTION_PORT: "{{ .Values.configMap.QUILR_INGESTION_PORT}}"
-  GRAPH_NAME: "{{ .Values.configMap.GRAPH_NAME}}"

@@ -1,6 +1,0 @@
-apiVersion: v2
-appVersion: 0.1.0
-description: A Helm chart for data-fabric-core-service (AKS cluster)
-name: data-fabric-core-service
-type: application
-version: 0.1.0

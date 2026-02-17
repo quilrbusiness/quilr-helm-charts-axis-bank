@@ -1,2 +1,0 @@
-ALTER TABLE default.quilr_alert_events
-ADD COLUMN IF NOT EXISTS file_details String DEFAULT [];

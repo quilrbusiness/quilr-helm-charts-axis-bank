@@ -1,5 +1,0 @@
-cd /media/secopsquilrstgfileshare
-wget https://release-portal.quilr.ai/quilr-migration-service.tar.gz
-tar -xzvf quilr-migration-service.tar.gz
-rm -rf quilr-migration-service.tar.gz
-ls -lrt /media/secopsquilrstgfileshare/quilr-migration-service

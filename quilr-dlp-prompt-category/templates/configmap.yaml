@@ -1,9 +1,0 @@
-## No specific configmap.yaml for the service
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name:  {{ .Values.quilr.appname }}-configmap
-  namespace: {{ .Values.namespace | default "default" }}  # Use namespace from values.yaml
-data:
-  STAGE2_URL: "{{ .Values.configMap.STAGE2_URL }}"
-  PROMPT_CATEGORY_BASE_URL: "{{ .Values.configMap.PROMPT_CATEGORY_BASE_URL }}"

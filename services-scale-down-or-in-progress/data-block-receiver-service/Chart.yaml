@@ -1,6 +1,0 @@
-apiVersion: v2
-appVersion: 0.1.0
-description: A Helm chart for data-block-receiver-service (AKS cluster)
-name: data-block-receiver-service
-type: application
-version: 0.1.0

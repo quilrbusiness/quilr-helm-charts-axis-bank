@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ .Values.quilr.appname }}-configmap
-  namespace: {{ .Values.namespace | default "quilr" }}  # Use namespace from values.yaml
-data:
-  CONTROL_TEMPLATES_DIR: "{{ .Values.configMap.CONTROL_TEMPLATES_DIR }}"
-  TEMPLATES_DIR: "{{ .Values.configMap.TEMPLATES_DIR }}"

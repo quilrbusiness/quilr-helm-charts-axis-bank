@@ -1,8 +1,0 @@
-## No specific configmap.yaml for the service
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name:  {{ .Values.quilr.appname }}-configmap
-  namespace: {{ .Values.namespace | default "default" }}  # Use namespace from values.yaml
-data:
-  EMBEDDING_MODEL_URL: "{{ .Values.configMap.EMBEDDING_MODEL_URL }}"

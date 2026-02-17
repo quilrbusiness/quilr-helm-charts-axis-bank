@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ .Values.quilr.appname }}-configmap
-  namespace: {{ .Values.namespace | default "default" }}
-data:
-  AI_AXIS_PORT: "{{ .Values.configMap.AI_AXIS_PORT}}"
-  GRAPH_NAME: "{{ .Values.configMap.GRAPH_NAME}}"
