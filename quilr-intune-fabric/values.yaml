@@ -1,0 +1,27 @@
+# Namespace and application name
+namespace: quilr
+quilr:
+  appname: quilr-intune-fabric
+
+# CronJob-specific values
+cronjob:
+  schedule: "0 */6 * * *"
+  concurrencyPolicy: "Forbid"
+  ttlSecondsAfterFinished: "300"
+
+# Vault configuration for annotations and passthrough
+vault:
+  addr: "https://vault.quilr.svc.cluster.local:8200"
+  vault-env-passthrough: "VAULT_ADDR,VAULT_TOKEN"
+  role: "default"
+  path: "kubernetes"
+
+# Container image configuration
+image:
+  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/quilr-intune-fabric
+  tag: latest
+  pullPolicy: Always
+
+configMap:
+  logging_level: INFO
+  FetchInterval: "300"

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.quilr.appname }}-configmap
+  namespace: {{ .Values.namespace | default "quilr" }}  # Use namespace from values.yaml
+data:
+  PRIVATE_KEY: "{{ .Values.configMap.PRIVATE_KEY }}"
+  PUBLIC_KEY: "{{ .Values.configMap.PUBLIC_KEY }}"
+  JWKS_FILE: "{{ .Values.configMap.JWKS_FILE }}"

@@ -1,0 +1,41 @@
+namespace: quilr
+quilr:
+  appname: content-lambda-service
+configMap:
+  KAFKA_TOPIC_READ: "contentLambda"
+  KAFKA_TOPIC_WRITE: "contentForwarder"
+  KAFKA_GROUP_ID: "content-lambda-service"
+  LOG_FILE: "logs/logfile.log"
+  STATIC_DIR_LOCATION: "/content-lambda-service"
+vault:
+  addr: "https://vault.quilr.svc.cluster.local:8200"
+  role: "default"
+  path: "kubernetes"
+image:
+  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/content-lambda-service
+  tag: latest
+  pullPolicy: Always
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "125m"
+  limits:
+    memory: "1024Mi"
+    cpu: "1000m"
+secretRef:
+  name: auth-key-public
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 85
+service:
+  name: content-lambda-service
+  type: ClusterIP
+  port: 9001
+  targetPort: 9001
+# Additional fields
+secretName: azure-secret
+azurefileshare:
+  name: content-lambda-service

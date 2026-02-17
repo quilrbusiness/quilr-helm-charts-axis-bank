@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.quilr.appname }}-configmap
+  namespace: {{ .Values.namespace | default "quilr" }}  # Use namespace from values.yaml
+data:
+  VAULT_CERT_FILE: 'file:/{{ .Values.quilr.appname }}-truststore/truststore.jks'
+  STATIC_DIR_LOCATION: "{{ .Values.configMap.STATIC_DIR_LOCATION }}"

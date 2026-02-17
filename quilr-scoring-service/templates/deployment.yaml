@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.quilr.appname }}
+  namespace: {{ .Values.namespace | default "quilr" }}  # Use namespace from values.yaml
+  labels:
+    app: {{ .Values.quilr.appname }}
+spec:
+  replicas: {{ .Values.hpa.minReplicas }}  # This will be managed by the HPA
+  selector:
+    matchLabels:
+      app: {{ .Values.quilr.appname }}
+  template:
+    metadata:
+      annotations:
+        vault.security.banzaicloud.io/vault-addr: "{{ .Values.vault.addr }}"
+        vault.security.banzaicloud.io/vault-role: "{{ .Values.vault.role }}"
+        vault.security.banzaicloud.io/vault-skip-verify: "true"
+        vault.security.banzaicloud.io/vault-agent: "false"
+        vault.security.banzaicloud.io/vault-path: "{{ .Values.vault.path }}"
+      name: {{ .Values.quilr.appname }}
+      labels:
+        app: {{ .Values.quilr.appname }}
+    spec:
+      containers:
+        - name: {{ .Values.quilr.appname }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          # readinessProbe:
+          #   tcpSocket:
+          #     port: {{ .Values.service.port }}
+          #   initialDelaySeconds: 90
+          #   periodSeconds: 5
+          #   timeoutSeconds: 5
+          #   failureThreshold: 5
+          # livenessProbe:
+          #   tcpSocket:
+          #     port: {{ .Values.service.port }}
+          #   initialDelaySeconds: 90
+          #   periodSeconds: 5
+          #   failureThreshold: 5
+          env:
+            - name: ACCESS_TOKEN
+              value: vault:secret/data/quilr-common-config-vault#ACCESS_TOKEN
+            - name: CLIENT_ID
+              value: vault:secret/data/quilr-common-config-vault#CLIENT_ID
+            - name: CLIENT_SECRET
+              value: vault:secret/data/quilr-common-config-vault#CLIENT_SECRET
+            - name: GRANTS_DELTA
+              value: vault:secret/data/quilr-common-config-vault#GRANTS_DELTA
+            - name: TENANT_ID
+              value: vault:secret/data/quilr-common-config-vault#TENANT_ID
+            - name: SERVICE_PRINCIPAL_DELTA
+              value: vault:secret/data/quilr-common-config-vault#SERVICE_PRINCIPAL_DELTA
+            - name: PG_HOST_CUSTOMER
+              value: vault:secret/data/quilr-common-config-vault#PG_HOST_CUSTOMER
+            - name: PG_USER_CUSTOMER
+              value: vault:secret/data/quilr-common-config-vault#PG_USER_CUSTOMER
+            - name: PG_PWD_CUSTOMER
+              value: vault:secret/data/quilr-common-config-vault#PG_PWD_CUSTOMER
+            - name: PG_DB_CUSTOMER
+              value: vault:secret/data/quilr-common-config-vault#PG_DB_CUSTOMER
+            - name: PG_PORT_CUSTOMER
+              value: vault:secret/data/quilr-common-config-vault#PG_PORT_CUSTOMER
+            - name: PG_AUTOWIRE
+              value: vault:secret/data/quilr-common-config-vault#PG_AUTOWIRE       
+            - name: REDIS_PASSWORD
+              value: vault:secret/data/quilr-common-config-vault#REDIS_PASSWORD  
+            - name: SF_USERNAME
+              value: vault:secret/data/quilr-common-config-vault#SF_USERNAME          
+            - name: SF_PASSWORD
+              value: vault:secret/data/quilr-common-config-vault#SF_PASSWORD
+            - name: SF_AUTOWIRE
+              value: vault:secret/data/quilr-common-config-vault#SF_AUTOWIRE                                           
+          envFrom:
+            - configMapRef:
+                name: quilr-common-config
+            - secretRef:
+                name: {{ .Values.secretRef.name }}
+            - configMapRef:
+                name: {{ .Values.quilr.appname }}-configmap
+          resources:
+            requests:
+              memory: {{ .Values.resources.requests.memory }}
+              cpu: {{ .Values.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.resources.limits.memory }}
+              cpu: {{ .Values.resources.limits.cpu }}

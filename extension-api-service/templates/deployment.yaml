@@ -1,0 +1,111 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.quilr.appname }}
+  namespace: {{ .Values.namespace | default "quilr" }}  # Use namespace from values.yaml
+  labels:
+    app: {{ .Values.quilr.appname }}
+spec:
+  replicas: {{ .Values.hpa.minReplicas }}  # This will be managed by the HPA
+  selector:
+    matchLabels:
+      app: {{ .Values.quilr.appname }}
+  template:
+    metadata:
+      annotations:
+        vault.security.banzaicloud.io/vault-addr: "{{ .Values.vault.addr }}"
+        vault.security.banzaicloud.io/vault-role: "{{ .Values.vault.role }}"
+        vault.security.banzaicloud.io/vault-skip-verify: "true"
+        vault.security.banzaicloud.io/vault-agent: "false"
+        vault.security.banzaicloud.io/vault-path: "{{ .Values.vault.path }}"
+      name: {{ .Values.quilr.appname }}
+      labels:
+        app: {{ .Values.quilr.appname }}
+    spec:
+      initContainers:
+        - name: wait-for-vault
+          image: curlimages/curl:8.5.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for Vault at {{ .Values.vault.addr }}..."
+              until curl -k -sSf {{ .Values.vault.addr }}/v1/sys/health; do
+                echo "Vault not ready, retrying in 5s..."
+                sleep 5
+              done
+              echo "Vault is ready!"
+      containers:
+        - name: {{ .Values.quilr.appname }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 5
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 90
+            periodSeconds: 5
+            failureThreshold: 5
+          env:
+            - name: REDIS_PASSWORD
+              value: vault:secret/data/quilr-common-config-vault#REDIS_PASSWORD
+            - name: PG_HOST
+              value: vault:secret/data/quilr-common-config-vault#PG_HOST
+            - name: PG_USER
+              value: vault:secret/data/quilr-common-config-vault#PG_USER
+            - name: PG_PASSWORD
+              value: vault:secret/data/quilr-common-config-vault#PG_PASSWORD
+            - name: DW_NAME
+              value: vault:secret/data/quilr-common-config-vault#DW_NAME
+            - name: DW_USER
+              value: vault:secret/data/quilr-common-config-vault#DW_USER
+            - name: DW_PASSWORD
+              value: vault:secret/data/quilr-common-config-vault#DW_PASSWORD
+            - name: DW_URL
+              value: vault:secret/data/quilr-common-config-vault#DW_URL
+            - name: DEFAULT_KNOWLEDGE_HOST
+              value: vault:secret/data/quilr-common-config-vault#DEFAULT_KNOWLEDGE_HOST
+            - name: DEFAULT_KNOWLEDGE_PORT
+              value: vault:secret/data/quilr-common-config-vault#DEFAULT_KNOWLEDGE_PORT
+            - name: DEFAULT_KNOWLEDGE_PSWD
+              value: vault:secret/data/quilr-common-config-vault#DEFAULT_KNOWLEDGE_PSWD
+            - name: DEFAULT_KNOWLEDGE_USERNAME
+              value: vault:secret/data/quilr-common-config-vault#DEFAULT_KNOWLEDGE_USERNAME
+            - name: SPRING_DATA_REDIS_SSL_ENABLED
+              value: "false"
+            - name: REDIS_PORT        
+              value: "9200" 
+          envFrom:
+            - configMapRef:
+                name: quilr-common-config
+            - secretRef:
+                name: {{ .Values.secretRef.name }}
+            - configMapRef:
+                name: {{ .Values.quilr.appname }}-configmap
+          resources:
+            requests:
+              memory: {{ .Values.resources.requests.memory }}
+              cpu: {{ .Values.resources.requests.cpu }}
+            # limits:
+            #   memory: {{ .Values.resources.limits.memory }}
+            #   cpu: {{ .Values.resources.limits.cpu }}
+          volumeMounts:
+            - name: efs-vol
+              mountPath: /{{ .Values.quilr.appname }}
+              subPath: {{ .Values.quilr.appname }}
+            - name: efs-vol
+              mountPath: /{{ .Values.commonFileshare.name }}
+              subPath: {{ .Values.commonFileshare.name }}
+      volumes:
+        - name: efs-vol
+          persistentVolumeClaim:
+            claimName: efs-shared-pvc

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.quilr.appname }}-configmap
+  namespace: {{ .Values.namespace | default "quilr" }}  # Use namespace from values.yaml
+data:
+  RELAY_CONFIG_DIR: "{{ .Values.configMap.RELAY_CONFIG_DIR }}"
+  LOOKUP_CONFIG_DIR: "{{ .Values.configMap.LOOKUP_CONFIG_DIR }}"
+  RULE_CONFIG_DIR: "{{ .Values.configMap.RULE_CONFIG_DIR }}"
+  BLOB_URL: "{{ .Values.configMap.BLOB_URL }}"
+  MDM_CONFIG_DIR: "{{ .Values.configMap.MDM_CONFIG_DIR }}"
+  USER_DETAILS_TTL: "{{ .Values.configMap.USER_DETAILS_TTL }}"
+  APP_DETAILS_TTL: "{{ .Values.configMap.APP_DETAILS_TTL }}"
+  ORG_DOMAIN_TTL: "{{ .Values.configMap.ORG_DOMAIN_TTL }}"
+  TENANT_CONFIG_TTL: "{{ .Values.configMap.TENANT_CONFIG_TTL }}"

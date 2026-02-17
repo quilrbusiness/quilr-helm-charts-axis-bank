@@ -1,0 +1,35 @@
+namespace: quilr
+quilr:
+  appname: quilr-ingestion-service
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 85
+image:
+  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/quilr-ingestion-service
+  tag: latest
+  pullPolicy: Always
+configMap:
+  QUILR_INGESTION_PORT: '8070'
+  GRAPH_NAME: 'neo4j'
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "125m"
+  limits:
+    memory: "1024Mi"
+    cpu: "1000m"
+vault:
+  addr: "https://vault.quilr.svc.cluster.local:8200"
+  role: "default"
+  path: "kubernetes"
+secretRef:
+  name: auth-key-public
+service:
+  name: quilr-ingestion-service
+  type: ClusterIP
+  port: 8070
+  targetPort: 8070
+       

@@ -1,0 +1,6 @@
+apiVersion: v2
+appVersion: 0.1.0
+description: A Helm chart for quilr-query-builder (AKS cluster)
+name:  quilr-query-builder
+type: application
+version: 0.1.0

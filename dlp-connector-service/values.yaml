@@ -1,0 +1,40 @@
+namespace: quilr
+quilr:
+  appname: dlp-connector-service
+  storagename: dlp-download-storage-prod-veg
+configMap:
+  KAFKA_CONFIG_CONSUMER_TOPIC: "dlp-connector-topic"
+vault:
+  addr: "https://vault.quilr.svc.cluster.local:8200"
+  role: "default"
+  path: "kubernetes"
+image:
+  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/dlp-connector-service
+  tag: latest
+  pullPolicy: Always
+resources:
+  requests:
+    memory: "1024Mi"
+    cpu: "125m"
+  limits:
+    memory: "2048Mi"
+    cpu: "1000m"
+secretRef:
+  name: auth-key-public
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 85
+service:
+  name: dlp-connector-service
+  type: ClusterIP
+  port: 8034
+  targetPort: 8034
+# Additional fields
+secretName: azure-secret
+azurefileshare:
+  name: dlp-download-storage-prod-veg
+secrets:
+  elastictrustrore: quilr-elasticsearch-db-trustore

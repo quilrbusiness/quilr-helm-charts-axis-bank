@@ -1,0 +1,36 @@
+namespace: quilr
+quilr:
+  appname: classification-config-service
+configMap: {}
+vault:
+  addr: "https://vault.quilr.svc.cluster.local:8200"
+  role: "default"
+  path: "kubernetes"
+image:
+  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/classification-config-service
+  tag: latest
+  pullPolicy: Always
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "125m"
+  limits:
+    memory: "1024Mi"
+    cpu: "1000m"
+secretRef:
+  name: auth-key-public
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 85
+service:
+  name: classification-config-service
+  type: ClusterIP
+  port: 8808
+  targetPort: 8808
+# Additional fields
+secretName: azure-secret
+azurefileshare:
+  name: classification-config-service

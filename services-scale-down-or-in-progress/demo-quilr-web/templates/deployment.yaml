@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.quilr.appname }}
+  namespace: {{ .Values.namespace | default "quilr" }}  # Use namespace from values.yaml
+  labels:
+    app: {{ .Values.quilr.appname }}
+spec:
+  replicas: {{ .Values.hpa.minReplicas }}  # This will be managed by the HPA
+  selector:
+    matchLabels:
+      app: {{ .Values.quilr.appname }}
+  template:
+    metadata:
+      name: {{ .Values.quilr.appname }}
+      labels:
+        app: {{ .Values.quilr.appname }}
+    spec:
+      containers:
+        - name: {{ .Values.quilr.appname }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          env:
+            - name: NEXT_PUBLIC_BASE_URL
+              value: "https://{{ .Values.configMap.bffurl }}"
+            - name: AUTH_COOKIE
+              value: "quilr_web_auth"
+            - name: NEXT_PUBLIC_EXT_AUTH_COOKIE
+              value: "quilr_ext_auth"
+            - name: NEXT_PUBLIC_REFRESH_URL
+              value: "auth/auth/refresh"
+            - name: NEXT_PUBLIC_AUTH_COOKIE
+              value: "quilr_web_auth"
+            - name: NEXT_PUBLIC_IMAGE_URL
+              value: "https://{{ .Values.configMap.bffurl }}/instance-manager/profile-pic"
+          envFrom:
+            - configMapRef:
+                name: quilr-common-config
+            - secretRef:
+                name: {{ .Values.secretRef.name }}
+            - configMapRef:
+                name: {{ .Values.quilr.appname }}-configmap
+          resources:
+            requests:
+              memory: {{ .Values.resources.requests.memory }}
+              cpu: {{ .Values.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.resources.limits.memory }}
+              cpu: {{ .Values.resources.limits.cpu }}
