@@ -1,0 +1,6 @@
+apiVersion: v2
+appVersion: 0.1.0
+description: A Helm chart for dlp-classification-and-clustering-service (AKS cluster)
+name: dlp-classification-and-clustering-service
+type: application
+version: 0.1.0

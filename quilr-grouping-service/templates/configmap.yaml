@@ -1,0 +1,9 @@
+## No specific configmap.yaml for the service
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name:  {{ .Values.quilr.appname }}-configmap
+  namespace: {{ .Values.namespace | default "default" }}  # Use namespace from values.yaml
+data:
+  #key:value
+  SELF_HOST: quilr-grouping-service

@@ -1,0 +1,44 @@
+#****************** for deployment.yaml ******************#
+namespace: quilr
+quilr:
+  appname: quilr-memory-mcp
+
+### for hpa.yaml
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 85
+
+vault:
+  addr: "https://vault.quilr.svc.cluster.local:8200"
+  role: "default"
+  path: "kubernetes"
+
+image:
+  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/quilr-preprod/quilr-memory-mcp
+  tag: latest
+  pullPolicy: Always
+
+configMap:
+
+
+secretRef:
+  name: auth-key-public
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "125m"
+  limits:
+    memory: "1024Mi"
+    cpu: "1000m"
+
+#****************** for service.yaml ******************#
+service:
+  name: quilr-memory-mcp
+  type: ClusterIP
+  port: 8008
+  targetPort: 8008
+#*******************************************************#

@@ -1,0 +1,6 @@
+apiVersion: v2
+appVersion: 0.1.0
+description: A Helm chart for schema-registry-service (AKS cluster)
+name: schema-registry-service
+type: application
+version: 0.1.0

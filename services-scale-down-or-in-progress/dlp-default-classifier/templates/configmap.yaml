@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.quilr.appname }}-configmap
+  namespace: {{ .Values.namespace | default "default" }}
+data:
+  APP_ENV: "{{ .Values.configMap.APP_ENV }}"
+  REGEX_PATTERNS_BASE: "{{ .Values.configMap.REGEX_PATTERNS_BASE }}"
+  MODEL_BASE: "{{ .Values.configMap.MODEL_BASE }}"
+  ENABLE_REGEX: "{{ .Values.configMap.ENABLE_REGEX }}"
+  COLLECTOR_SERVICE_URL: "{{ .Values.configMap.COLLECTOR_SERVICE_URL }}"
