@@ -2,7 +2,7 @@
 
 # Vault environment setup
 export VAULT_ADDR="https://50.17.208.178:8200"
-export VAULT_TOKEN="hvs.I8jnwm62RKUMpc3LrlE0iwsd"
+export VAULT_TOKEN="<vault toekn>"
 export VAULT_SKIP_VERIFY=true
 
 # Output YAML file
