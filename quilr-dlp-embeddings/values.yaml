@@ -1,0 +1,35 @@
+namespace: quilr
+quilr:
+  appname: quilr-dlp-embeddings
+configMap:
+  EMBEDDINGS_GPU_MEMORY_LIMIT: "2"
+### for hpa.yaml
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 85
+image:
+  repository: quilrdev.azurecr.io/quilr-dlp-embeddings
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  name: quilr-dlp-embeddings
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+vault:
+  addr: "https://vault.quilr.svc.cluster.local:8200"
+  role: "default"
+  path: "kubernetes"
+secretRef:
+  name: auth-key-public
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "125m"
+  limits:
+    memory: "1024Mi"
+    cpu: "1000m"
+

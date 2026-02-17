@@ -1,0 +1,6 @@
+UPDATE subscriber 
+SET 
+    "areControlsEnabled" = true,
+    is_onboarded = true,
+    "is_analysisComplete" = true,
+WHERE id = 'd6c9ec0a-f70a-4da2-a3d1-c5a7c375606d';

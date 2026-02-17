@@ -20,10 +20,13 @@ vault:
 
 # Container image configuration
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/quilr-migration-service
-  tag: latest
+  repository:  quilrdev.azurecr.io/quilr-migration-service
+  tag: latest_prod
   pullPolicy: Always
 
+secretName: azure-secret
+azurefileshare:
+  name: secopsquilrstgfileshare
 # resources:
 #   requests:
 #     memory: "512Mi"
@@ -33,3 +36,5 @@ image:
 #     cpu: "1000m"
 
 # configMap:
+
+

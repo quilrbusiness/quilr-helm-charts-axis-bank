@@ -1,0 +1,12 @@
+## No specific configmap.yaml for the service
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name:  {{ .Values.quilr.appname }}-configmap
+  namespace: {{ .Values.namespace | default "default" }}  # Use namespace from values.yaml
+data:
+  STAGE1_URL: "{{ .Values.configMap.STAGE1_URL }}"
+  STAGE2_URL: "{{ .Values.configMap.STAGE2_URL }}"
+  EDM_URL: "{{ .Values.configMap.EDM_URL }}"
+  GUARD_URL: "{{ .Values.configMap.GUARD_URL }}"
+  DLP_SERVER_DATA_DIR: "{{ .Values.configMap.DLP_SERVER_DATA_DIR }}"

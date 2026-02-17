@@ -9,9 +9,9 @@ hpa:
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 85
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/quilr-production-usa/quilr-be-oauth
+  repository:  quilrdev.azurecr.io/quilr-iifl-paas
   tag: latest
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
 service:
   name: quilr-be-oauth
   type: ClusterIP
@@ -30,5 +30,4 @@ resources:
   limits:
     memory: "1024Mi"
     cpu: "1000m"
-    ###################service-name: quilr-grouping-service ####################################################    
 

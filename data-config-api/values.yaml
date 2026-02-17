@@ -7,14 +7,14 @@ configMap:
   STATIC_FILES_DIR: "/data-config-api/static"
   LOG_FILE: "logs/debug.log"
   DEBUG: "False"
-  QUILR_BFF_URL: "https://poc.quilr.ai/bff"
+  QUILR_BFF_URL: "https://quilr.axisbank.com/bff"
 vault:
   addr: "https://vault.quilr.svc.cluster.local:8200"
   role: "default"
   path: "kubernetes"
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/data-config-api
-  tag: latest
+  repository: quilrdev.azurecr.io/data-config-api
+  tag: latest_prod
   pullPolicy: Always
 resources:
   requests:
@@ -39,4 +39,4 @@ service:
 # Additional fields
 secretName: azure-secret
 azurefileshare:
-  name: data-config-api
+  name: secopsquilrstgfileshare

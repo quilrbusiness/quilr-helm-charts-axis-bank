@@ -1,0 +1,36 @@
+Reference: https://bank-vaults.dev/docs/installing/
+
+helm upgrade --install --wait vault-operator oci://ghcr.io/bank-vaults/helm-charts/vault-operator -n quilr
+
+wget --header="Authorization: token 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" \
+     https://raw.githubusercontent.com/quilrbusiness/quilr-deployment-scripts/main/vault/rbac.yaml
+
+kubectl apply -f rbac.yaml -n quilr
+
+wget --header="Authorization: token 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" \
+     https://raw.githubusercontent.com/quilrbusiness/quilr-deployment-scripts/main/vault/cr-raft.yaml
+
+kubectl apply -f cr-raft.yaml -n quilr
+
+Wait a few seconds, then check the operator and the vault pods:
+
+Expected output:
+
+NAME                                                        READY     STATUS    RESTARTS   AGE
+vault-0                                                     3/3       Running   0          10s
+vault-configurer-6c545cb6b4-dmvb5                           1/1       Running   0          10s
+vault-operator-788559bdc5-kgqkg                             1/1       Running   0          23s
+
+export VAULT_TOKEN=$(kubectl get secrets vault-unseal-keys --namespace=quilr -o jsonpath={.data.vault-root} | base64 --decode)
+echo $VAULT_TOKEN
+
+Deploying secrets webhook:
+
+kubectl create namespace vault-infra
+kubectl label namespace vault-infra name=vault-infra
+helm upgrade --install --wait vault-secrets-webhook oci://ghcr.io/bank-vaults/helm-charts/vault-secrets-webhook --namespace vault-infra
+kubectl get pods --namespace vault-infra
+
+kubectl get secret vault-tls -n quilr -o jsonpath="{.data.ca\.crt}" | base64 --decode > $PWD/vault-ca.crt
+
+export VAULT_CACERT=$PWD/vault-ca.crt

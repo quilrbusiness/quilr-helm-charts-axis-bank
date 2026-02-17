@@ -17,8 +17,8 @@ vault:
   path: "kubernetes"
 
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/quilr-siem-service
-  tag: latest
+  repository: quilrdev.azurecr.io/quilr-siem-service
+  tag: latest_prod
   pullPolicy: Always
 
 configMap:

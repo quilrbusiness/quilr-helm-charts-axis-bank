@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: quilr-dlp-server-pvc
+  namespace: quilr
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: managed-csi  
+  resources:
+    requests:
+      storage: 5Gi

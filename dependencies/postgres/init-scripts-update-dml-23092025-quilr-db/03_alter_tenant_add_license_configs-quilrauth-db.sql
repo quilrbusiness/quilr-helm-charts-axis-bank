@@ -1,0 +1,1 @@
+ALTER TABLE tenant ADD COLUMN IF NOT EXISTS license_configs JSONB NULL;

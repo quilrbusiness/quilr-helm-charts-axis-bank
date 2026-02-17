@@ -19,8 +19,8 @@ vault:
   role: "default"
   path: "kubernetes"
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/dashboard-service
-  tag: latest
+  repository: quilrdev.azurecr.io/dashboard-service
+  tag: latest_prod
   pullPolicy: Always
 resources:
   requests:
@@ -45,4 +45,4 @@ service:
 # Additional fields
 secretName: azure-secret
 azurefileshare:
-  name: dashboard-service
+  name: secopsquilrstgfileshare

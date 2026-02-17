@@ -1,7 +1,7 @@
 #!/bin/bash
 
 BASE_DIR="$(pwd)"
-SKIP_DIR="services-scale-down-or-in-progress"
+SKIP_DIRS=("services-scale-down-or-in-progress" "dependencies" "quilr-agent-service" "quilr-dlp-embeddings" "quilr-dlp-guard" "quilr-dlp-stage1" "quilr-dlp-stage2")
 NAMESPACE="quilr"
 
 echo "⏳ Switching to base directory: $BASE_DIR"
@@ -38,9 +38,14 @@ fi
 # Install all other charts
 for dir in */ ; do
   dir="${dir%/}"
-  if [[ "$dir" == "quilr-common-config" || "$dir" == "dlp-common-config" || "$dir" == "$SKIP_DIR" ]]; then
-    continue
-  fi
+
+  # Skip if in the SKIP_DIRS array
+  for skip in "${SKIP_DIRS[@]}"; do
+    if [[ "$dir" == "$skip" ]]; then
+      echo "⏭ Skipping $dir (listed in SKIP_DIRS)"
+      continue 2  # jump to next dir in for loop
+    fi
+  done
 
   if [[ -f "$dir/Chart.yaml" ]]; then
     install_chart "$dir"

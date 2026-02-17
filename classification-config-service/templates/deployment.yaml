@@ -22,6 +22,20 @@ spec:
       labels:
         app: {{ .Values.quilr.appname }}
     spec:
+      initContainers:
+        - name: wait-for-vault
+          image: quilrdev.azurecr.io/bitnamilegacy/quilr-tp:curl-8.5.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for Vault at {{ .Values.vault.addr }}..."
+              until curl -k -sSf {{ .Values.vault.addr }}/v1/sys/health; do
+                echo "Vault not ready, retrying in 5s..."
+                sleep 5
+              done
+              echo "Vault is ready!"
       containers:
         - name: {{ .Values.quilr.appname }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -50,8 +64,6 @@ spec:
               value: vault:secret/data/quilr-common-config-vault#PG_PASSWORD
             - name: REDIS_PASSWORD
               value: vault:secret/data/quilr-common-config-vault#REDIS_PASSWORD
-            - name: SPRING_DATA_REDIS_SSL_ENABLED
-              value: "true"
           envFrom:
             - configMapRef:
                 name: quilr-common-config
@@ -67,11 +79,21 @@ spec:
               memory: {{ .Values.resources.limits.memory }}
               cpu: {{ .Values.resources.limits.cpu }}
           volumeMounts:
-            - name: efs-vol
+            - name: {{ .Values.quilr.appname }}-vol
               mountPath: /{{ .Values.quilr.appname }}
               subPath: {{ .Values.quilr.appname }}
       volumes:
-        - name: efs-vol
-          persistentVolumeClaim:
-            claimName: efs-shared-pvc
+        - name: {{ .Values.quilr.appname }}-vol
+          azureFile:
+            readOnly: false
+            secretName: {{ .Values.secretName }}
+            shareName: {{ .Values.azurefileshare.name }}    
+      #     volumeMounts:
+      #       - name: efs-vol
+      #         mountPath: /{{ .Values.quilr.appname }}
+      #         subPath: {{ .Values.quilr.appname }}
+      # volumes:
+      #   - name: efs-vol
+      #     persistentVolumeClaim:
+      #       claimName: efs-shared-pvc
 

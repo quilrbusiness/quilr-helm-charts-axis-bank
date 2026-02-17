@@ -7,8 +7,8 @@ vault:
   role: "default"
   path: "kubernetes"
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/schema-registry-service
-  tag: latest
+  repository: quilrdev.azurecr.io/schema-registry-service
+  tag: latest_prod
   pullPolicy: Always
 resources:
   requests:

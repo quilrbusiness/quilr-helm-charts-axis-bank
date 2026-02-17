@@ -15,13 +15,16 @@ vault:
   path: "kubernetes"
 
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/quilr-ai-config-manager
-  tag: latest
+  repository: quilrdev.azurecr.io/quilr-ai-config-manager
+  tag: latest_prod
   pullPolicy: Always
 
 configMap:
   logging_level: "INFO"
   VERBOSE: "true"
+  DLP_API_URL: "http://quilr-dlp-server:8000"
+  FILE_PARSER_URL: "http://quilr-dlp-fileparsing:9001"
+  EDM_SERVER_URL:  "http://quilr-dlp-edm:3455"
 
 secretRef:
   name: auth-key-public

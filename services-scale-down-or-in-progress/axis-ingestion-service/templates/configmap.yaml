@@ -5,4 +5,8 @@ metadata:
   namespace: {{ .Values.namespace | default "default" }}
 data:
   AI_AXIS_PORT: "{{ .Values.configMap.AI_AXIS_PORT}}"
+  DW_NAME: "{{ .Values.configMap.DW_NAME}}"
+  DW_USER: "{{ .Values.configMap.DW_USER}}"
+  DW_PASSWORD: "{{ .Values.configMap.DW_PASSWORD}}"
+  DW_URL: "{{ .Values.configMap.DW_URL}}"
   GRAPH_NAME: "{{ .Values.configMap.GRAPH_NAME}}"

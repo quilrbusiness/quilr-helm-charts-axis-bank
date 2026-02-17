@@ -8,11 +8,15 @@ hpa:
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 85
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/axis-analytics-job
+  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/quilr-preprod/axis-analytics-job
   tag: latest
   pullPolicy: Always
 configMap:
   AI_AXIS_PORT: '8051'
+  DW_NAME: 'clickhouse'
+  DW_USER: 'default'
+  DW_PASSWORD: 'JjzZA_Vg7oDn1'
+  DW_URL: 'jdbc:clickhouse://z3cq8xumr3.ap-south-1.aws.clickhouse.cloud:8443/default?ssl=true'
   GRAPH_NAME: 'neo4j'
 resources:
   requests:
@@ -32,3 +36,4 @@ service:
   type: ClusterIP
   port: 8051
   targetPort: 8051
+  ####################service-name: quilr-inferencing-models ####################################################      

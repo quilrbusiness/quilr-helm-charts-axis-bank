@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Vault environment setup
-export VAULT_ADDR="https://50.17.208.178:8200"
-export VAULT_TOKEN="<token>"
+export VAULT_ADDR=""
+export VAULT_TOKEN=""
 export VAULT_SKIP_VERIFY=true
 
 # Output YAML file

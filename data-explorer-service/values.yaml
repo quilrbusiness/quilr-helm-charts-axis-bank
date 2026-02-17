@@ -1,6 +1,7 @@
 namespace: quilr
 quilr:
   appname: data-explorer-service
+  commonfileshare: quilr-data-upload
 configMap:
   STATIC_DIR_LOCATION_SCREENS: "/data-explorer-service/screens"
   STATIC_DIR_LOCATION_OPTIONS: "/data-explorer-service/options"
@@ -10,9 +11,9 @@ vault:
   role: "default"
   path: "kubernetes"
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/data-explorer-service
-  tag: latest
-  pullPolicy: Always
+  repository: quilrdev.azurecr.io/data-explorer-service
+  tag: latest_prod
+  pullPolicy: IfNotPresent
 resources:
   requests:
     memory: "512Mi"
@@ -36,6 +37,4 @@ service:
 # Additional fields
 secretName: azure-secret
 azurefileshare:
-  name: data-explorer-service
-commonFileshare:
-  name: quilr-data-upload
+  name: secopsquilrstgfileshare

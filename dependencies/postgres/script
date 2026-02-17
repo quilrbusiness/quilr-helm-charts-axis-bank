@@ -1,0 +1,17 @@
+helm upgrade --install quilrprod-postgres-db oci://registry-1.docker.io/bitnamicharts/postgresql \
+  --set auth.username=psqladmin \
+  --set auth.password='Kdf562amkiDF!dv*QW' \
+  --set auth.database=quilr \
+  -f values.yaml -n quilr 
+  
+
+kubectl create configmap quilr-initdb-scripts \
+  --from-file=init-scripts/ \
+  -n quilr
+
+
+kubectl logs -f quilrprod-postgres-db-postgresql-0 -n quilr
+
+postgresql 14:32:40.05 INFO  ==> Loading custom scripts...
+postgresql 14:32:40.05 INFO  ==> Loading user's custom files from /docker-entrypoint-initdb.d ...
+

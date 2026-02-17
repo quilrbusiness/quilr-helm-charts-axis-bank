@@ -7,8 +7,8 @@ vault:
   role: "default"
   path: "kubernetes"
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/instance-manager-service
-  tag: latest
+  repository: quilrdev.azurecr.io/instance-manager-service
+  tag: latest_prod
   pullPolicy: Always
 resources:
   requests:
@@ -32,7 +32,7 @@ service:
   targetPort: 8082
 # Additional fields
 secretName: azure-secret
-azurefileshare:
-  name: truststore-cloud-saas-env
+# azurefileshare:
+#   name: truststore-cloud-saas-env
 secrets:
-  vaulttruststore: quilr-vault-truststore
+  vaulttruststore: quilr-vault-trustore

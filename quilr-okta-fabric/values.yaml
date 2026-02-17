@@ -8,12 +8,11 @@ configMap:
   FetchInterval: "300"
 vault:
   addr: "https://vault.quilr.svc.cluster.local:8200"
-  vault-env-passthrough: "VAULT_ADDR,VAULT_TOKEN"
-  role: "default"
+  role: "quilr"
   path: "kubernetes"
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/quilr-okta-fabric
-  tag: latest
+  repository: quilrdev.azurecr.io/quilr-okta-fabric
+  tag: latest_prod
   pullPolicy: Always
 resources:
   requests:

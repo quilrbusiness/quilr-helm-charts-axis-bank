@@ -1,6 +1,7 @@
 namespace: quilr
 quilr:
   appname: quilr-query-builder
+  commonfileshare: quilr-data-upload
 hpa:
   enabled: true
   minReplicas: 1
@@ -8,9 +9,9 @@ hpa:
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 85
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/quilr-query-builder
-  tag: latest
-  pullPolicy: Always
+  repository: quilrdev.azurecr.io/quilr-query-builder
+  tag: latest_prod
+  pullPolicy: IfNotPresent
 configMap:
   AI_AXIS_PORT: '8052'
   GRAPH_NAME: 'neo4j'
@@ -32,6 +33,6 @@ service:
   type: ClusterIP
   port: 8052
   targetPort: 8052
-commonFileshare:
-  name: quilr-data-upload
-  ####################service-name: quilr-inferencing-models ####################################################      
+secretName: azure-secret
+azurefileshare:
+  name: secopsquilrstgfileshare

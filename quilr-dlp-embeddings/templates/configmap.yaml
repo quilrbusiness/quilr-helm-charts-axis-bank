@@ -1,0 +1,10 @@
+## No specific configmap.yaml for the service
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name:  {{ .Values.quilr.appname }}-configmap
+  namespace: {{ .Values.namespace | default "default" }}  # Use namespace from values.yaml
+data:
+  EMBEDDINGS_GPU_MEMORY_LIMIT: "{{ .Values.configMap.EMBEDDINGS_GPU_MEMORY_LIMIT }}"
+  HF_HUB_OFFLINE: "1"
+  TRANSFORMERS_OFFLINE: "1"
