@@ -2,7 +2,7 @@ namespace: quilr
 quilr:
   appname: quilr-web
 configMap:
-  bffurl: "poc.quilr.ai/bff"
+  bffurl: "quilr.axisbank.com/bff"
   AUTH_COOKIE: "quilr_web_auth"
   NEXT_PUBLIC_EXT_AUTH_COOKIE: "quilr_ext_auth"
   NEXT_PUBLIC_REFRESH_URL: "auth/auth/refresh"

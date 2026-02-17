@@ -4,7 +4,7 @@ quilr:
 configMap:
   DATA_BASE_NAME: "in_memory_db"
   RELATIVE_PATH_TO_ACCESS_FOLDER: "response-action"
-  BFF_URL: "https://poc.quilr.ai/bff"
+  BFF_URL: "https://quilr.axisbank.com/bff"
 vault:
   addr: "https://vault.quilr.svc.cluster.local:8200"
   role: "default"

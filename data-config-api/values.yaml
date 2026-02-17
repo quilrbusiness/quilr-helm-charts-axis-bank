@@ -7,7 +7,7 @@ configMap:
   STATIC_FILES_DIR: "/data-config-api/static"
   LOG_FILE: "logs/debug.log"
   DEBUG: "False"
-  QUILR_BFF_URL: "https://poc.quilr.ai/bff"
+  QUILR_BFF_URL: "https://quilr.axisbank.com/bff"
 vault:
   addr: "https://vault.quilr.svc.cluster.local:8200"
   role: "default"

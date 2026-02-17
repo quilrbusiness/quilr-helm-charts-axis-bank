@@ -10,7 +10,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: poc.quilr.ai
+  - host: quilr.axisbank.com
     http:
       paths:
       - backend:
@@ -22,5 +22,5 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - poc.quilr.ai
+    - quilr.axisbank.com
     secretName: quilr-tls-secret-prod-useast-skzzh

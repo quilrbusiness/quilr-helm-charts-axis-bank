@@ -21,7 +21,7 @@ vault:
   role: "default"
   path: "kubernetes"
 configMap:
-  weburl: "poc.quilr.ai"
+  weburl: "quilr.axisbank.com"
 secretRef:
   name: auth-key-public
 resources:

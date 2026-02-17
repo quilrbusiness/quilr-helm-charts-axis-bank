@@ -2,7 +2,7 @@ namespace: quilr
 quilr:
   appname: quilr-scoring-service
 configMap:
-  bffurl: "poc.quilr.ai/bff"
+  bffurl: "quilr.axisbank.com/bff"
   SEARCH_API_HOST: "/search"
 vault:
   addr: "https://vault.quilr.svc.cluster.local:8200"

@@ -2,7 +2,7 @@ namespace: quilr
 quilr:
   appname: copilot-workflow-executor
 configMap:
-  bffurl: "poc.quilr.ai/bff"
+  bffurl: "quilr.axisbank.com/bff"
 vault:
   addr: "https://vault.quilr.svc.cluster.local:8200"
   role: "default"
