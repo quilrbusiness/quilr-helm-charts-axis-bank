@@ -1,7 +1,10 @@
-helm upgrade --install my oci://registry-1.docker.io/bitnamicharts/redis \
+ helm upgrade --install my oci://registry-1.docker.io/bitnamicharts/redis \
   --set global.redis.password="QuIId2RD6wK>)^LLRoO" \
   --set replica.replicaCount=1 \
-  --set replica.resourcesPreset=medium\
-  --set master.resourcesPreset=medium -n quilr
-
-Reference: https://github.com/bitnami/charts/tree/main/bitnami/redis  
+  --set replica.resourcesPreset=medium \
+  --set master.resourcesPreset=medium \
+  --set image.registry=975050335771.dkr.ecr.ap-south-1.amazonaws.com \
+  --set image.repository=tp/redis \
+  --set image.tag=8.6.0 \
+  --set global.security.allowInsecureImages=true \
+  -n quilr
