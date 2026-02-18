@@ -60,8 +60,8 @@ spec:
               value: vault:secret/data/quilr-common-config-vault#DW_PASSWORD  
             - name: DW_URL
               value: vault:secret/data/quilr-common-config-vault#DW_URL  
-            - name: SPRING_DATA_REDIS_SSL_ENABLED
-              value: "true"
+            # - name: SPRING_DATA_REDIS_SSL_ENABLED
+            #   value: "true"
           envFrom:
             - configMapRef:
                 name: quilr-common-config

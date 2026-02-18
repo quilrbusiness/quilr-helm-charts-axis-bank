@@ -46,8 +46,8 @@ spec:
               value: vault:secret/data/quilr-common-config-vault#REDIS_PASSWORD
             - name: CKS_API_KEY
               value: vault:secret/data/quilr-common-config-vault#CKS_API_KEY  
-            - name: SPRING_DATA_REDIS_SSL_ENABLED
-              value: "true"  
+            # - name: SPRING_DATA_REDIS_SSL_ENABLED
+            #   value: "true"  
           envFrom:
             - configMapRef:
                 name: quilr-common-config

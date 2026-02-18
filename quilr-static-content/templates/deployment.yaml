@@ -12,32 +12,31 @@ spec:
       app: {{ .Values.quilr.appname }}
   template:
     metadata:
-      annotations:
-        vault.security.banzaicloud.io/vault-addr: "{{ .Values.vault.addr }}"
-        vault.security.banzaicloud.io/vault-role: "{{ .Values.vault.role }}"
-        vault.security.banzaicloud.io/vault-skip-verify: "true"
-        vault.security.banzaicloud.io/vault-agent: "false"
-        vault.security.banzaicloud.io/vault-path: "{{ .Values.vault.path }}"
       name: {{ .Values.quilr.appname }}
       labels:
         app: {{ .Values.quilr.appname }}
     spec:
+      initContainers:
+        - name: wait-for-vault
+          image: 975050335771.dkr.ecr.us-east-1.amazonaws.com/bitnamilegacy/quilr-tp:curl-8.5.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for Vault at {{ .Values.vault.addr }}..."
+              until curl -k -sSf {{ .Values.vault.addr }}/v1/sys/health; do
+                echo "Vault not ready, retrying in 5s..."
+                sleep 5
+              done
+              echo "Vault is ready!"
       containers:
         - name: {{ .Values.quilr.appname }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.port }}
-          env:
-            - name: REDIS_PASSWORD
-              value: vault:secret/data/quilr-common-config-vault#REDIS_PASSWORD
-            # - name: SPRING_DATA_REDIS_SSL_ENABLED
-            #   value: "true"
           envFrom:
-            - configMapRef:
-                name: quilr-common-config
-            - secretRef:
-                name: {{ .Values.secretRef.name }}
             - configMapRef:
                 name: {{ .Values.quilr.appname }}-configmap
           resources:

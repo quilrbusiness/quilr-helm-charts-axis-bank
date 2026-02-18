@@ -70,8 +70,8 @@ spec:
               value: vault:secret/data/quilr-common-config-vault#DEFAULT_KNOWLEDGE_PSWD
             - name: DEFAULT_KNOWLEDGE_USERNAME
               value: vault:secret/data/quilr-common-config-vault#DEFAULT_KNOWLEDGE_USERNAME
-            - name: SPRING_DATA_REDIS_SSL_ENABLED
-              value: "true"  
+            # - name: SPRING_DATA_REDIS_SSL_ENABLED
+            #   value: "true"  
           envFrom:
             - configMapRef:
                 name: quilr-common-config

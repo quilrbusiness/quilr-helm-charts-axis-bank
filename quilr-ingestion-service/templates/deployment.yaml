@@ -70,8 +70,8 @@ spec:
               value: vault:secret/data/quilr-common-config-vault#DW_URL
             - name: GLOBAL_APP_SERVER_URL
               value: vault:secret/data/quilr-common-config-vault#GLOBAL_APP_SERVER_URL
-            - name: SPRING_DATA_REDIS_SSL_ENABLED
-              value: "true"
+            # - name: SPRING_DATA_REDIS_SSL_ENABLED
+            #   value: "true"
           envFrom:
             - configMapRef:
                 name: quilr-common-config

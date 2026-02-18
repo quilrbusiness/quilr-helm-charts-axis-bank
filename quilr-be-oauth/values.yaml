@@ -9,7 +9,7 @@ hpa:
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 85
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/quilr-production-usa/quilr-be-oauth
+  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/axis-bank-paas/quilr-be-oauth
   tag: latest
   pullPolicy: Always
 service:
@@ -30,5 +30,5 @@ resources:
   limits:
     memory: "1024Mi"
     cpu: "1000m"
-    ###################service-name: quilr-grouping-service ####################################################    
+ 
 

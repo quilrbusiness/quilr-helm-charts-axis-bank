@@ -1,17 +1,17 @@
 namespace: quilr
 
 configMap:
-  KAFKA_BROKER_HOST: "b-1.quilrmsk.52zlhi.c22.kafka.us-east-1.amazonaws.com,b-2.quilrmsk.52zlhi.c22.kafka.us-east-1.amazonaws.com"
-  KAFKA_BROKER: "b-1.quilrmsk.52zlhi.c22.kafka.us-east-1.amazonaws.com:9092,b-2.quilrmsk.52zlhi.c22.kafka.us-east-1.amazonaws.com:9092"
-  KAFKA_BOOTSTRAP_SERVER: "b-1.quilrmsk.52zlhi.c22.kafka.us-east-1.amazonaws.com:9092,b-2.quilrmsk.52zlhi.c22.kafka.us-east-1.amazonaws.com:9092"
+  KAFKA_BROKER_HOST: "kafka-server"
+  KAFKA_BROKER: "kafka-server:9092"
+  KAFKA_BOOTSTRAP_SERVER: "kafka-server:9092"
   KAFKA_BROKER_PORT: "9092"
   PG_PORT: "4583"
   PG_DB: "quilr"
   PG_DATABASE: "quilr"
-  REDIS_HOST: "master.quilr-redis.4sslx1.use1.cache.amazonaws.com"
-  redis.host: "master.quilr-redis.4sslx1.use1.cache.amazonaws.com"
-  redis.port: "9200"
-  REDIS_PORT: "9200"
+  REDIS_HOST: "my-redis-master"
+  redis.host: "my-redis-master"
+  redis.port: "6379"
+  REDIS_PORT: "6379"
   REDIS_DB: "0"
   VAULT_HOST: "vault.quilr.svc.cluster.local"
   VAULT_BASE_URL: "https://vault.quilr.svc.cluster.local:8200"
@@ -77,18 +77,18 @@ configMap:
   QUILR_USER_RESPONSE_SERVICE: "http://user-response-service:9085"
   QUILR_AGENT_SERVICE: "http://quilr-agent-service:8000"
   QUILR_PLAYBOOK_SERVICE: "http://quilr-playbook-service:9051"
-  CLASSIFIER_DOMAIN: "https://dlpone.quilr.ai/dlp"
+  CLASSIFIER_DOMAIN: "http://quilr-dlp-server:8000/dlp"
   COLLECTOR_DOMAIN: "http://dlp-data-collector:8093"
   DEFAULT_KNOWLEDGE_DB: "neo4j"
   Neo4J_LLAMA_ENDPOINT: "http://quilr-inferencing-models:8090/rag/twoway"
   OPENAI_MINI_BASE_URL: "https://quilr-openai.openai.azure.com"
   OPENAI_EMBEDDING_BASE_URL: "https://quilr-openai-latest.openai.azure.com"
   OPENAI_LATEST_BASE_URL: "https://quilr-41.openai.azure.com"
-  SLACK_INTEGRATION_URL: "https://quilrpoc.axisb.com/bff/auth/auth/integration-admin-landing/slack"
+  SLACK_INTEGRATION_URL: "https://quilr.axisbank.com/bff/auth/auth/integration-admin-landing/slack"
   AGENT_SERVICE_HOST: "quilr-agent-service"
   CLASSIFICATION_CONFIG_API_HOST: "classification-config-service"
   AGENT_SERVICE_PORT: "8000"
-  DLP_DATA_DEFINITION_URL: "https://quilrpoc.axisb.com/bff/dlp-data-definition"
+  DLP_DATA_DEFINITION_URL: "https://quilr.axisbank.com/bff/dlp-data-definition"
   OOB_DDs: 'PII,PFI,PHI,SECRET'
   AI_SERVICE_URL: 'http://quilr-ai-services:8050'
   # new for quilr-memory-mcp server
@@ -100,38 +100,38 @@ configMap:
   QUILR_MCP_MEMORY_SERVICE: "http://quilr-memory-mcp:8008"
   AZURE_BLOB_URL: "https://staticcontent1.blob.core.windows.net/quilrstatic/"
   # Added for Quilr-EAM-service
-  OIDCIssuer: https://quilrpoc.axisb.com/bff/quilr-eam-service
+  OIDCIssuer: https://quilr.axisbank.com/bff/quilr-eam-service
   OIDC_MICROSOFT_CLIENT_ID: "f326db16-07b5-4705-8f16-fd91ddd949f7"
   AZURE_BLOB_URL: "https://staticcontent1.blob.core.windows.net/quilrstatic/"
   # new changes DEVOPS-293
   AI_SERVICE_URL: 'http://quilr-ai-services:8050'
   ELASTIC_URL: "https://quilr-db-elasticsearch:9200"
-  DLP_UPDATE_URL: "https://dlpone.quilr.ai/dlp/tenant_config"
+  DLP_UPDATE_URL:  "https://quilr.axisbank.com/dlp/tenant_config"
   QUILR_MCP_MEMORY_SERVICE: "http://quilr-memory-mcp:8008"
-  OIDCIssuer: https://quilrpoc.axisb.com/bff/quilr-eam-service
+  OIDCIssuer: https://quilr.axisbank.com/bff/quilr-eam-service
   OIDC_MICROSOFT_CLIENT_ID: "f326db16-07b5-4705-8f16-fd91ddd949f7"
   CONTENT_KNOWLEDGE_SERVICE_HOST: "content-knowledgebase-service"
   CONTENT_KNOWLEDGE_SERVICE_PORT: "8806"
   #DEVOPS-302 - Display Ext version in UI
   EXTENATION_BASE_URL: "https://quilr-extensions.quilr.ai"
   EXTENAION_VERSION_FILE: "/lastupdate.json"
-  DLP_MAIN_SERVER_URL: "https://dlpone.quilr.ai"
+  DLP_MAIN_SERVER_URL: "http://quilr-dlp-server:8000"
   STORAGE_CONTAINER_NAME: 'logos'
   STORAGE_ICON_CONTAINER_NAME: 'icons'
-  BASE_URL: 'quilrpoc.axisb.com'
+  BASE_URL: 'quilr.axisbank.com'
   DEPLOYMENT_TYPE: 'SAAS'
   # MS Teams integration
   MicrosoftBotAppId: "40003e8d-c4d3-4a91-b92a-d47e557fda66"
   MicrosoftBotAppPassword: "M3g8Q~OXMomhc1eq7jf6dtPYxi7g7WUlm4TdzaeY"
   quilr_base_url: "https://guardrails.quilr.ai/openai_compatible/"
   # AI Asset discovery for Azure
-  DW_HOST: "http://10.71.14.215"
+  DW_HOST: "http://10.24.19.156"
   DW_PORT: "8123"
   DW_NAME: 'clickhouse'
   DW_USER: 'default'
   # DLP PROMPT CSTEGORY URL SEPERATION
-  DLP_RESPONSE_URL: "https://dlppreprod.quilr.ai/dlp/dlpoob/detect"
-  PROMPT_CATEGORIZATION_URL: "https://dlppreprod.quilr.ai/categorize/prompt_category" 
+  DLP_RESPONSE_URL: "http://quilr-dlp-server:8000/dlpoob/detect"
+  PROMPT_CATEGORIZATION_URL: "http://quilr-dlp-prompt-category:8000/prompt_category"
   SIEM_SERVICE_HOST: "quilr-siem-service"
   SIEM_SERVICE_PORT: "8000"
   QUERY_BUILDER_SERVICE_HOST: "quilr-query-builder"

@@ -68,8 +68,8 @@ spec:
               value: vault:secret/data/quilr-common-config-vault#DATABASE_PASSWORD
             - name: DATABASE_DRIVER_CLASS_NAME
               value: vault:secret/data/quilr-common-config-vault#DATABASE_DRIVER_CLASS_NAME
-            - name: SPRING_DATA_REDIS_SSL_ENABLED
-              value: "true"
+            # - name: SPRING_DATA_REDIS_SSL_ENABLED
+            #   value: "true"
           envFrom:
             - configMapRef:
                 name: quilr-common-config

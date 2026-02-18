@@ -50,8 +50,8 @@ spec:
               value: vault:secret/data/quilr-common-config-vault#PG_PASSWORD
             - name: REDIS_PASSWORD
               value: vault:secret/data/quilr-common-config-vault#REDIS_PASSWORD
-            - name: SPRING_DATA_REDIS_SSL_ENABLED
-              value: "true" 
+            # - name: SPRING_DATA_REDIS_SSL_ENABLED
+            #   value: "true" 
           envFrom:
             - configMapRef:
                 name: quilr-common-config
