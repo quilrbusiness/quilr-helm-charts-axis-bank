@@ -1,0 +1,33 @@
+namespace: quilr
+quilr:
+  appname: quilr-dlp-fileparsing
+### for hpa.yaml
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 85
+image:
+  repository: quilrdev.azurecr.io/quilr-dlp-fileparsing
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  name: quilr-dlp-fileparsing
+  type: ClusterIP
+  port: 9001
+  targetPort: 9001
+vault:
+  addr: "https://vault.quilr.svc.cluster.local:8200"
+  role: "default"
+  path: "kubernetes"
+secretRef:
+  name: auth-key-public
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "125m"
+  limits:
+    memory: "1024Mi"
+    cpu: "1000m"
+
