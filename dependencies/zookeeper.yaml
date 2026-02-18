@@ -36,7 +36,7 @@ spec:
     spec:
       containers:
         - name: zookeeper
-          image: quilrdev.azurecr.io/tp/zookeeper:latest
+          image: 975050335771.dkr.ecr.ap-south-1.amazonaws.com/tp/zookeeper:3.9.0
           securityContext:
             runAsUser: 0
           ports:
@@ -80,5 +80,5 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 3Gi
-  storageClassName: managed-csi
+      storage: 8Gi
+  storageClassName: gp3
