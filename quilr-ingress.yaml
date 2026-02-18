@@ -2,13 +2,13 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
-    cert-manager.io/issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
-    nginx.ingress.kubernetes.io/server-alias: a9362f5e503b54885b19751ee9a47cbd-1361376267.us-east-1.elb.amazonaws.com
+    kubernetes.io/ingress.class: alb
+    #nginx.ingress.kubernetes.io/rewrite-target: /$1
+    #nginx.ingress.kubernetes.io/server-alias:  <pvtip/lb>
   name: quilr-ingress
   namespace: quilr
 spec:
-  ingressClassName: nginx
+  ingressClassName: alb
   rules:
   - host: quilr.axisbank.com
     http:
@@ -20,7 +20,14 @@ spec:
               number: 80
         path: /bff/(.*)
         pathType: ImplementationSpecific
+      - backend:
+          service:
+            name: quilr-dlp-server
+            port:
+              number: 8000
+        path: /dlp/(.*)
+        pathType: ImplementationSpecific
   tls:
   - hosts:
     - quilr.axisbank.com
-    secretName: quilr-tls-secret-prod-useast-skzzh
+    secretName: quilr-tls-secret-axis-bank
