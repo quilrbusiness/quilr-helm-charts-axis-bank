@@ -2,7 +2,7 @@
 
 BASE_DIR="$HOME/quilr-helm-charts"
 
-echo "📦 Extracting image tags from values.yaml files under $BASE_DIR"
+echo " Extracting image tags from values.yaml files under $BASE_DIR"
 echo "-------------------------------------------------------------"
 printf "%-45s | %s\n" "Service Name" "Image Tag"
 echo "-------------------------------------------------------------"

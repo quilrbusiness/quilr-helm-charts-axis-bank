@@ -1,27 +1,27 @@
 #!/bin/bash
 
 BASE_DIR="$(pwd)"
-SKIP_DIR="services-scale-down-or-in-progress"
+SKIP_DIR=("services-scale-down-or-in-progress" "dependencies" )
 NAMESPACE="quilr"
 
-echo "⏳ Switching to base directory: $BASE_DIR"
+echo " Switching to base directory: $BASE_DIR"
 cd "$BASE_DIR"
 
 # Ensure helm is available
 if ! command -v helm &> /dev/null; then
-  echo "❌ Helm not installed or not in PATH"
+  echo " Helm not installed or not in PATH"
   exit 1
 fi
 
 # Function to install chart into shared namespace
 install_chart() {
   local dir="$1"
-  echo "📦 Installing Helm chart: $dir into namespace $NAMESPACE"
+  echo " Installing Helm chart: $dir into namespace $NAMESPACE"
 
   if helm upgrade --install "$dir" "./$dir" --namespace "$NAMESPACE" --create-namespace; then
-    echo "✅ Successfully installed $dir"
+    echo " Successfully installed $dir"
   else
-    echo "❌ Failed to install $dir. Continuing with next chart..."
+    echo " Failed to install $dir. Continuing with next chart..."
   fi
 }
 
@@ -49,4 +49,4 @@ for dir in */ ; do
   fi
 done
 
-echo "✅ All Helm charts attempted in namespace '$NAMESPACE'. Check logs for any failed installs."
+echo "All Helm charts attempted in namespace '$NAMESPACE'. Check logs for any failed installs."
