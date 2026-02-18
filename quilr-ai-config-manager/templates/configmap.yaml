@@ -6,3 +6,6 @@ metadata:
 data:
   logging_level: "{{ .Values.configMap.logging_level }}"
   VERBOSE: "{{ .Values.configMap.VERBOSE }}"
+  DLP_API_URL: "{{ .Values.configMap.DLP_API_URL }}"
+  FILE_PARSER_URL: "{{ .Values.configMap.FILE_PARSER_URL }}"
+  EDM_SERVER_URL: "{{ .Values.configMap.EDM_SERVER_URL }}"

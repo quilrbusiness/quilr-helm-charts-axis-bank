@@ -22,6 +22,9 @@ image:
 configMap:
   logging_level: "INFO"
   VERBOSE: "true"
+  DLP_API_URL: "http://quilr-dlp-server:8000"
+  FILE_PARSER_URL: "http://quilr-dlp-fileparsing:9001"
+  EDM_SERVER_URL:  "http://quilr-dlp-edm:3455"
 
 secretRef:
   name: auth-key-public
