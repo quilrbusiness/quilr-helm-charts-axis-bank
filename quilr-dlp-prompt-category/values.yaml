@@ -12,7 +12,7 @@ hpa:
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 85
 image:
-  repository: quilrdev.azurecr.io/quilr-dlp-prompt-category
+  repository: 975050335771.dkr.ecr.ap-south-1.amazonaws.com/main/quilr-dlp-prompt-category
   tag: latest
   pullPolicy: IfNotPresent
 service:

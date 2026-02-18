@@ -16,7 +16,7 @@ hpa:
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 85
 image:
-  repository: quilrdev.azurecr.io/quilr-dlp-server
+  repository: 975050335771.dkr.ecr.ap-south-1.amazonaws.com/main/quilr-dlp-server
   tag: latest
   pullPolicy: IfNotPresent
 service:
@@ -31,7 +31,6 @@ vault:
   path: "kubernetes"
 secretRef:
   name: auth-key-public
-secretName: azure-secret
 resources:
   requests:
     memory: "512Mi"

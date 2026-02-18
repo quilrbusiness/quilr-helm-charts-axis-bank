@@ -9,7 +9,7 @@ hpa:
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 85
 image:
-  repository: quilrdev.azurecr.io/quilr-dlp-fileparsing
+  repository: 975050335771.dkr.ecr.ap-south-1.amazonaws.com/main/quilr-dlp-fileparsing
   tag: latest
   pullPolicy: IfNotPresent
 service:

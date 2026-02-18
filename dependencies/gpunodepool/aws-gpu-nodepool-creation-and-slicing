@@ -1,0 +1,154 @@
+quilr-gpupool (creation and its slicing )
+---------------------------------------------
+
+# Node-IAM Role:
+
+# AMI type :Select the EKS-optimized Amazon Machine Image for nodes : Amazon Linux 2023 (x86_64) Nvidia (AL2023_x86_64_NVIDIA)
+
+# VM details:
+
+g5.2xlarge
+vCPU: 8 vCPUs
+Memory: 32 GiB
+Network: Up to 10 Gigabit
+Max ENI: 4
+Max IPs: 60
+
+# Disk size : 50 gb ---> Select the size of the attached EBS volume for each node.
+
+# Nodegroup scaling configuration
+
+desired : 1
+minimum : 1
+maximum: 1
+
+# Node group update configuration 
+
+selected default values
+
+# Node group network configuration
+These properties cannot be changed after the node group is created.
+
+Subnets : selected the private subnets based on desired and the maximum size
+
+kubectl get nodes -o wide
+kubectl describe node <node-name>
+look for such labels:
+
+topology.kubernetes.io/region=us-east-1
+topology.kubernetes.io/zone=us-east-1b
+
+if select 3 private subnets with desired size = 1.  1 node total will be launched in one of the 3 private subnets. The ASG (Auto Scaling Group) picks one subnet/AZ — typically based on availability and balancing logic.
+Desired = 1 → 1 node in 1 subnet (ASG picks which one)
+Desired = 3 → ASG tries to spread nodes across all 3 subnets (one per AZ), but it's not guaranteed to be exactly one per subnet
+Selecting multiple subnets just gives the ASG options for where to place nodes — it doesn't mean each subnet gets a node
+
+----------------------------------------------------------------------------------------------------------------------------------------
+
+
+Reference: https://aws.amazon.com/blogs/containers/gpu-sharing-on-amazon-eks-with-nvidia-time-slicing-and-accelerated-ec2-instances/
+Reference: https://learn.microsoft.com/en-us/azure/aks/gpu-multi-instance?tabs=azure-cli
+
+creating the nodepool and follow the below steps:
+
+kubectl get nodes
+kubectl describe node <node-name-gpupool>
+kubectl describe node <node-name-gpupool> | grep -A5 Allocatable
+kubectl get pods -A -o wide | grep <node-name-gpupool>
+
+kubectl label node <node-name-gpupool>  eks-node=gpu
+
+helm repo add nvdp https://nvidia.github.io/k8s-device-plugin
+helm repo update
+
+helm upgrade -i nvdp nvdp/nvidia-device-plugin \
+  --namespace kube-system \
+  -f nvdp-values.yaml \
+  --version 0.14.0
+
+kubectl get pods -n kube-system -o wide | grep nvidia
+kubectl get pods -n kube-system -o wide | grep nvidia
+kubectl describe node <node-name-gpupool> | grep -A5 Allocatable
+kubectl logs -f nvdp-nvidia-device-plugin-fj8k5 -n kube-system
+
+kubectl get nodes -o json | jq -r '.items[] | select(.status.capacity."nvidia.com/gpu" != null) | {name: .metadata.name, capacity: .status.capacity}'
+kubectl get node -o json  | jq '.items[].status.allocatable | with_entries(select(.key|test("nvidia.com")) )'
+kubectl get node -o json  | jq '.items[].status.capacity | with_entries(select(.key|test("nvidia.com")) )'
+
+kubectl taint node <node-name-gpupool> nvidia.com/gpu=true:NoSchedule
+
+nano gpu.yaml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gpu-test
+spec:
+  restartPolicy: Never
+
+  nodeSelector:
+    eks-node: gpu
+
+  tolerations:
+  - key: "nvidia.com/gpu"
+    operator: "Equal"
+    value: "true"
+    effect: "NoSchedule"
+
+  containers:
+  - name: cuda
+    image: nvidia/cuda:12.2.0-base-ubuntu22.04
+    command: ["nvidia-smi"]
+    resources:
+      limits:
+        nvidia.com/gpu: 1
+
+------------------------------------------------------------------------------------
+
+logs of nvidia-plugin pod
+
+kubectl logs -f nvdp-nvidia-device-plugin-fj8k5 -n kube-system
+I0208 17:43:21.234426       1 main.go:154] Starting FS watcher.
+I0208 17:43:21.234536       1 main.go:161] Starting OS watcher.
+I0208 17:43:21.234923       1 main.go:176] Starting Plugins.
+I0208 17:43:21.234943       1 main.go:234] Loading configuration.
+I0208 17:43:21.235060       1 main.go:242] Updating config with default resource matching patterns.
+I0208 17:43:21.235247       1 main.go:253]
+Running with config:
+{
+  "version": "v1",
+  "flags": {
+    "migStrategy": "none",
+    "failOnInitError": true,
+    "nvidiaDriverRoot": "/",
+    "gdsEnabled": false,
+    "mofedEnabled": false,
+    "plugin": {
+      "passDeviceSpecs": false,
+      "deviceListStrategy": [
+        "envvar"
+      ],
+      "deviceIDStrategy": "uuid",
+      "cdiAnnotationPrefix": "cdi.k8s.io/",
+      "nvidiaCTKPath": "/usr/bin/nvidia-ctk",
+      "containerDriverRoot": "/driver-root"
+    }
+  },
+  "resources": {
+    "gpus": [
+      {
+        "pattern": "*",
+        "name": "nvidia.com/gpu"
+      }
+    ]
+  },
+  "sharing": {
+    "timeSlicing": {}
+  }
+}
+I0208 17:43:21.235263       1 main.go:256] Retreiving plugins.
+I0208 17:43:21.235949       1 factory.go:107] Detected NVML platform: found NVML library
+I0208 17:43:21.235994       1 factory.go:107] Detected non-Tegra platform: /sys/devices/soc0/family file not found
+I0208 17:43:21.260668       1 server.go:165] Starting GRPC server for 'nvidia.com/gpu'
+I0208 17:43:21.260995       1 server.go:117] Starting to serve 'nvidia.com/gpu' on /var/lib/kubelet/device-plugins/nvidia-gpu.sock
+I0208 17:43:21.262636       1 server.go:125] Registered device plugin for 'nvidia.com/gpu' with Kubelet

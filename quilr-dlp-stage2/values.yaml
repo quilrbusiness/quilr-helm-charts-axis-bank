@@ -9,7 +9,7 @@ hpa:
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 85
 image:
-  repository: quilrdev.azurecr.io/stage2_dlp
+  repository: 975050335771.dkr.ecr.ap-south-1.amazonaws.com/main/stage2_dlp
   tag: latest
   pullPolicy: IfNotPresent
 service:

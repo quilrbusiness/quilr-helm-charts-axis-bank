@@ -17,9 +17,9 @@ spec:
         app: {{ .Values.quilr.appname }}
     spec:
       nodeSelector:
-        agentpool: aisrvpl02
+        eks-node: gpu
       tolerations:
-        - key: "aisrvpl02"
+        - key: "nvidia.com/gpu"
           operator: "Equal"
           value: "true"
           effect: "NoSchedule"
