@@ -1,0 +1,48 @@
+{
+  "tenant": "global",
+  "tenantData": {
+    "whitelistedRegex": [
+      {
+        "flags": "i",
+        "source": "spotnana.com"
+      },
+      {
+        "flags": "i",
+        "source": "consentcdn.cookiebot.com"
+      },
+      {
+        "flags": "i",
+        "source": "app.spotnana.com"
+      },
+      {
+        "flags": "i",
+        "source": "spotnanastg.wpengine.com"
+      },
+      {
+        "flags": "i",
+        "source": "-my.sharepoint.com"
+      },
+      {
+        "flags": "i",
+        "source": "sprout.atlassian.net/wiki"
+      },
+      {
+        "flags": "i",
+        "source": "localhost"
+      },
+      {
+        "flags": "i",
+        "source": "127.0.0.1"
+      },
+      {
+        "flags": "i",
+        "source": "app.cyera.io"
+      },
+      {
+        "flags": "i",
+        "source": "uipath.lightning.force.com"
+      }
+    ],
+    "whitelistedHostname": []
+  }
+}

@@ -1,0 +1,1020 @@
+{
+  "tenant": "global",
+  "tenantData": {
+    "CACHE": {
+      "APPLICATION_DEFAULT_TIMEOUT": 120000
+    },
+    "MFA_DB": {
+      "okta.com": {
+        "form_bypass": [
+          "form[data-se='app-credentials-form']",
+          "form[name='app-credentials-form']"
+        ]
+      },
+      "github.com": {
+        "mfa": {
+          "content": [
+            "(Two-factor authentication|Authenticator app)"
+          ],
+          "btn_selector": "#login > div.Box.mt-3.color-bg-subtle > div.Box-body.pt-0.mt-0 > form > button",
+          "form_selector": "#app_totp"
+        }
+      },
+      "dropbox.com": {
+        "mfa": {
+          "content": [
+            "Additional authentication is required"
+          ]
+        }
+      }
+    },
+    "EXCEPTION_ELEMENT": {
+      "atlassian.net": {
+        "click": [
+          {
+            "btn_selector": ".css-18tud6c",
+            "behaviour": "ignore"
+          }
+        ],
+        "blurFocus": [],
+        "keyPress": [],
+        "shouldUseShadowRootChecking": false
+      },
+      "cynerio.com": {
+        "click": [],
+        "blurFocus": [],
+        "keyPress": [],
+        "shouldUseShadowRootChecking": true
+      },
+      "force.com": {
+        "click": [],
+        "blurFocus": [
+          {
+            "btn_selector": "[id^=\"input-\"]",
+            "behaviour": "ignore"
+          }
+        ],
+        "keyPress": [],
+        "shouldUseShadowRootChecking": true
+      }
+    },
+    "POLICY": {
+      "SERVER": {
+        "JSON_URL": "/playbook-service/controls/synctoui",
+        "WASM_URL": ""
+      },
+      "TEMPLATES": "http://localhost:3000/template/api/v1/dbtemplates"
+    },
+    "AUTH_DB": {
+      "ganttpro.com": {
+        "button": "#login"
+      }
+    },
+    "STORAGE": {
+      "LOCAL": "local",
+      "INDEXDB": "indexDB",
+      "SESSION": "session"
+    },
+    "PASSWORD": {
+      "MIN_PASSWORD_LENGTH": 3
+    },
+    "POSTURES": {
+      "PASSWORD_HYGIENE": "PID_03"
+    },
+    "CUT_REGEX": {
+      "flags": "i",
+      "source": "(cut)"
+    },
+    "GEN_AI_DB": {
+      "meta.ai": {
+        "svg_fingerprint": [
+          "d9907ba6"
+        ]
+      },
+      "kimi.com": {
+        "svg_fingerprint": [
+          "9cfdfaa8"
+        ]
+      },
+      "claude.ai": {},
+      "phind.com": {
+        "button": [
+          "svg.arrow-right",
+          "svg.lucide.lucide-arrow-up",
+          "div.masthead-arrow-right-container > svg.enlarged-on-mobile"
+        ],
+        "bypass_textarea": [
+          "textarea"
+        ],
+        "svg_fingerprint": [
+          "17215e0",
+          "2aa3b506",
+          "6748b0b8"
+        ]
+      },
+      "github.com": {
+        "svg_fingerprint": [
+          "a560912e"
+        ]
+      },
+      "chatgpt.com": {
+        "events": {
+          "click": [
+            {
+              "btn_selector": ".composer-btn",
+              "behaviour": "ignore"
+            }
+          ],
+          "blurFocus": [],
+          "keyPress": [
+            {
+              "btn_selector": ".composer-btn",
+              "behaviour": "ignore"
+            }
+          ],
+          "shouldUseShadowRootChecking": true
+        }
+      },
+      "chatlyai.app": {
+        "textArea": "#undefined-form-item > div",
+        "svg_fingerprint": [
+          "cc5eab5c"
+        ]
+      },
+      "deepseek.com": {},
+      "perplexity.ai": {
+        "intercept": {
+          "url": "https://www.perplexity.ai/rest/referrals/validate-email",
+          "path": ""
+        },
+        "svg_fingerprint": [
+          "57e223cb"
+        ]
+      },
+      "build.blackbox.ai": {
+        "svg_fingerprint": [
+          "6748b0b8"
+        ]
+      },
+      "chat.deepseek.com": {
+        "textArea": "#input",
+        "intercept": {
+          "path": "current"
+        },
+        "svg_fingerprint": [
+          "e5442ca8",
+          "7fdf7590"
+        ]
+      },
+      "cloud.blackbox.ai": {
+        "svg_fingerprint": [
+          "6748b0b8"
+        ]
+      },
+      "gemini.google.com": {},
+      "notebooklm.google.com": {
+        "includedRegex": [
+          {
+            "flags": "i",
+            "source": "convert\\s+to\\s+source"
+          }
+        ]
+      }
+    },
+    "UPLOAD_DB": {
+      "app.vendr.com": {
+        "upload": "reupload"
+      },
+      "www.reddit.com": {
+        "upload": "reupload"
+      },
+      "chat.google.com": {
+        "upload": "reupload"
+      },
+      "www.scannergo.net": {
+        "upload": "reupload"
+      }
+    },
+    "CAP_CONFIG": {
+      "COMPRESS": true,
+      "ENDPOINT": "/browser-extension/browser/interaction/log/snippets",
+      "ALGORITHM": "gzip",
+      "RETRY_MAX": 3,
+      "RETRY_BASE_MS": 2000,
+      "DEFAULT_CHUNK_SIZE": 102400,
+      "MAX_PARALLEL_CHUNKS": 3
+    },
+    "COPY_REGEX": {
+      "flags": "i",
+      "source": "(copy)"
+    },
+    "GEN_AI_APP": {
+      "MIN_TEXT_LENGTH": 1
+    },
+    "PASTE_REGEX": {
+      "flags": "i",
+      "source": "(paste)"
+    },
+    "DLP_ENDPOINT": {
+      "STREAM_URL": "/co-pilot/dlp/v4/stream/sensitive",
+      "STREAM_URL_DLP_ONE": "/dlp/stream/detect",
+      "STREAM_URL_DLP_ONE_V2": "/dlp/v2/stream/detect"
+    },
+    "LOG_ENDPOINT": {
+      "LOG_URL": "/browser-extension/browser/interaction/log",
+      "LOGS_URL": "/browser-extension/browser/interaction/events"
+    },
+    "PERSONA_URLS": {
+      "GET_ME_URL": "/auth/auth/me",
+      "EMAIL_REGISTER_URL": "/auth/auth/browser-extension-email-register"
+    },
+    "AUTH_PATTERNS": {
+      "flags": "i",
+      "source": "\\b(auth)\\b"
+    },
+    "SHOW_PASSWORD": {
+      "flags": "i",
+      "source": "(show[\\s_\\-]+?pass|view[\\s_\\-]+?pass|eye|eyeslash)"
+    },
+    "APP_CATEGORIES": {
+      "GEN_AI_APP": "Generative AI"
+    },
+    "GENAI_APP_LIST": [
+      {
+        "flags": "i",
+        "source": "(chatlyai\\.app|meta\\.ai|chatgpt\\.com|perplexity\\.ai|deepseek\\.com|gemini.google.com|claude\\.ai|mail.google.com|notebooklm.google.com)"
+      }
+    ],
+    "LOGIN_PATTERNS": {
+      "flags": "i",
+      "source": "(login|signin|sign[\\s\\-_]?in|log[\\s\\-_]?in|verify)"
+    },
+    "TIME_CONSTANTS": {
+      "HEART_BEAT_INTERVAL": 120000,
+      "LAST_OAUTH_PAGE_SHOWN": 86400000,
+      "FETCH_PERSONA_INTERVAL": 120000,
+      "UPDATE_PERSONA_INTERVAL": 3600000,
+      "TENANT_SETTINGS_INTERVAL": 180000,
+      "RELOAD_EXTENSION_INTERVAL": 10000,
+      "FETCH_PERSONA_DOMAINS_INTERVAL": 120000
+    },
+    "GLOBAL_TIMEOUTS": {
+      "TIMEOUT_BUFFER": 50,
+      "CUT_AFTER_TIMEOUT": 50,
+      "DLP_CLICK_TIMEOUT": 3000,
+      "KEY_PRESS_TIMEOUT": 500,
+      "DOM_UPDATE_TIMEOUT": 50,
+      "PASTE_AFTER_TIMEOUT": 50,
+      "BUTTON_CLICK_TIMEOUT": 1000,
+      "PASSWORD_BOX_DEBOUNCE": 800,
+      "AUTH_FORM_CHECK_TIMEOUT": 5000,
+      "COPY_PASTE_EVENT_DEBOUNCE": 600,
+      "ALLOWED_TIMEOUT_DIFF_CHECK": 50,
+      "PERSONA_EMAIL_CHECK_TIMEOUT": 2000,
+      "THROTTLED_HANDLE_INPUT_TIMER": 300
+    },
+    "GOOGLE_IDP_URLS": [
+      "https://mail.google.com/mail",
+      "https://drive.google.com/drive",
+      "https://docs.google.com",
+      "https://calendar.google.com",
+      "https://sheets.google.com",
+      "https://meet.google.com"
+    ],
+    "LOGOUT_PATTERNS": {
+      "flags": "i",
+      "source": "(log\\s?out|sign\\s?out|log[\\s\\-_]?out|logout|signed[\\s\\-_]?out)"
+    },
+    "MFA_OTP_PATTERN": {
+      "flags": "i",
+      "source": "(otp|verify|code|token)"
+    },
+    "NEXT_PAGE_REGEX": {
+      "flags": "i",
+      "source": "\\b(next|continue|proceed)\\b"
+    },
+    "SIGNUP_PATTERNS": {
+      "flags": "i",
+      "source": "(sign[\\s?\\-_]?up|register|create|create\\s+?account|signin-up|join)"
+    },
+    "DLP_OUTCOME_TEXT": {
+      "CLOSED": "User did not submit any prompt",
+      "NON_SENSITIVE": "User did not send any sensitive data"
+    },
+    "FORM_BYPASS_ONCE": "data-quilr-bypass-once",
+    "MFA_PAGE_PATTERN": [
+      {
+        "flags": "i",
+        "source": "(authenticator|approve.+?sign)"
+      },
+      {
+        "flags": "i",
+        "source": "enter\\s*(the\\s*)?6\\s*-?\\s*digit\\s*(code|passcode|OTP)"
+      },
+      {
+        "flags": "i",
+        "source": "enter\\s.*?(the\\s.*?)?(code|OTP)"
+      },
+      {
+        "flags": "i",
+        "source": "(2|two)[-\\s]?(factor|step)\\s+?(verification|code|authenticat)?"
+      },
+      {
+        "flags": "i",
+        "source": "(6)[-\\s]+?digit\\s+?code"
+      },
+      {
+        "flags": "i",
+        "source": "(Authentication|confirmation)\\s+?code"
+      },
+      {
+        "flags": "i",
+        "source": "enter\\s+?(the\\s+)?(security|authentication|verification|generated)\\s*code"
+      },
+      {
+        "flags": "i",
+        "source": "verify\\s*your\\s*account"
+      },
+      {
+        "flags": "i",
+        "source": "authenticator\\s*(app|code)"
+      },
+      {
+        "flags": "i",
+        "source": "enter\\s*(the\\s*)?security\\s*code"
+      },
+      {
+        "flags": "i",
+        "source": "enter\\s*(the\\s*)?verification\\s*code"
+      },
+      {
+        "flags": "i",
+        "source": "we\\s*sent\\s*a\\s*(?:text|email|mail)\\s*with\\s*a\\s*one[-\\s]?time"
+      },
+      {
+        "flags": "i",
+        "source": "we\\s*sent\\s*your\\s*code\\s*to\\s*your\\s*number"
+      },
+      {
+        "flags": "i",
+        "source": "enter\\s*your\\s*one[-\\s]?time\\s*code"
+      },
+      {
+        "flags": "i",
+        "source": "we\\s*sent\\s*a\\s*code\\s*to\\s*your\\s*(phone|email)"
+      },
+      {
+        "flags": "i",
+        "source": "we'll\\s*send\\s*(an\\s*)?(SMS|email)?\\s*authentication\\s*code\\s*to\\s*your\\s*(phone\\s*number|email)"
+      },
+      {
+        "flags": "i",
+        "source": "enter\\s*your\\s*two[-\\s]?factor\\s*authentication\\s*code"
+      },
+      {
+        "flags": "i",
+        "source": "enter\\s*a\\s*one[-\\s]?time\\s*passcode"
+      },
+      {
+        "flags": "i",
+        "source": "enter\\s*(the\\s.*?)?6\\s*-?\\s*digit\\s*(code|passcode|OTP)"
+      },
+      {
+        "flags": "i",
+        "source": "enter\\s*(the\\s*)?\\d{6}\\s*-?\\s*digit\\s*(code|passcode|OTP)"
+      },
+      {
+        "flags": "i",
+        "source": "you\\s*should\\s*have\\s*received\\s*(?:a|an)\\s*OTP\\s*code"
+      },
+      {
+        "flags": "i",
+        "source": "enter\\s*your\\s*authentication\\s*code"
+      },
+      {
+        "flags": "i",
+        "source": "one[-\\s]?time\\s.*?(password|passcode|login)"
+      },
+      {
+        "flags": "i",
+        "source": "microsoft\\s*authenticator"
+      },
+      {
+        "flags": "i",
+        "source": "identity\\s*verification"
+      },
+      {
+        "flags": "i",
+        "source": "google\\s*authenticator"
+      },
+      {
+        "flags": "i",
+        "source": "g[-\\s]?2fa"
+      },
+      {
+        "flags": "i",
+        "source": "google\\s*verification"
+      },
+      {
+        "flags": "i",
+        "source": "Additional authentication is required"
+      },
+      {
+        "flags": "i",
+        "source": "security[\\s\\-_]?code"
+      }
+    ],
+    "NATIVE_MESSAGING": {
+      "HOST_NAME": "com.quilr.sentinel.native",
+      "MAX_RECONNECT_ATTEMPTS": 1
+    },
+    "LOCAL_STORAGE_KEY": "30dae651-7e87-4021-ba96-2c5397fa5fce",
+    "MainUploadChannel": "main-upload-channel-ae305f40-5737-4500-aadd-f1aff5d6abb4",
+    "DLP_REASON_OPTIONS": {
+      "gotApproval": "Have prior approval",
+      "noSensitive": "No sensitive information",
+      "cantComplete": "Can't complete task with redactions"
+    },
+    "EMAIL_TEXT_PATTERN": {
+      "flags": "i",
+      "source": "(email|mail|e-mail|username|login)"
+    },
+    "MFA_EXCEPTION_LIST": [
+      {
+        "flags": "i",
+        "source": "credentials\\.passcode"
+      }
+    ],
+    "MFA_SUBMIT_PATTERN": {
+      "flags": "i",
+      "source": "(verify|Authenticate|otp|code|token|qr-code|authenticator|2fa|mfa)"
+    },
+    "MICROSOFT_IDP_URLS": [
+      "https://webshell.suite.office.com/iframe"
+    ],
+    "COPILOT_URL": [
+      "https://m365.cloud.microsoft"
+    ],
+    "WHITELIST_ENDPOINT": "/browser-extension/browser/activity/whitelist/app",
+    "WORK_EMAIL_DOMAINS": [
+      "gmail.com",
+      "yahoo.com",
+      "hotmail.com",
+      "outlook.com",
+      "aol.com",
+      "icloud.com",
+      "mail.com",
+      "protonmail.com",
+      "yandex.com",
+      "zoho.com",
+      "gmx.com",
+      "live.com",
+      "msn.com",
+      "qq.com",
+      "naver.com",
+      "daum.net",
+      "tutanota.com",
+      "seznam.cz",
+      "web.de",
+      "mail.ru",
+      "inbox.ru",
+      "list.ru",
+      "bk.ru",
+      "t-online.de",
+      "sina.com",
+      "163.com",
+      "yeah.net",
+      "126.com",
+      "rediffmail.com",
+      "indiatimes.com",
+      "lycos.com",
+      "fastmail.com",
+      "hushmail.com",
+      "runbox.com",
+      "posteo.net",
+      "disroot.org",
+      "riseup.net",
+      "startmail.com",
+      "mailbox.org",
+      "usa.com",
+      "europe.com",
+      "asia.com",
+      "cheerful.com",
+      "consultant.com",
+      "engineer.com",
+      "iname.com",
+      "walla.com",
+      "mail.bg",
+      "abv.bg",
+      "freemail.hu",
+      "citromail.hu",
+      "hotmail.co.uk",
+      "live.co.uk",
+      "yahoo.co.uk",
+      "btinternet.com",
+      "orange.fr",
+      "laposte.net",
+      "free.fr",
+      "sfr.fr",
+      "neuf.fr",
+      "wanadoo.fr",
+      "voila.fr",
+      "terra.com.br",
+      "uol.com.br",
+      "bol.com.br",
+      "ig.com.br",
+      "r7.com",
+      "zipmail.com.br",
+      "gawab.com",
+      "indiatimes.com",
+      "rediffmail.com",
+      "yeah.net",
+      "sogou.com",
+      "sohu.com",
+      "21cn.com",
+      "tom.com",
+      "tiscali.co.uk",
+      "talktalk.co.uk",
+      "blueyonder.co.uk",
+      "virginmedia.com",
+      "ntlworld.com",
+      "o2.co.uk",
+      "btopenworld.com",
+      "sky.com",
+      "talk21.com",
+      "mail.ee",
+      "mail.kz",
+      "mail.md",
+      "mail.ru",
+      "rambler.ru",
+      "ya.ru",
+      "bk.ru",
+      "list.ru",
+      "inbox.ru",
+      "narod.ru",
+      "mailinator.com",
+      "trashmail.com",
+      "guerrillamail.com",
+      "10minutemail.com",
+      "temp-mail.org"
+    ],
+    "BILLING_URL_PATTERN": [
+      {
+        "flags": "i",
+        "source": "((pay|payment|checkout|billing|invoice|subscription|donate|donation)[\\s\\-_]?link)"
+      },
+      {
+        "flags": "i",
+        "source": "payment|checkout|billing|pay[\\-_]?now|transaction|purchase|order[\\-_]?summary"
+      },
+      {
+        "flags": "i",
+        "source": "credit[\\-_]?card|cc[\\-_]?info|add[\\-_]?card|update[\\-_]?card|card[\\-_]?details"
+      }
+    ],
+    "EMAIL_REGEX_PATTERN": {
+      "flags": "i",
+      "source": "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}"
+    },
+    "MFA_CONTENT_PATTERN": {
+      "flags": "i",
+      "source": "(multi[\\s\\-_]?factor|authenticator|(verification|security)[\\s\\-_]?code|one[\\s\\-_]?time[\\s\\-_]?(pass|code)|(?<!\\.)passcode)"
+    },
+    "MFA_ELEMENT_PATTERN": {
+      "flags": "i",
+      "source": "(otp|(?<!\\.pass)code|token|qr-code|authenticator|2fa|mfa|(verification|security)[\\s\\-_]?code|one[\\s\\-_]?time[\\s\\-_]?(pass|code))"
+    },
+    "MainWorldConnection": "main-world-connection-ae305f40-5737-4500-aadd-f1aff5d6abb4",
+    "PASSWORD_RESET_PAGE": {
+      "flags": "i",
+      "source": "\\b(forgot|reset)\\b"
+    },
+    "POLICY_TEMPLATE_URL": "/template/api/v1/dbtemplates?channel=browser&limit=100",
+    "SUBMIT_TEXT_PATTERN": {
+      "flags": "i",
+      "source": "(submit|continue|next|proceed)"
+    },
+    "TENANT_SETTINGS_URL": "/browser-extension/browser/extension/mgmt/persona/settings",
+    "COPY_PASTE_BEHAVIORS": [
+      "BID_200",
+      "BID_201"
+    ],
+    "NETWORK_INTERCEPTORS": {
+      "IGNORED_URL_RESOURCES": [
+        {
+          "flags": "i",
+          "source": "\\.(css|js|jpg|png|svg|woff2|ico|bmp)$"
+        },
+        {
+          "flags": "i",
+          "source": "\\.(css)\\?"
+        }
+      ]
+    },
+    "PROMPT_CONTENT_REGEX": {
+      "flags": "i",
+      "source": "(prompt|deepseek|chat[\\s\\-_]?input)"
+    },
+    "PROMPT_FREQUENCY_URL": "/playbook-service/controls/get-interaction?message=true&app_domain=",
+    "REMOVE_EXTENSION_URL": "/browser-extension/browser/extension/{extensionId}/settings/remove?message=true",
+    "UploadEventChannelMW": "upload-event-channel-ae305f40-5737-4500-aadd-f1aff5d6abb4",
+    "CONSTANTS_CONFIGS_URL": "/extension-api-service/extension/constants-config/v1",
+    "COPY_PASTE_AUTOMATION": [
+      "phind.com",
+      "perplexity.ai"
+    ],
+    "DEFAULT_SYNC_INTERVAL": 600000,
+    "FETCH_APP_DETAILS_URL": "/browser-extension/browser/extension/fetch-app-details?domain=",
+    "PASSWORD_TEXT_PATTERN": {
+      "flags": "i",
+      "source": "(password|pass|webkit-text-security)"
+    },
+    "SIGNUP_BUTTON_PATTERN": {
+      "flags": "i",
+      "source": "(sign\\s?up|register|\\bcreate\\b|create\\s+?account)"
+    },
+    "USERNAME_TEXT_PATTERN": {
+      "flags": "i",
+      "source": "username|user|account name| account"
+    },
+    "WHITELISTED_HOSTNAMES": [],
+    "CREDS_SHARING_BEHAVIOR": "BID_09",
+    "INVALID_EXTENSION_URLS": [
+      "https://microsoftedge.microsoft.com",
+      "https://chromewebstore.google.com"
+    ],
+    "LOGIN_CONTENT_PATTERNS": {
+      "flags": "i",
+      "source": "(login|signin|sign[\\s\\-_]?in|log[\\s\\-_]?in)"
+    },
+    "MICROSOFT_SESSION_URLS": [
+      "https://outlook.office365.com/",
+      "https://teams.microsoft.com/",
+      "https://outlook.office.com/"
+    ],
+    "MONITOR_LOGGED_IN_USER": [
+      "Generative AI"
+    ],
+    "BILLING_CONTENT_PATTERN": [
+      {
+        "flags": "i",
+        "source": "((pay|payment|checkout|billing|invoice|subscription|donate|donation)[\\s\\-_]?content)"
+      },
+      {
+        "flags": "i",
+        "source": "credit[\\s\\-_]?card|cc[\\s\\-_]?info|add[\\s\\-_]?card|update[\\s\\-_]?card|card[\\s\\-_]?(details|number)"
+      },
+      {
+        "flags": "i",
+        "source": "payment[\\s\\-_]?method|billing[\\s\\-_]?address|billing[\\s\\-_]?info"
+      },
+      {
+        "flags": "i",
+        "source": "subscription[\\s\\-_]?plan|subscription[\\s\\-_]?details|subscription[\\s\\-_]?info"
+      },
+      {
+        "flags": "i",
+        "source": "invoice[\\s\\-_]?details|invoice[\\s\\-_]?summary|invoice[\\s\\-_]?info"
+      },
+      {
+        "flags": "i",
+        "source": "donation[\\s\\-_]?details|donation[\\s\\-_]?summary|donation[\\s\\-_]?info"
+      }
+    ],
+    "MainWorldMessageChannel": "relay-bc2aa2be-8fc9-447e-9453-2121a8d10b58",
+    "ACCOUNT_SELECTION_BUTTON": [
+      {
+        "flags": "i",
+        "source": "(countinue|login)\\sas\\s"
+      }
+    ],
+    "BUTTON_EXCEPTION_PATTERN": [
+      {
+        "flags": "i",
+        "source": "(change|cancel|profile|menu|back|go-back|edit)"
+      },
+      {
+        "flags": "i",
+        "source": "sign is to a different"
+      }
+    ],
+    "FORGOT_PASSWORD_PATTERNS": {
+      "flags": "i",
+      "source": "((forgot|reset)\\s+?pass|recovery\\s+(e[-]?mail))"
+    },
+    "MFA_FORM_ELEMENT_PATTERN": [
+      {
+        "flags": "i",
+        "source": "(6)[-\\s]+?digit\\s+?verification\\s+?code"
+      },
+      {
+        "flags": "i",
+        "source": "verification\\s+?code"
+      }
+    ],
+    "PROCESS_CHAIN_QUEUE_SIZE": 100,
+    "GEN_AI_CONTENT_TEXT_REGEX": [
+      {
+        "flags": "i",
+        "source": "chat[\\s\\-_]?input"
+      },
+      {
+        "flags": "i",
+        "source": "prompt"
+      },
+      {
+        "flags": "i",
+        "source": "ask\\s+?me\\s+?anything"
+      },
+      {
+        "flags": "i",
+        "source": "type\\s+?your\\s+?(question|message)"
+      },
+      {
+        "flags": "i",
+        "source": "chat\\s+?with\\s+?ai"
+      },
+      {
+        "flags": "i",
+        "source": "how\\s+?can\\s+?i\\s+?help"
+      },
+      {
+        "flags": "i",
+        "source": "type\\s+?here"
+      },
+      {
+        "flags": "i",
+        "source": "ask\\s+?(me|anything)"
+      },
+      {
+        "flags": "i",
+        "source": "claude"
+      },
+      {
+        "flags": "i",
+        "source": "meta\\s+?ai"
+      },
+      {
+        "flags": "i",
+        "source": "deepseek"
+      }
+    ],
+    "BILLING_INPUT_ATTR_PATTERN": [
+      {
+        "flags": "i",
+        "source": "((pay|payment|checkout|billing|invoice|subscription|donate|donation)[\\s\\-_]?input)"
+      },
+      {
+        "flags": "i",
+        "source": "credit[\\s\\-_]?card|cc[\\s\\-_]?info|add[\\s\\-_]?card|update[\\s\\-_]?card|card[\\s\\-_]?(details|number)"
+      },
+      {
+        "flags": "i",
+        "source": "cvv"
+      }
+    ],
+    "KeyBoardListenerExceptions": [
+      {
+        "flags": "i",
+        "source": "gridKeyboardContent"
+      },
+      {
+        "flags": "i",
+        "source": "waffle-rich-text-editor"
+      }
+    ],
+    "MainContentInjectionTiming": {
+      "TIMEOUT": "timeout",
+      "DOCUMENT_END": "document_end"
+    },
+    "PROMPT_PLACEHOLDER_CONTENT": [
+      "ask me anything",
+      "type your question",
+      "chat with ai",
+      "how can i help",
+      "prompt",
+      "type here",
+      "ask me",
+      "claude",
+      "ask follow-up"
+    ],
+    "WHITELISTED_HOSTNAME_REGEX": [
+      {
+        "flags": "i",
+        "source": "spotnana.com"
+      },
+      {
+        "flags": "i",
+        "source": "consentcdn.cookiebot.com"
+      },
+      {
+        "flags": "i",
+        "source": "app.spotnana.com"
+      },
+      {
+        "flags": "i",
+        "source": "spotnanastg.wpengine.com"
+      },
+      {
+        "flags": "i",
+        "source": "-my.sharepoint.com"
+      }
+    ],
+    "GENAI_SUBMIT_BUTTON_PATTERN": [
+      {
+        "flags": "i",
+        "source": "(send[\\s\\-_]+?(message|button|prompt)?|submit|update)"
+      },
+      {
+        "flags": "i",
+        "source": "composer[\\s\\-]submit"
+      },
+      {
+        "flags": "i",
+        "source": "iask\\s+?ai"
+      },
+      {
+        "flags": "i",
+        "source": "detect\\s+ai"
+      },
+      {
+        "flags": "i",
+        "source": "generate\\s+speech"
+      },
+      {
+        "flags": "i",
+        "source": "generate"
+      }
+    ],
+    "LINKCLICK_EXCEPTION_PATTERN": [
+      {
+        "flags": "i",
+        "source": "select"
+      }
+    ],
+    "PROCESS_CHAIN_QUEUE_TIMEOUT": 1000,
+    "URL_SPECIFIC_LOGIN_PATTERNS": {
+      "flags": "i",
+      "source": "(oauth2)"
+    },
+    "FETCH_EXTENSION_SETTINGS_URL": "/browser-extension/browser/extension/settings/custom?message=true",
+    "OVERRIDE_BEHAVIOR_EXCEPTIONS": [
+      "BID_200",
+      "BID_203",
+      "BID_204"
+    ],
+    "INTERACTION_LOG_DROP_OUTCOMES": {
+      "PROCEED": "Proceed",
+      "CUSTOM_JUSTIFICATION_PROVIDED": "Custom Justification Provided"
+    },
+    "MAIN_CONTENT_INJECTION_CONFIG": {
+      "timeoutMs": 500,
+      "defaultTiming": "timeout",
+      "siteOverrides": {}
+    },
+    "MFA_WHITELIST_BEHAVIOR_STRING": "BID_05,BID_06,BID_07",
+    "SINGLE_SIGN_ON_BUTTON_PATTERN": [
+      {
+        "flags": "i",
+        "source": "\\b(sso|single[\\s\\-_]?sign[\\s\\-_]?on)\\b"
+      },
+      {
+        "flags": "i",
+        "source": "(microsoft|google|apple|slack)"
+      },
+      {
+        "flags": "i",
+        "source": "(continue\\s+?with\\s+?(microsoft|google|apple|slack|facebook|instagram)|login\\s+using\\s+?(microsoft|google|apple|slack))"
+      }
+    ],
+    "GEN_AI_BYPASS_SUBMIT_FOR_ENTER": [
+      {
+        "domain": "notebooklm.google.com",
+        "selector": "div[contenteditable='true'].ql-editor"
+      },
+      {
+        "domain": "mail.google.com",
+        "selector": "table div[contenteditable='true']"
+      }
+    ],
+    "ImmediateArtifactsProcessChain": [
+      "request",
+      "response"
+    ],
+    "FORM_ELEMENT_PREVENT_CLICK_ENTER": "data-quilr-prevent-click-enter",
+    "GEN_AI_BLACK_LISTED_URL_PATTERNS": [
+      {
+        "flags": "i",
+        "source": "chat.google.com"
+      }
+    ],
+    "PROMPT_PLACEHOLDER_CONTENT_REGEX": [
+      {
+        "flags": "i",
+        "source": "ask\\s+?me\\s+?anything"
+      },
+      {
+        "flags": "i",
+        "source": "type\\s+?your\\s+?(question|message)"
+      },
+      {
+        "flags": "i",
+        "source": "chat\\s+?with\\s+?ai"
+      },
+      {
+        "flags": "i",
+        "source": "how\\s+?can\\s+?i\\s+?help"
+      },
+      {
+        "flags": "i",
+        "source": "prompt"
+      },
+      {
+        "flags": "i",
+        "source": "type\\s+?here"
+      },
+      {
+        "flags": "i",
+        "source": "what do you want to know"
+      },
+      {
+        "flags": "i",
+        "source": "ask\\s+?me"
+      },
+      {
+        "flags": "i",
+        "source": "claude"
+      },
+      {
+        "flags": "i",
+        "source": "meta\\s+?ai"
+      },
+      {
+        "flags": "i",
+        "source": "deepseek"
+      },
+      {
+        "flags": "i",
+        "source": "submit"
+      },
+      {
+        "flags": "i",
+        "source": "gemini"
+      },
+      {
+        "flags": "i",
+        "source": "chatly"
+      }
+    ],
+    "FORM_ELEMENT_UNIQUE_SELECTOR_NAME": "data-quilr-unique-selector",
+    "GENAI_TEXT_INPUT_EXCEPTION_PATTERN": [
+      {
+        "flags": "i",
+        "source": "message\\s+?body"
+      },
+      {
+        "flags": "i",
+        "source": "to\\s+?recipient"
+      },
+      {
+        "flags": "i",
+        "source": "subject"
+      }
+    ],
+    "GEN_AI_AUTOMATOR_NO_ENTER_KEY_PRESS": [
+      "perplexity.ai",
+      "m365.cloud.microsoft/chat",
+      "notebooklm.google.com",
+      "chat.qwen.ai",
+      "phind.com"
+    ],
+    "ACCOUNT_SELECTION_EXCEPTION_EMAIL_TXT": [
+      {
+        "flags": "i",
+        "source": "(help|support|reach|contact|admin|team)"
+      }
+    ],
+    "GENAI_SUBMIT_BUTTON_EXCEPTION_PATTERN": [
+      {
+        "flags": "i",
+        "source": "(upload|reason|research|\\bstop\\b|cancel|deepthink|canvas|delete|import)"
+      }
+    ],
+    "REDACT_CONSTANTS": {
+      "REDACT_ACTIVE": true,
+      "REDACTED_VALUE": "X"
+    },
+    "DEFAULT_APP_DETAILS": {
+      "has_app_settings": {
+        "criticality": "NOT SET",
+        "approval_status": "NEEDS REVIEW",
+        "isBlocked": "No"
+      },
+      "app": {
+        "name": "",
+        "domain": ""
+      },
+      "application": {}
+    }
+  }
+}

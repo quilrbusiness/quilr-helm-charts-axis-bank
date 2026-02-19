@@ -1,0 +1,2097 @@
+{
+  "tenant": "global",
+  "tenantData": [
+    {
+      "name": "chatlyai-response",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://chatlyai.app"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "equals",
+            "where": "requestUrl",
+            "keywords": "https://streaming-chatly.vyro.ai/v2/agent/completions"
+          },
+          {
+            "name": "second",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "final",
+            "type": "select",
+            "where": "any",
+            "keywords": [
+              "id",
+              "responseSize",
+              "responseBody"
+            ],
+            "outputName": "promptResponse"
+          }
+        ],
+        "name": "chatlyai-response",
+        "type": "response"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "perplexityLoggedInRequest",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://www.perplexity.ai"
+          }
+        ],
+        "args": [
+          {
+            "name": "firstFilter",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://www.perplexity.ai/api/auth/session"
+          },
+          {
+            "name": "final",
+            "type": "any",
+            "where": "any",
+            "keywords": "",
+            "outputName": "userRequest"
+          }
+        ],
+        "name": "perplexityLoggedInRequest",
+        "type": "backgroundInterceptors"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "perplexityLoggedInUser",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://www.perplexity.ai"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://www.perplexity.ai/api/auth/session"
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "responseBody",
+            "keywords": "(?<=\"email\"\\s*:\\s*\")[^\"]+",
+            "outputName": "email",
+            "defaultValue": null
+          }
+        ],
+        "name": "perplexityLoggedInUser",
+        "type": "response"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "chatGptLoggedInUser",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://chatgpt.com"
+          }
+        ],
+        "args": [
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "cookie",
+            "keywords": "(?<=\"email\":\")[^\"]+",
+            "outputName": "email",
+            "defaultValue": "__reject__"
+          }
+        ],
+        "name": "chatGptLoggedInUser",
+        "type": "cookie"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "chatGptOnLoadConversationId",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://chatgpt.com"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "startsWith",
+            "where": "pageUrl",
+            "keywords": "https://chatgpt.com/c/"
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "pageUrl",
+            "keywords": "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+            "outputName": "conversationId"
+          }
+        ],
+        "name": "chatGptOnLoadConversationId",
+        "type": "dom"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "chatGptLoggedInUserResponse",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://chatgpt.com"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://chatgpt.com/backend-api/me"
+          },
+          {
+            "name": "second",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "GET"
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "responseBody",
+            "keywords": "(?<=\"email\":\")[^\"]+",
+            "outputName": "email"
+          }
+        ],
+        "name": "chatGptLoggedInUserResponse",
+        "type": "response"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "chatGptOnLoadTopicName",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://chatgpt.com"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://chatgpt.com/backend-api/conversation/"
+          },
+          {
+            "name": "apiFilter",
+            "type": "regex",
+            "where": "requestUrl",
+            "keywords": "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+          },
+          {
+            "name": "second",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "GET"
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "responseBody",
+            "keywords": "(?<=\"title\"\\s*:\\s*\")[^\"]+",
+            "outputName": "topicName"
+          }
+        ],
+        "name": "chatGptOnLoadTopicName",
+        "type": "response"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "chatgptConversationId",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://chatgpt.com"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://chatgpt.com/backend"
+          },
+          {
+            "name": "second",
+            "type": "endsWith",
+            "where": "requestUrl",
+            "keywords": "/conversation"
+          },
+          {
+            "name": "third",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "responseBody",
+            "keywords": "(?<=\\\"conversation_id\\\"\\s*:\\s*\\\")[^\"]+",
+            "outputName": "conversationId"
+          }
+        ],
+        "name": "chatgptConversationId",
+        "type": "response"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "claudeTopicName",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://claude.ai"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "regex",
+            "where": "requestUrl",
+            "keywords": "https://claude\\.ai/api/organizations/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/chat_conversations/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}?"
+          },
+          {
+            "name": "second",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "GET"
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "responseBody",
+            "keywords": "(?<=\"name\"\\s*:\\s*\")[^\"]+",
+            "outputName": "topicName"
+          }
+        ],
+        "name": "claudeTopicName",
+        "type": "response"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "claudeRespConversationId",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://claude.ai"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "regex",
+            "where": "requestUrl",
+            "keywords": "https://claude\\.ai/api/organizations/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/chat_conversations/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+          },
+          {
+            "name": "second",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "GET"
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "requestUrl",
+            "keywords": "(?<=chat_conversations/)[0-9a-fA-F-]{36}",
+            "outputName": "conversationId"
+          }
+        ],
+        "name": "claudeRespConversationId",
+        "type": "request"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "claudeResponseLoggedInUserRequestMagic",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://claude.ai"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://claude.ai/api/auth/verify_magic_link"
+          },
+          {
+            "name": "final",
+            "type": "any",
+            "where": "any",
+            "keywords": "",
+            "outputName": "userRequest"
+          }
+        ],
+        "name": "claudeResponseLoggedInUserRequestMagic",
+        "type": "backgroundInterceptors"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "claudeResponseLoggedInUserMagicLink",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://claude.ai"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://claude.ai/api/auth/verify_magic_link"
+          },
+          {
+            "name": "second",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "responseBody",
+            "keywords": "(?<=\"email_address\":\")[^\"]+",
+            "outputName": "email"
+          }
+        ],
+        "name": "claudeResponseLoggedInUserMagicLink",
+        "type": "response"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "claudeResponseLoggedInUser",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://claude.ai"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://claude.ai/api/auth/verify_google"
+          },
+          {
+            "name": "second",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "responseBody",
+            "keywords": "(?<=\"email_address\":\")[^\"]+",
+            "outputName": "email"
+          }
+        ],
+        "name": "claudeResponseLoggedInUser",
+        "type": "response"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "chatGptReqConversationId",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://chatgpt.com"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://chatgpt.com/backend-api/conversation/"
+          },
+          {
+            "name": "apiFilter",
+            "type": "regex",
+            "where": "pageUrl",
+            "keywords": "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+          },
+          {
+            "name": "second",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "GET"
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "requestUrl",
+            "keywords": "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+            "outputName": "conversationId"
+          }
+        ],
+        "name": "chatGptReqConversationId",
+        "type": "request"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "claudeResponseTopicName",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://claude.ai"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "regex",
+            "where": "requestUrl",
+            "keywords": "https://claude\\.ai/api/organizations/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/chat_conversations/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/title"
+          },
+          {
+            "name": "second",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "requestUrl",
+            "keywords": "(?<=\"title\"\\s*:\\s*\")[^\"]+",
+            "outputName": "topicName"
+          }
+        ],
+        "name": "claudeResponseTopicName",
+        "type": "response"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "geminiOnLoadTopicName",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://gemini.google.com"
+          }
+        ],
+        "args": [
+          {
+            "name": "firstFilter",
+            "type": "equals",
+            "where": "body",
+            "keywords": ".conversation-title.gds-label-l"
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "firstFilter",
+            "keywords": "(?<=^[ \\t]*)[^\\s<][^\\n<]*",
+            "outputName": "topicName"
+          }
+        ],
+        "name": "geminiOnLoadTopicName",
+        "type": "dom"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "metaAiOnLoadConversationId",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://www.meta.ai"
+          }
+        ],
+        "args": [
+          {
+            "name": "initial",
+            "type": "regex",
+            "where": "pageUrl",
+            "keywords": "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+            "outputName": "conversationId"
+          }
+        ],
+        "name": "metaAiOnLoadConversationId",
+        "type": "dom"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "chatlyAiOnLoadConversationId",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://chatlyai.app"
+          }
+        ],
+        "args": [
+          {
+            "name": "pageurl",
+            "type": "regex",
+            "where": "pageUrl",
+            "keywords": "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+            "outputName": "conversationId"
+          }
+        ],
+        "name": "chatlyAiOnLoadConversationId",
+        "type": "dom",
+        "cache": true
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "perplexityConversationId",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://www.perplexity.ai"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "equals",
+            "where": "requestUrl",
+            "keywords": "https://www.perplexity.ai/rest/sse/perplexity_ask"
+          },
+          {
+            "name": "second",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "responseBody",
+            "keywords": "(?<=\"context_uuid\":\\s?\")[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
+            "outputName": "conversationId"
+          }
+        ],
+        "name": "perplexityConversationId",
+        "type": "response"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "claudeOnLoadTopicName",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://claude.ai"
+          }
+        ],
+        "args": [
+          {
+            "name": "pageurl",
+            "type": "startsWith",
+            "where": "pageUrl",
+            "keywords": "https://claude.ai/chat"
+          },
+          {
+            "name": "second",
+            "type": "equals",
+            "where": "body",
+            "keywords": "div.truncate.tracking-tight.font-normal.font-ui"
+          },
+          {
+            "name": "final",
+            "type": "notEqual",
+            "where": "second",
+            "keywords": "Untitled",
+            "outputName": "topicName"
+          }
+        ],
+        "name": "claudeOnLoadTopicName",
+        "type": "dom"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "geminiOnLoadConversationId",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://gemini.google.com"
+          }
+        ],
+        "args": [
+          {
+            "name": "firstFilter",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://gemini.google.com/_/BardChatUi/data/batchexecute"
+          },
+          {
+            "name": "secondFilter",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "requestHeader",
+            "keywords": "(?<=%2Fapp%2F)[a-f0-9]+",
+            "outputName": "conversationId"
+          }
+        ],
+        "name": "geminiOnLoadConversationId",
+        "type": "request"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "geminiConversationId",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://gemini.google.com/"
+          }
+        ],
+        "args": [
+          {
+            "name": "firstFilter",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://gemini.google.com/_/BardChatUi/data/batchexecute"
+          },
+          {
+            "name": "secondFilter",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "requestUrl",
+            "keywords": "(?<=%2Fapp%2F)[a-f0-9]+",
+            "outputName": "conversationId"
+          }
+        ],
+        "name": "geminiConversationId",
+        "type": "request"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "geminiAllTopics",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://gemini.google.com"
+          }
+        ],
+        "args": [
+          {
+            "name": "first",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://gemini.google.com/_/BardChatUi/data/batchexecute"
+          },
+          {
+            "name": "method",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "bodyCheck",
+            "type": "regex",
+            "where": "requestBody",
+            "keywords": "^f\\.req=%5B%5B%5B%22[^%]+%22%2C%22%5B\\d+%2Cnull%2C%5B0%2Cnull%2C1%5D%5D%22%2Cnull%2C%22generic%22%5D%5D%5D&at=[^&]+&?$"
+          },
+          {
+            "name": "final",
+            "type": "any",
+            "where": "responseBody",
+            "keywords": "",
+            "outputName": "allTopics"
+          }
+        ],
+        "name": "geminiAllTopics",
+        "type": "response",
+        "cacheOnly": true
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "metaAiTopicName",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://www.meta.ai"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://www.meta.ai/api/graphql/?fb_dtsg="
+          },
+          {
+            "name": "second",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "responseBody",
+            "keywords": "(?<=\"display_title\"s*:s*\")[^\"]+(?=\")",
+            "outputName": "topicName"
+          }
+        ],
+        "name": "metaAiTopicName",
+        "type": "response"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "chatlyAiAllTopics",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://chatlyai.app"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "equals",
+            "where": "requestUrl",
+            "keywords": "https://streaming-chatly.vyro.ai/v1/chat/sync"
+          },
+          {
+            "name": "second",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "third",
+            "type": "regex",
+            "where": "requestBody",
+            "keywords": "tags\":\\s*\\[\\s*\"all\"\\s*\\]"
+          },
+          {
+            "name": "final",
+            "type": "any",
+            "where": "responseBody",
+            "keywords": "",
+            "outputName": "allTopics"
+          }
+        ],
+        "name": "chatlyAiAllTopics",
+        "type": "response",
+        "cacheOnly": true
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "chatlyAiConversationId",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://chatlyai.app"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "equals",
+            "where": "requestUrl",
+            "keywords": "https://streaming-chatly.vyro.ai/v1/chat/completions"
+          },
+          {
+            "name": "second",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "responseBody",
+            "keywords": "(?<=\"cid\":\")[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
+            "outputName": "conversationId"
+          }
+        ],
+        "name": "chatlyAiConversationId",
+        "type": "response",
+        "cache": true
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "chatlyAiConvId",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://chatlyai.app"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "equals",
+            "where": "requestUrl",
+            "keywords": "https://streaming-chatly.vyro.ai/v1/chat/messages/sync"
+          },
+          {
+            "name": "second",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "third",
+            "type": "regex",
+            "where": "requestBody",
+            "keywords": "\"id\"\\s*:\\s*\"[^\"]+\"\\s*,\\s*\"messages\"\\s*:\\s*\\["
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "requestBody",
+            "keywords": "(?<=\"id\"\\s*:\\s*\")[^\"]+",
+            "outputName": "conversationId"
+          }
+        ],
+        "name": "chatlyAiConvId",
+        "type": "request",
+        "cache": true
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "chatlyAiOnLoadTopicName",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://chatlyai.app"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "equals",
+            "where": "requestUrl",
+            "keywords": "https://streaming-chatly.vyro.ai/v1/chat/messages/sync"
+          },
+          {
+            "name": "second",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "third",
+            "type": "regex",
+            "where": "requestBody",
+            "keywords": "\"id\"\\s*:\\s*\"[^\"]+\"\\s*,\\s*\"messages\"\\s*:\\s*\\["
+          },
+          {
+            "name": "payload",
+            "type": "any",
+            "where": "cache",
+            "keywords": "allTopics"
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "payload",
+            "keywords": "(?<=\"chat_id\"\\s*:\\s*\"__cache.conversationId__\".*?\"title\"\\s*:\\s*\")[^\"]+",
+            "outputName": "topicName"
+          }
+        ],
+        "name": "chatlyAiOnLoadTopicName",
+        "type": "response"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "chatGptResponseTopicName",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://chatgpt.com"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://chatgpt.com/backend"
+          },
+          {
+            "name": "second",
+            "type": "endsWith",
+            "where": "requestUrl",
+            "keywords": "/conversation"
+          },
+          {
+            "name": "third",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "responseBody",
+            "keywords": "(?<=\"type\":\\s*\"title_generation\",\\s*\"title\":\\s*\")[^\"]+",
+            "outputName": "topicName"
+          }
+        ],
+        "name": "chatGptResponseTopicName",
+        "type": "response"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "deepSeekLoggedInUser",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://chat.deepseek.com"
+          }
+        ],
+        "args": [
+          {
+            "name": "firstFilter",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://chat.deepseek.com/api/v0/users/current"
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "responseBody",
+            "keywords": "(?<=\"email\"\\s*:\\s*\")[^\"]*\\*+[^\"]*",
+            "outputName": "email"
+          }
+        ],
+        "name": "deepSeekLoggedInUser",
+        "type": "response"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "gemini-response",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://gemini.google.com/"
+          }
+        ],
+        "args": [
+          {
+            "name": "firstFilter",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://gemini.google.com/_/BardChatUi/data/assistant.lamda.BardFrontendService/StreamGenerate"
+          },
+          {
+            "name": "secondFilter",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "final",
+            "type": "select",
+            "where": "any",
+            "keywords": [
+              "id",
+              "responseSize",
+              "responseBody"
+            ],
+            "outputName": "promptResponse"
+          }
+        ],
+        "name": "gemini-response",
+        "type": "response"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "claude-response",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://claude.ai"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "regex",
+            "where": "requestUrl",
+            "keywords": "https://claude\\.ai/api/organizations/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/chat_conversations/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/completion"
+          },
+          {
+            "name": "second",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "final",
+            "type": "select",
+            "where": "any",
+            "keywords": [
+              "id",
+              "responseSize",
+              "responseBody",
+              "requestUrl"
+            ],
+            "outputName": "promptResponse"
+          }
+        ],
+        "name": "claude-response",
+        "type": "response"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "perplexity-response",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://www.perplexity.ai"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "equals",
+            "where": "requestUrl",
+            "keywords": "https://www.perplexity.ai/rest/sse/perplexity_ask"
+          },
+          {
+            "name": "second",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "final",
+            "type": "select",
+            "where": "any",
+            "keywords": [
+              "id",
+              "responseSize",
+              "responseBody"
+            ],
+            "outputName": "promptResponse"
+          }
+        ],
+        "name": "perplexity-response",
+        "type": "response"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "loggedInUser",
+      "config": {
+        "url": [
+          {
+            "args": [
+              {
+                "name": "startFilter",
+                "type": "startsWith",
+                "where": "script",
+                "keywords": "self.__next_f.push("
+              },
+              {
+                "name": "defaultEmail",
+                "type": "regex",
+                "where": "startFilter",
+                "keywords": "(?<=\\\\\\\"email\\\\\\\":\\\\\\\")[^\\\\\\\"]+",
+                "outputName": "email"
+              }
+            ],
+            "type": "startsWith",
+            "value": "https://chatlyai.app"
+          },
+          {
+            "args": [
+              {
+                "name": "tags",
+                "type": "startsWith",
+                "where": "script",
+                "keywords": "{\"require\":[[\"ScheduledServerJS\",\"handle\",null,[{\"__bbox\":{\"require\":[[\"RelayPrefetchedStreamCache"
+              },
+              {
+                "name": "final",
+                "type": "regex",
+                "where": "tags",
+                "keywords": "(?<=\"username\"\\s*:\\s*\")[^\"]+",
+                "outputName": "email"
+              }
+            ],
+            "type": "startsWith",
+            "value": "https://www.meta.ai"
+          },
+          {
+            "args": [
+              {
+                "name": "startFilter",
+                "type": "startsWith",
+                "where": "script",
+                "keywords": "self.__next_f.push("
+              },
+              {
+                "name": "defaultEmail",
+                "type": "regex",
+                "where": "startFilter",
+                "keywords": "(?<=\\\\\\\"email_address\\\\\\\":\\\\\\\")[^\\\\\\\"]+",
+                "outputName": "email",
+                "defaultValue": "__reject__"
+              },
+              {
+                "name": "second",
+                "type": "notEqual",
+                "where": "defaultEmail",
+                "keywords": "support@anthropic.com to",
+                "defaultValue": "__reject__"
+              },
+              {
+                "name": "final",
+                "type": "notEqual",
+                "where": "second",
+                "keywords": "u003esupport@mail.anthropic.com",
+                "outputName": "email",
+                "defaultValue": "__reject__"
+              }
+            ],
+            "type": "startsWith",
+            "value": "https://claude.ai"
+          },
+          {
+            "args": [
+              {
+                "name": "firstFilter",
+                "type": "startsWith",
+                "where": "script",
+                "keywords": ";this.gbar_={"
+              },
+              {
+                "name": "second",
+                "type": "regex",
+                "where": "firstFilter",
+                "keywords": "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+.[A-Z|a-z]{2,}\\b"
+              },
+              {
+                "name": "final",
+                "type": "notEqual",
+                "where": "second",
+                "keywords": "googlers@google.com",
+                "outputName": "email",
+                "defaultValue": "__reject__"
+              }
+            ],
+            "type": "startsWith",
+            "value": "https://gemini.google.com"
+          },
+          {
+            "args": [
+              {
+                "name": "firstFilter",
+                "type": "startsWith",
+                "where": "script",
+                "keywords": "self.__next_f.push"
+              },
+              {
+                "name": "second",
+                "type": "regex",
+                "where": "firstFilter",
+                "keywords": "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+.[A-Z|a-z]{2,}\\b"
+              }
+            ],
+            "type": "startsWith",
+            "value": "https://grok.com"
+          },
+          {
+            "args": [
+              {
+                "name": "firstFilter",
+                "type": "startsWith",
+                "where": "script",
+                "keywords": "self.__next_f"
+              },
+              {
+                "name": "second",
+                "type": "regex",
+                "where": "firstFilter",
+                "keywords": "(?<=\\\\\"email\\\\\":\\\\\")[^\\\\\"]+"
+              },
+              {
+                "name": "filterSentry",
+                "type": "notEqual",
+                "where": "second",
+                "keywords": "f45309fe00350c22253424f36dd157d8@o4507101628137472.ingest.de.sentry.io",
+                "defaultValue": "__reject__"
+              },
+              {
+                "name": "filterDevicon",
+                "type": "notEqual",
+                "where": "filterSentry",
+                "keywords": "devicon@latest/devicon",
+                "defaultValue": "__reject__"
+              },
+              {
+                "name": "final",
+                "type": "notEqual",
+                "where": "filterDevicon",
+                "keywords": "Email",
+                "outputName": "email",
+                "defaultValue": "__reject__"
+              }
+            ],
+            "type": "startsWith",
+            "value": "https://chat.mistral.ai"
+          },
+          {
+            "args": [
+              {
+                "name": "reactOhomeShim",
+                "type": "includes",
+                "where": "script",
+                "keywords": "window.ReactOhomeShim.renderReactOhome"
+              },
+              {
+                "name": "extract_email",
+                "type": "regex",
+                "where": "reactOhomeShim",
+                "keywords": "(?<=\"loginHint\":\\s*\")[^\"]+",
+                "outputName": "email"
+              }
+            ],
+            "type": "includes",
+            "value": "https://m365.cloud.microsoft"
+          },
+          {
+            "args": [
+              {
+                "name": "wizGlobalData",
+                "type": "startsWith",
+                "where": "script",
+                "keywords": "window.WIZ_global_data"
+              },
+              {
+                "name": "extract_email",
+                "type": "regex",
+                "where": "wizGlobalData",
+                "keywords": "(?<=\"oPEP7c\":\\s*\")[^\"]+",
+                "outputName": "email"
+              }
+            ],
+            "type": "includes",
+            "value": "notebooklm.google.com"
+          },
+          {
+            "args": [
+              {
+                "name": "clientEnv",
+                "type": "includes",
+                "where": "script",
+                "keywords": "\"currentUser\""
+              },
+              {
+                "name": "extract_email",
+                "type": "regex",
+                "where": "clientEnv",
+                "keywords": "(?<=\"userEmail\":\")[^\"]+",
+                "outputName": "email"
+              }
+            ],
+            "type": "startsWith",
+            "value": "https://github.com"
+          },
+          {
+            "args": [
+              {
+                "name": "firstFilter",
+                "type": "includes",
+                "where": "script",
+                "keywords": "loggedUserData"
+              },
+              {
+                "name": "extract_email",
+                "type": "regex",
+                "where": "firstFilter",
+                "keywords": "(?<=\\\\\"email\\\\\":\\\\\")[^\\\\\"]+",
+                "outputName": "email"
+              },
+              {
+                "name": "backup_email",
+                "type": "regex",
+                "where": "firstFilter",
+                "keywords": "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}",
+                "outputName": "email"
+              }
+            ],
+            "type": "startsWith",
+            "value": "https://brainly.com"
+          },
+          {
+            "args": [
+              {
+                "name": "firstFilter",
+                "type": "includes",
+                "where": "script",
+                "keywords": "\"oPEP7c\":\""
+              },
+              {
+                "name": "extract_email",
+                "type": "regex",
+                "where": "firstFilter",
+                "keywords": "(?<=\"oPEP7c\":\\s*\")[^\"]+",
+                "outputName": "email"
+              }
+            ],
+            "type": "startsWith",
+            "value": "https://aistudio.google.com"
+          },
+          {
+            "args": [
+              {
+                "name": "firstFilter",
+                "type": "startsWith",
+                "where": "script",
+                "keywords": ";this.gbar_={"
+              },
+              {
+                "name": "second",
+                "type": "regex",
+                "where": "firstFilter",
+                "keywords": "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+.[A-Z|a-z]{2,}\\b"
+              },
+              {
+                "name": "final",
+                "type": "notEqual",
+                "where": "second",
+                "keywords": "googlers@google.com",
+                "outputName": "email",
+                "defaultValue": "__reject__"
+              }
+            ],
+            "type": "startsWith",
+            "value": "https://mail.google.com"
+          },
+          {
+            "args": [
+              {
+                "name": "firstFilter",
+                "type": "startsWith",
+                "where": "script",
+                "keywords": ";this.gbar_={"
+              },
+              {
+                "name": "second",
+                "type": "regex",
+                "where": "firstFilter",
+                "keywords": "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+.[A-Z|a-z]{2,}\\b"
+              },
+              {
+                "name": "final",
+                "type": "notEqual",
+                "where": "second",
+                "keywords": "googlers@google.com",
+                "outputName": "email",
+                "defaultValue": "__reject__"
+              }
+            ],
+            "type": "startsWith",
+            "value": "https://drive.google.com/drive"
+          },
+          {
+            "args": [
+              {
+                "name": "firstFilter",
+                "type": "startsWith",
+                "where": "script",
+                "keywords": ";this.gbar_={"
+              },
+              {
+                "name": "second",
+                "type": "regex",
+                "where": "firstFilter",
+                "keywords": "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+.[A-Z|a-z]{2,}\\b"
+              },
+              {
+                "name": "final",
+                "type": "notEqual",
+                "where": "second",
+                "keywords": "googlers@google.com",
+                "outputName": "email",
+                "defaultValue": "__reject__"
+              }
+            ],
+            "type": "startsWith",
+            "value": "https://docs.google.com"
+          },
+          {
+            "args": [
+              {
+                "name": "firstFilter",
+                "type": "startsWith",
+                "where": "script",
+                "keywords": ";this.gbar_={"
+              },
+              {
+                "name": "second",
+                "type": "regex",
+                "where": "firstFilter",
+                "keywords": "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+.[A-Z|a-z]{2,}\\b"
+              },
+              {
+                "name": "final",
+                "type": "notEqual",
+                "where": "second",
+                "keywords": "googlers@google.com",
+                "outputName": "email",
+                "defaultValue": "__reject__"
+              }
+            ],
+            "type": "startsWith",
+            "value": "https://calendar.google.com"
+          },
+          {
+            "args": [
+              {
+                "name": "firstFilter",
+                "type": "startsWith",
+                "where": "script",
+                "keywords": ";this.gbar_={"
+              },
+              {
+                "name": "second",
+                "type": "regex",
+                "where": "firstFilter",
+                "keywords": "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+.[A-Z|a-z]{2,}\\b"
+              },
+              {
+                "name": "final",
+                "type": "notEqual",
+                "where": "second",
+                "keywords": "googlers@google.com",
+                "outputName": "email",
+                "defaultValue": "__reject__"
+              }
+            ],
+            "type": "startsWith",
+            "value": "https://sheets.google.com"
+          },
+          {
+            "args": [
+              {
+                "name": "firstFilter",
+                "type": "startsWith",
+                "where": "script",
+                "keywords": ";this.gbar_={"
+              },
+              {
+                "name": "second",
+                "type": "regex",
+                "where": "firstFilter",
+                "keywords": "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+.[A-Z|a-z]{2,}\\b"
+              },
+              {
+                "name": "final",
+                "type": "notEqual",
+                "where": "second",
+                "keywords": "googlers@google.com",
+                "outputName": "email",
+                "defaultValue": "__reject__"
+              }
+            ],
+            "type": "startsWith",
+            "value": "https://meet.google.com"
+          },
+          {
+            "args": [
+              {
+                "name": "firstFilter",
+                "type": "includes",
+                "where": "script",
+                "keywords": "\"primaryEmail\":\""
+              },
+              {
+                "name": "extract_email",
+                "type": "regex",
+                "where": "firstFilter",
+                "keywords": "(?<=\"primaryEmail\":\\s*\")[^\"]+",
+                "outputName": "email"
+              }
+            ],
+            "type": "startsWith",
+            "value": "https://poe.com"
+          },
+          {
+            "args": [
+              {
+                "name": "nextData",
+                "type": "includes",
+                "where": "script",
+                "keywords": "self.__next_f.push"
+              },
+              {
+                "name": "extract_email",
+                "type": "regex",
+                "where": "nextData",
+                "keywords": "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}",
+                "outputName": "email"
+              }
+            ],
+            "type": "includes",
+            "value": "caktus.ai"
+          },
+          {
+            "args": [
+              {
+                "name": "bootstrapData",
+                "type": "includes",
+                "where": "script",
+                "keywords": "window['bootstrap']"
+              },
+              {
+                "name": "extract_email",
+                "type": "regex",
+                "where": "bootstrapData",
+                "keywords": "(?<=\"C\":\\s*\")[^\"]+@[^\"]+",
+                "outputName": "email"
+              }
+            ],
+            "type": "startsWith",
+            "value": "https://www.canva.com"
+          },
+          {
+            "args": [
+              {
+                "name": "nuxtData",
+                "type": "includes",
+                "where": "script",
+                "keywords": "ShallowReactive"
+              },
+              {
+                "name": "extract_email",
+                "type": "regex",
+                "where": "nuxtData",
+                "keywords": "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}",
+                "outputName": "email"
+              }
+            ],
+            "type": "includes",
+            "value": "questionai.com"
+          },
+          {
+            "args": [
+              {
+                "name": "nextData",
+                "type": "startsWith",
+                "where": "script",
+                "keywords": "self.__next_f.push"
+              },
+              {
+                "name": "extract_email",
+                "type": "regex",
+                "where": "nextData",
+                "keywords": "(?<=\\\\\"email\\\\\":\\s*\\\\\")[^\\\\\"]+",
+                "outputName": "email"
+              }
+            ],
+            "type": "startsWith",
+            "value": "https://qanda.ai"
+          }
+        ],
+        "args": [
+          {
+            "name": "defaultEmail",
+            "type": "regex",
+            "where": "script",
+            "keywords": "\\\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\\\.[A-Za-z]{2,}\\\\b",
+            "outputName": "email"
+          }
+        ],
+        "name": "loggedInUser",
+        "type": "dom"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "deepSeekLoggedInRequest",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://chat.deepseek.com"
+          }
+        ],
+        "args": [
+          {
+            "name": "firstFilter",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://chat.deepseek.com/api/v0/users/current"
+          },
+          {
+            "name": "final",
+            "type": "any",
+            "where": "any",
+            "keywords": "",
+            "outputName": "userRequest"
+          }
+        ],
+        "name": "deepSeekLoggedInRequest",
+        "type": "backgroundInterceptors"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "chatGptResponseLoggedInUserRequest",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://chatgpt.com"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://chatgpt.com/backend-api/me"
+          },
+          {
+            "name": "final",
+            "type": "any",
+            "where": "any",
+            "keywords": "",
+            "outputName": "userRequest"
+          }
+        ],
+        "name": "chatGptResponseLoggedInUserRequest",
+        "type": "backgroundInterceptors"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "claudeResponseLoggedInUserRequest",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://claude.ai"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://claude.ai/api/auth/verify_google"
+          },
+          {
+            "name": "final",
+            "type": "any",
+            "where": "any",
+            "keywords": "",
+            "outputName": "userRequest"
+          }
+        ],
+        "name": "claudeResponseLoggedInUserRequest",
+        "type": "backgroundInterceptors"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "claudeConversationId",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://claude.ai"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "regex",
+            "where": "requestUrl",
+            "keywords": "https://claude\\.ai/api/organizations/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/chat_conversations/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/completion"
+          },
+          {
+            "name": "second",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "requestUrl",
+            "keywords": "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}(?=/completion)",
+            "outputName": "conversationId"
+          }
+        ],
+        "name": "claudeConversationId",
+        "type": "request"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "claudeOnLoadConversationId",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://claude.ai/new"
+          },
+          {
+            "type": "startsWith",
+            "value": "https://claude.ai/chat"
+          }
+        ],
+        "args": [
+          {
+            "name": "pageurl",
+            "type": "startsWith",
+            "where": "pageUrl",
+            "keywords": "https://claude.ai/"
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "pageUrl",
+            "keywords": "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+            "outputName": "conversationId"
+          }
+        ],
+        "name": "claudeOnLoadConversationId",
+        "type": "dom"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "metaAiResponseConversationId",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://www.meta.ai"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://www.meta.ai/api/graphql/?fb_dtsg="
+          },
+          {
+            "name": "second",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "final",
+            "type": "regex",
+            "where": "responseBody",
+            "keywords": "(?<=\"external_conversation_id\"s*:s*\")[^\"]+(?=\")",
+            "outputName": "conversationId"
+          }
+        ],
+        "name": "metaAiResponseConversationId",
+        "type": "response"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "deepseek-response",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://chat.deepseek.com"
+          }
+        ],
+        "args": [
+          {
+            "name": "firstFilter",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://chat.deepseek.com/api/"
+          },
+          {
+            "name": "urlFilter",
+            "type": "endsWith",
+            "where": "requestUrl",
+            "keywords": "/completion"
+          },
+          {
+            "name": "secondFilter",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "final",
+            "type": "select",
+            "where": "any",
+            "keywords": [
+              "id",
+              "responseSize",
+              "responseBody"
+            ],
+            "outputName": "promptResponse"
+          }
+        ],
+        "name": "deepseek-response",
+        "type": "response"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "chatgpt-response",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://chatgpt.com"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://chatgpt.com/backend"
+          },
+          {
+            "name": "second",
+            "type": "endsWith",
+            "where": "requestUrl",
+            "keywords": "/conversation"
+          },
+          {
+            "name": "third",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "final",
+            "type": "select",
+            "where": "any",
+            "keywords": [
+              "id",
+              "responseSize",
+              "responseBody"
+            ],
+            "outputName": "promptResponse"
+          }
+        ],
+        "name": "chatgpt-response",
+        "type": "response"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "metaai-response-logged-out",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://www.meta.ai"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://graph.meta.ai/graphql?locale=user"
+          },
+          {
+            "name": "second",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "final",
+            "type": "select",
+            "where": "any",
+            "keywords": [
+              "id",
+              "responseSize",
+              "responseBody"
+            ],
+            "outputName": "promptResponse"
+          }
+        ],
+        "name": "metaai-response-logged-out",
+        "type": "response"
+      },
+      "isActive": true,
+      "source": "browser"
+    },
+    {
+      "name": "metaai-response",
+      "config": {
+        "url": [
+          {
+            "type": "startsWith",
+            "value": "https://www.meta.ai"
+          }
+        ],
+        "args": [
+          {
+            "name": "fetch",
+            "type": "startsWith",
+            "where": "requestUrl",
+            "keywords": "https://www.meta.ai/api/graphql/?fb_dtsg="
+          },
+          {
+            "name": "second",
+            "type": "equals",
+            "where": "requestMethod",
+            "keywords": "POST"
+          },
+          {
+            "name": "final",
+            "type": "select",
+            "where": "any",
+            "keywords": [
+              "id",
+              "responseSize",
+              "responseBody"
+            ],
+            "outputName": "promptResponse"
+          }
+        ],
+        "name": "metaai-response",
+        "type": "response"
+      },
+      "isActive": true,
+      "source": "browser"
+    }
+  ]
+}
