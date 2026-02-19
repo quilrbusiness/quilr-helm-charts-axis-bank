@@ -13,7 +13,7 @@ vault:
   role: "default"
   path: "kubernetes"
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/dlp-data-collector
+  repository: 975050335771.dkr.ecr.ap-south-1.amazonaws.com/main/dlp-data-collector
   tag: latest
   pullPolicy: Always
 resources:

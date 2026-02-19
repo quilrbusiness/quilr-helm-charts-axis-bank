@@ -20,7 +20,7 @@ vault:
 
 # Container image configuration
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/quilr-migration-service
+  repository: 975050335771.dkr.ecr.ap-south-1.amazonaws.com/main/quilr-migration-service
   tag: latest
   pullPolicy: Always
 

@@ -8,7 +8,7 @@ hpa:
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 85
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/quilr-preprod/user-data-harvester
+  repository: 975050335771.dkr.ecr.ap-south-1.amazonaws.com/quilr-preprod/user-data-harvester
   tag: latest
   pullPolicy: Always
 service:

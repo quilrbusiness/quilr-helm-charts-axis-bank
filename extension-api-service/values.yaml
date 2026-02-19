@@ -17,7 +17,7 @@ vault:
   role: "default"
   path: "kubernetes"
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/main/extension-api-service
+  repository: 975050335771.dkr.ecr.ap-south-1.amazonaws.com/main/extension-api-service
   tag: latest
   pullPolicy: Always
 configMap:

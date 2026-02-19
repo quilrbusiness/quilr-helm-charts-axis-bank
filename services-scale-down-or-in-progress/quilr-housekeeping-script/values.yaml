@@ -17,6 +17,6 @@ vault:
 
 # Container image configuration
 image:
-  repository: 975050335771.dkr.ecr.us-east-1.amazonaws.com/quilr-preprod/quilr-housekeeping-script
+  repository: 975050335771.dkr.ecr.ap-south-1.amazonaws.com/quilr-preprod/quilr-housekeeping-script
   tag: latest
   pullPolicy: Always
