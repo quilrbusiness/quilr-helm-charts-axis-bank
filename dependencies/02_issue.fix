@@ -1,4 +1,4 @@
-curl --location 'https://quilr.iifl.com/bff/data-definitions/add_tenant' \
+curl --location 'https://quilr.axisbank.com/bff/data-definitions/add_tenant' \
 --header 'accept: application/json' \
 --header 'Tenant: 6516562c-0372-4704-8858-978d27ca1f24' \
 --header 'Authorization: 6788' \

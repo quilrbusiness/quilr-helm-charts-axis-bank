@@ -50,19 +50,19 @@ wget https://release-portal.quilr.ai/quilr-migration-service.tar.gz
 
 
 
-curl --location --request POST 'https://quilr.iifl.com/bff/quilr-query-builder/aiusers/dwh/sync/appdata' \
+curl --location --request POST 'https://quilr.axisbank.com/bff/quilr-query-builder/aiusers/dwh/sync/appdata' \
 --header 'tenant: 442e052d-4c60-4cdc-961e-bc9db74a40ca' \
 --header 'subscriberid: da4dfcee-893f-4046-ae0a-f7180b07488a' \
 --header 'internal: true' 
 --data ''
 
-curl --location --request POST 'https://quilr.iifl.com/bff/quilr-query-builder/aiusers/dwh/sync/apptenant/settings' \
+curl --location --request POST 'https://quilr.axisbank.com/bff/quilr-query-builder/aiusers/dwh/sync/apptenant/settings' \
 --header 'tenant: 442e052d-4c60-4cdc-961e-bc9db74a40ca' \
 --header 'subscriberid: da4dfcee-893f-4046-ae0a-f7180b07488a' \
 --header 'internal: true' 
 
 
-curl --location --request POST 'https://quilr.iifl.com/bff/quilr-query-builder/aiusers/dwh/sync/appdata' \
+curl --location --request POST 'https://quilr.axisbank.com/bff/quilr-query-builder/aiusers/dwh/sync/appdata' \
 --header 'tenant: 442e052d-4c60-4cdc-961e-bc9db74a40ca' \
 --header 'subscriberid: da4dfcee-893f-4046-ae0a-f7180b07488a' \
 --header 'internal: true'

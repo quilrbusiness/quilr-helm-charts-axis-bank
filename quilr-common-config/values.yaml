@@ -96,7 +96,7 @@ configMap:
   # OPENAI_LATEST_API_KEY: "88EudYi4OjOB1c6KeCl1VfEG1cNaNx9YevfMtC7rQ88Lo0ZMHFSdJQQJ99BDACHYHv6XJ3w3AAAAACOGwC3C"
   # OPENAI_MINI_API_KEY: "ae11be8cf0334f8e80b347dc7018c805"
   # OPENAI_EMBEDDING_API_KEY: "05f856e9c2ec4793926d6d3928cab692"
-  DLP_UPDATE_URL: "https://dlpone.quilr.ai/dlp/tenant_config"
+  DLP_UPDATE_URL: "https://quilr.axisbank.com/dlp/tenant_config"
   QUILR_MCP_MEMORY_SERVICE: "http://quilr-memory-mcp:8008"
   AZURE_BLOB_URL: "https://staticcontent1.blob.core.windows.net/quilrstatic/"
   # Added for Quilr-EAM-service

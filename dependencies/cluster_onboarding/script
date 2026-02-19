@@ -1,45 +1,45 @@
 Start snowflake-ingestion-service listener
 ---------------------------------------------------
 curl --request GET \
-  --url https://quilr.iifl.com/bff/sf-ingestion/api/kafka/registry/list \
+  --url https://quilr.axisbank.com/bff/sf-ingestion/api/kafka/registry/list \
   --header 'Internal: true' \
   --header 'User-Agent: insomnia/9.2.0' \
   --cookie connect.sid=s%253APj5HScuipHz0KRT6oY6rutb9oYTJBVyY.lX6%252B6VTGHh8U1SpqLpWgCx2Jmmo45weG0fgPuP%252FuH%252BI
 
 curl --request POST \
-  --url 'https://quilr.iifl.com/bff/sf-ingestion/api/kafka/registry/create?topic=alertMeta&table=KAFKA_CONNECT.SNOWDATA_SCHEMA.ALERTMETA&postgres=true' \
-  --header 'Internal: true' \
-  --header 'User-Agent: insomnia/9.2.0' \
-  --cookie connect.sid=s%253APj5HScuipHz0KRT6oY6rutb9oYTJBVyY.lX6%252B6VTGHh8U1SpqLpWgCx2Jmmo45weG0fgPuP%252FuH%252BI
-
-
-curl --request POST \
-  --url 'https://quilr.iifl.com/bff/sf-ingestion/api/kafka/registry/create?topic=transformedOutput&table=KAFKA_CONNECT.SNOWDATA_SCHEMA.TRANSFORMEDDATA&postgres=true' \
+  --url 'https://quilr.axisbank.com/bff/sf-ingestion/api/kafka/registry/create?topic=alertMeta&table=KAFKA_CONNECT.SNOWDATA_SCHEMA.ALERTMETA&postgres=true' \
   --header 'Internal: true' \
   --header 'User-Agent: insomnia/9.2.0' \
   --cookie connect.sid=s%253APj5HScuipHz0KRT6oY6rutb9oYTJBVyY.lX6%252B6VTGHh8U1SpqLpWgCx2Jmmo45weG0fgPuP%252FuH%252BI
 
 
 curl --request POST \
-  --url 'https://quilr.iifl.com/bff/sf-ingestion/api/kafka/registry/create?topic=behaviourProfile&table=KAFKA_CONNECT.SNOWDATA_SCHEMA.BEHAVIOURPROFILE&postgres=true' \
+  --url 'https://quilr.axisbank.com/bff/sf-ingestion/api/kafka/registry/create?topic=transformedOutput&table=KAFKA_CONNECT.SNOWDATA_SCHEMA.TRANSFORMEDDATA&postgres=true' \
+  --header 'Internal: true' \
+  --header 'User-Agent: insomnia/9.2.0' \
+  --cookie connect.sid=s%253APj5HScuipHz0KRT6oY6rutb9oYTJBVyY.lX6%252B6VTGHh8U1SpqLpWgCx2Jmmo45weG0fgPuP%252FuH%252BI
+
+
+curl --request POST \
+  --url 'https://quilr.axisbank.com/bff/sf-ingestion/api/kafka/registry/create?topic=behaviourProfile&table=KAFKA_CONNECT.SNOWDATA_SCHEMA.BEHAVIOURPROFILE&postgres=true' \
   --header 'Internal: true' \
   --header 'User-Agent: insomnia/9.2.0' \
   --cookie connect.sid=s%253APj5HScuipHz0KRT6oY6rutb9oYTJBVyY.lX6%252B6VTGHh8U1SpqLpWgCx2Jmmo45weG0fgPuP%252FuH%252BI  
 
 curl --request POST \
-  --url 'https://quilr.iifl.com/bff/sf-ingestion/api/kafka/registry/create?topic=alertClassify&table=KAFKA_CONNECT.SNOWDATA_SCHEMA.ALERTCLASSIFY&postgres=true' \
+  --url 'https://quilr.axisbank.com/bff/sf-ingestion/api/kafka/registry/create?topic=alertClassify&table=KAFKA_CONNECT.SNOWDATA_SCHEMA.ALERTCLASSIFY&postgres=true' \
   --header 'Internal: true' \
   --header 'User-Agent: insomnia/9.2.0' \
   --cookie connect.sid=s%253APj5HScuipHz0KRT6oY6rutb9oYTJBVyY.lX6%252B6VTGHh8U1SpqLpWgCx2Jmmo45weG0fgPuP%252FuH%252BI  
 
 curl --request POST \
-  --url 'https://quilr.iifl.com/bff/sf-ingestion/api/kafka/registry/create?topic=postureProfile&table=kafka_connect.snowdata_schema.postureprofile&postgres=true' \
+  --url 'https://quilr.axisbank.com/bff/sf-ingestion/api/kafka/registry/create?topic=postureProfile&table=kafka_connect.snowdata_schema.postureprofile&postgres=true' \
   --header 'Internal: true' \
   --header 'User-Agent: insomnia/9.2.0' \
   --cookie connect.sid=s%253APj5HScuipHz0KRT6oY6rutb9oYTJBVyY.lX6%252B6VTGHh8U1SpqLpWgCx2Jmmo45weG0fgPuP%252FuH%252BI  
 
 curl --request POST \
-  --url 'https://quilr.iifl.com/bff/sf-ingestion/api/kafka/registry/create?topic=userScoreSnapshot&table=kafka_connect.snowdata_schema.userScoreSnapshot&postgres=true' \
+  --url 'https://quilr.axisbank.com/bff/sf-ingestion/api/kafka/registry/create?topic=userScoreSnapshot&table=kafka_connect.snowdata_schema.userScoreSnapshot&postgres=true' \
   --header 'Internal: true' \
   --header 'User-Agent: insomnia/9.2.0' \
   --cookie connect.sid=s%253APj5HScuipHz0KRT6oY6rutb9oYTJBVyY.lX6%252B6VTGHh8U1SpqLpWgCx2Jmmo45weG0fgPuP%252FuH%252BI 
@@ -48,14 +48,14 @@ Ingest global-apps into graphdb(API: app db full-sync trigger)
 ------------------------------------------------------------------
 
 curl --request POST \
-  --url https://quilr.iifl.com/bff/app-sync-local/full-sync \
+  --url https://quilr.axisbank.com/bff/app-sync-local/full-sync \
   --header 'User-Agent: insomnia/10.2.0' \
   --cookie connect.sid=s%253APj5HScuipHz0KRT6oY6rutb9oYTJBVyY.lX6%252B6VTGHh8U1SpqLpWgCx2Jmmo45weG0fgPuP%252FuH%252BI
 
 
 Onboard the customer
 --------------------------------
-curl --location 'https://quilr.iifl.com/bff/auth/auth/onboard' \
+curl --location 'https://quilr.axisbank.com/bff/auth/auth/onboard' \
 --header 'accept: application/json' \
 --header 'Authorization: 6788' \
 --header 'Content-Type: application/json' \
@@ -76,7 +76,7 @@ Check schema-registry config and insert entries in subscriberconnectionconfig ta
 --------------------------------------------------------------------------------------
 
 curl --request POST \
-  --url https://quilr.iifl.com/bff/schema-registry/db/connection/onboard \
+  --url https://quilr.axisbank.com/bff/schema-registry/db/connection/onboard \
   --header 'Content-Type: application/json' \
   --header 'User-Agent: insomnia/8.5.1' \
   --cookie connect.sid=s%253APj5HScuipHz0KRT6oY6rutb9oYTJBVyY.lX6%252B6VTGHh8U1SpqLpWgCx2Jmmo45weG0fgPuP%252FuH%252BI \
@@ -99,7 +99,7 @@ VALUES
 (E'Monitor',E'Quilr',E'monitor',E'monitor-iifl@quilr.ai',E'$2a$10$vC92Bwb3Y.xvexKgV/yP1uqqNGPXQvufxwU5/cR56ksLFEh11557u',E'1b88c4a4-257c-4f60-83ab-604cb5ba2c29',E'{6516562c-0372-4704-8858-978d27ca1f24}',E'{81569d9b-65e4-4cc1-8668-10c373dde677}',E'{12eade82-5018-4ac3-8972-53bcb447712e}',E'active',E'unverified',E'Quilr-Omega',E'Quilr-Omega',E'2024-11-22 10:55:10.070456',E'2025-05-26 13:54:38.968692',NULL,E'credentials',FALSE,1748267678973);
 
 
-https://quilr.iifl.com/en/internal-login
+https://quilr.axisbank.com/en/internal-login
 user:
 password: 
 
