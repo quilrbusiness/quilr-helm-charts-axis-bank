@@ -1,0 +1,17 @@
+name: prompt user about uploading data
+type: message
+channel: Browser
+content:
+  header: Proceed With Caution!
+  title: |
+    You seem to be uploading data, which may or may not be sensitive.
+    Your company policy does not allow uploading data to this app.
+    Follow your organizational policies and keep your company's data safe.
+  description: ""
+  acknowledgedButtons:
+    - id: a1c2d3e4-0000-0000-0000-000000000001
+      isPrimary: true
+      name: Acknowledge
+      whitelist: false
+rendered_content_type: application/json
+is_active: true

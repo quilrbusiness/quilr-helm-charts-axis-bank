@@ -1,0 +1,128 @@
+id: 4f8745b9-184d-401e-b44a-ddb2d199bec7
+name: User Issues Data To Knowledge graph
+type: ingestion-to-graph
+version: 1.0.2
+schedule: 2m
+historicalrecordduration: 2m
+source:
+  type: query
+  config:
+    query: "SELECT AC.RECORD_METADATA['CreateTime']::bigint AS datetime, AC.LEVELNAME, AC.LEVELCODE, AC.ENTITY, AC.ENTITYTYPE,
+                  AC.ALERTID, AC.CONTEXT_ID, AC.LEVEL, AC.ALERTTYPE, AC.ALERTSUBTYPE, AC.SEVERITY, AC.IMPACTCODE,
+                  AC.LIKELIHOODCODE, AC.GENERATIONTIME, AC.EVENTTIME, AC.SCORE, AM.ARTIFACTS, AM.MESSAGE,
+                  COALESCE(AM.PROPERTIES['userMail'], 
+                          AM.PROPERTIES['accountname'], 
+                          AM.PROPERTIES['recipient_address']) AS USER_MAIL,
+                  AM.PROPERTIES['appId'] as APPID,
+                  COALESCE(AM.PROPERTIES['mode']::text, AC.MODE) AS MODE,
+                  COALESCE(AM.PROPERTIES['resolutionChannel']::text, AC.RESOLUTIONCHANNEL) AS RESOLUTIONCHANNEL,
+                  COALESCE(AM.PROPERTIES['businessJustification']::text, AC.BUSINESSJUSTIFICATION) AS BUSINESSJUSTIFICATION,
+                  AM.PROPERTIES AS ALERT_PROPERTIES, AM.PROPERTIES['findingIds'] AS FINDINGIDS,
+                  AM.PROPERTIES['ruleIds'] AS RULEIDS, AC.STATUS, AC.SLA, AC.CREATEDBY, AC.ASSIGNEDTOTYPE,
+                  AC.SOURCE, AC.COPILOTSTATUS, AC.TAGS, AC.MODE, AC.RESOLUTIONCHANNEL, AC.ACTIONSTATUS,
+                  AC.SUBSCRIBER AS QUILR_SUBSCRIBERID, AC.TENANT AS QUILR_TENANTID
+            FROM kafka_connect.snowdata_schema.alertclassify AS AC 
+            JOIN kafka_connect.snowdata_schema.alertmeta AS AM 
+              ON AC.ALERTID = AM.ALERTID 
+                AND AC.SUBSCRIBER = AM.SUBSCRIBER 
+                AND AC.TENANT = AM.TENANT
+                AND AC.ENTITYTYPE = 'user' 
+                AND AC.LEVEL = 'rule'
+                AND AC.ALERTTYPE = 'issue'  
+                AND datetime >= $starttime
+                AND datetime <= $endtime"
+    type: datalake
+    limit: 
+    offset: 0
+destination:
+  type: stream
+  topic: knowledgeGraph
+config:
+  nodes:
+    artifacts: ARTIFACTS
+    account:
+      id: ACCOUNT_APPLICATION_ID
+      type: ACCOUNT
+      properties:
+        email: USER_MAIL
+        appId: APPID
+    rule:
+      id: LEVELCODE
+      type: RULE
+      properties:
+        severity: SEVERITY
+    finding:
+      id: FINDINGIDS
+      type: FINDING
+    issue:
+      id: ALERTID
+      type: ISSUE
+      properties:
+        sla: SLA
+        tags: TAGS
+        score: SCORE
+        status: STATUS
+        source: SOURCE
+        name: LEVELNAME
+        severity: SEVERITY
+        eventTime: EVENTTIME
+        createdBy: CREATEDBY
+        assignedto: ASSIGNEDTO
+        copilotStatus: COPILOTSTATUS
+        assignedtotype: ASSIGNEDTOTYPE
+        generationTime: GENERATIONTIME
+        issueMessage: MESSAGE
+        appDisplayName: APPDISPLAYNAME
+        alert_properties: ALERT_PROPERTIES
+        autoRemediationStatus: AUTOREMEDIATIONSTATUS
+      immutableproperties:
+        startTime: TIMESTAMP
+    impact:
+      id: IMPACTCODE
+      type: IMPACT
+      context: global
+    likelihood:
+      id: LIKELIHOODCODE
+      type: LIKELIHOOD
+      context: global
+  edges:
+  - destination: issue
+    direction: out
+    relation: HAS_ISSUE
+    source: account
+    immutableproperties:
+      startTime: TIMESTAMP
+  - destination: artifacts
+    direction: out
+    relation: HAS_ARTIFACT
+    source: issue
+  - destination: issue
+    direction: out
+    relation: RELATED_TO
+    source: finding
+  - destination: issue
+    direction: out
+    relation: EVALUATED_TO
+    source: rule
+  - destination: impact
+    direction: out
+    relation: HAS_IMPACT
+    source: rule
+  - destination: likelihood
+    direction: out
+    relation: HAS_LIKELIHOOD
+    source: rule
+lambda: |
+  def fn(payload):
+      import time
+      for item in payload:
+          item["TIMESTAMP"] = int(time.time()) * 1000
+
+          user_mail = item.get("USER_MAIL")
+          app_id = item.get("APPID")
+          if user_mail and app_id:
+              item["ACCOUNT_APPLICATION_ID"] = user_mail + "_" + app_id
+
+      return payload
+createdon: 1707315500
+updatedon: 1707315500

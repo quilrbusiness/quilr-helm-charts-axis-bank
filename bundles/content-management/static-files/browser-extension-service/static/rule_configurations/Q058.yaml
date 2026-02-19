@@ -1,0 +1,14 @@
+datatype: DICT
+defaultValue:
+  message: ''
+  mode: Ask
+entityDescription: ''
+entityId: Q058
+entityMeta:
+  behavior: Weak MFA
+  category: ISPM
+  posture: MFA Usage
+entityName: Using Phone Based MFA on SSO/IDP
+entityType: rule
+isDisabled: false
+isModifiable: true

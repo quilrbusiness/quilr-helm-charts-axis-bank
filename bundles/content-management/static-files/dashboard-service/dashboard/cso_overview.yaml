@@ -1,0 +1,66 @@
+dashboard_id: 39649c80-ac32-4f41-ba83-8a1d7bd4879f
+title: CSO Overview
+description: Monitor overall security status
+active: true
+widgets_list:
+  - widget_id: afdba501-e9da-4ab7-ace5-2e2cb6278d10
+    template_id: HSI
+    dimensions:
+      x_cord: 0
+      y_cord: 0
+      width: 12
+      height: 9
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: 63cfc9a8-9c78-4e15-bab1-6284003c55f0
+    template_id: NotableRiskIndicators
+    dimensions:
+      x_cord: 6
+      y_cord: 9
+      width: 6
+      height: 11
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: 9cdfcdb3-acb4-4920-86fe-b1b379d46d87
+    template_id: NotableGroups
+    dimensions:
+      x_cord: 6
+      y_cord: 20
+      width: 6
+      height: 15
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: 7162f0dd-87cf-4dc3-a94e-42318f9f5551
+    template_id: NotablePeople
+    dimensions:
+      x_cord: 0
+      y_cord: 20
+      width: 6
+      height: 15
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: c26128b0-ee5f-4b03-89f8-63fb8cd5adfd
+    template_id: NotableSecurityIndicators
+    dimensions:
+      x_cord: 0
+      y_cord: 35
+      width: 6
+      height: 13
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: edfd1ee8-3529-489b-84b5-7b675d0e58d7
+    template_id: NotableBehaviourCategories
+    dimensions:
+      x_cord: 0
+      y_cord: 9
+      width: 6
+      height: 11
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+version: 1.0

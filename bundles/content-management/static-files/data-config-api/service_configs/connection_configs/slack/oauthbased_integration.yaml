@@ -1,0 +1,22 @@
+id: 42ab2cac-6098-4b0c-903d-5d9d3611470b
+vendor: Slack
+product: Rest API
+slug: slack_config
+description: Set of parameters which are essential to authenticate API client
+redirect_uri: https://slack.com/oauth/v2/authorize?client_id=$.env.slack_oauth_client_id&redirect_uri=$.env.quilr_bff_url/auth/auth/integration-admin-landing/slack
+tests: []
+inputSchema:
+  - id: state
+    type: text
+    title: State
+    description: Random state which can be used to prevent CSRF attacks
+    location: query
+    required: false
+    url_substitution_rank: 1
+  - id: scope
+    type: text
+    title: Permission Scopes
+    description: Permissions to request from the user
+    location: query
+    required: false
+    url_substitution_rank: 2

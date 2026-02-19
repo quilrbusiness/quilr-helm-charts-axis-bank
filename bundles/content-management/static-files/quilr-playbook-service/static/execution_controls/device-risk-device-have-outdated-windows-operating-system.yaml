@@ -1,0 +1,37 @@
+version: 1.0.0
+criticality: 3
+mode: monitor
+control_name: Updating outdated Windows operating system for a device
+control_description: Detects devices running outdated or missing Windows updates, which may expose systems to security vulnerabilities and performance issues.
+posture:
+  id: PID_05
+behavior:
+  id: BID_102
+use_case:
+  id: UC106
+trigger_conditions:
+- operator: 
+  filter_condition:
+    attribute_type: ATTR_DEV_001
+    attribute_id: DEV-001
+    extension_property: device.osName
+    condition: is_equal_to
+    value: Windows
+  filter_group: 
+- operator: AND
+  filter_condition:
+    attribute_type: ATTR_DEV_001
+    attribute_id: DEV-002
+    extension_property: device.osVersion
+    condition: is_less_than
+    value: 10.0.19045.5248
+  filter_group: 
+actions:
+- type:
+    id: ACTP_01
+  name:
+    id: ACT_105
+    value: Device OS Outdated
+  description: 
+  meta:
+    prompt_frequency: 

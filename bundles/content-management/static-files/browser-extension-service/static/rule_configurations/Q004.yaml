@@ -1,0 +1,21 @@
+datatype: DICT
+defaultValue:
+  message: |-
+    Please change this password - its weak and easily guessable. You are an admin, this will only take 2 mins.
+  mode: Ask
+entityDescription: |-
+  Login with a weak password on applications with an admin account.
+entityId: Q004
+entityMeta:
+  behavior: Weak Password
+  category: ISPM
+  posture: Password Hygiene
+  check_id:
+    form_check_ids:
+      - CH-FORM-LOGIN
+      - CH-FORM-WEAK-PASSWORD
+      - CH-FORM-ADMIN
+entityName: Login with Weak Password on Admin Account
+entityType: rule
+isDisabled: false
+isModifiable: true

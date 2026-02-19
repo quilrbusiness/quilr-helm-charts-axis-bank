@@ -1,0 +1,23 @@
+name: prompt user to enable mfa
+type: message
+channel: Browser
+content:
+  header: "Warning: Not Using MFA"
+  title: |
+    You must enable and set up multi-factor authentication (MFA) for this application.
+    <br /> Activate MFA now or contact your application administrator or security administrator to find out how.
+    <br />
+    <br />Enabling MFA adds as extra layer of security to your application making it harder for attackers to gain unauthorized access to your account using stolen or guessed passwords.
+    <br  />
+    <br />Your actions matter — help keep your organization safe!
+  acknowledgedButtons:
+    - id: 1223e7d2-8a52-4142-b37a-77bc3e803e01
+      isPrimary: true
+      name: "I'm using MFA"
+      whitelist: true
+    - id: 54afb6b2-cc83-44e2-9279-cf6e98a89733
+      isPrimary: false
+      name: "App doesn't support MFA"
+      whitelist: true
+rendered_content_type: application/json
+is_active: true

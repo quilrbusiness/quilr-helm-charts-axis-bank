@@ -1,0 +1,21 @@
+id: efed1f62-c57f-4c20-9c02-40f997222bc6
+version: 1.7
+code: ACT_307
+name: Prompt on using an unapproved AI app
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: templatized
+    message_template: warn-on-using-an-unapproved-ai-app
+    execution_type: tool
+    execution_module: send_templated_user_message
+    browser_action: Ask
+tags:
+  - UC303
+  - UC304
+behavior:
+  - BID_04
+createdon: 1710504494000
+updatedon: 1710504494000

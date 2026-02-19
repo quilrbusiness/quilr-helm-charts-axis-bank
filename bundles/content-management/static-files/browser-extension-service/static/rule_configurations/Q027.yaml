@@ -1,0 +1,20 @@
+datatype: DICT
+defaultValue:
+  message: "Looks like this is a different employee's account who is an admin. Please avoid using it and if you have to please provide a business justification."
+  mode: Justify
+entityDescription: |-
+  An admin has shared credentials with another user.
+entityId: Q027
+entityMeta:
+  behavior: Credential Sharing
+  category: ISPM
+  posture: Password Hygiene
+  check_id:
+    form_check_ids:
+      - CH-FORM-SHARED-CREDENTIAL
+      - CH-FORM-LOGIN
+      - CH-FORM-ADMIN-CREDENTIALS
+entityName: Credential Sharing of an Admin Account
+entityType: rule
+isDisabled: false
+isModifiable: true

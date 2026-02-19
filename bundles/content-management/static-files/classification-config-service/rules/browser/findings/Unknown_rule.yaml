@@ -1,0 +1,16 @@
+id: a6f9d246-b5f9-4338-8337-7f52e12997ea
+version: 3.0
+code: UNKNOWN
+name:
+description: 
+type: rule
+view: identity_protection
+impact: NONE
+likelihood: NONE
+createdon: 1718911069000
+updatedon: 1718911069000
+tags:
+humanfactor:
+behavior:
+examples:
+recommendations: []

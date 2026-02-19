@@ -1,0 +1,18 @@
+id: f3153f0b-8253-4271-bcd2-3b8019d38c05
+type: REST
+description: API lookup to get breach info by company name
+version: 1.0
+endpoint: https://haveibeenpwned.com/api/v3/breach/{company_name}
+request_type: GET
+required_headers:
+  Content-Type: application/json
+required_query_params: {}
+required_body_params: {}
+required_user_params:
+  - id: company_name
+    type: string
+    description: Company name to search for
+    example: Adobe
+    required: true
+    location: path
+response_status_code: 200

@@ -1,0 +1,91 @@
+widget_id: afdba501-e9da-4ab7-ace5-2e2cb6278d10
+template_id: HSI
+active: true
+title: Human Security Index (HSI)
+components:
+  - name: description
+    type: html
+    data_source_type: knowledgegraph
+    lambda: |
+      def fn(client):
+          import time
+          data_result = client.fetch_data(
+              query="MATCH (tenant:TENANT) "
+                    "WHERE tenant.id = $tenantId "
+                    "RETURN 100 - toInteger(ROUND(toFloat(tenant.score) * 100.0)) AS risk_value "
+          )
+      
+          risk_value = None
+          if data_result and isinstance(data_result, list) and data_result[0]:
+              risk_value = data_result[0]['risk_value']
+          
+          tenant_hsi_data = {"risk_value": risk_value, "benchmark": 58, "recorded_date": int(time.time())}
+          tenant_hsi_data['template'] = (
+              "<p> The Identity risk level within your organization, recorded on {recorded_date} indicates " 
+              "a measurement of {risk_value}, notably higher than the industry benchmark of {benchmark}</p>"
+          )
+      
+          total_record_count = 1
+          formatted_data = {"data": [tenant_hsi_data], "total_record_count": total_record_count}
+          return formatted_data
+  - name: HSI Trend
+    type: area
+    data_source_type: knowledgegraph
+    lambda: |
+      def fn(client):
+          hsi_trend_data = client.fetch_data(
+              query="MATCH (tenant:TENANT)-[hs:HAS_HISTORY]-(history:HISTORY) "
+                    "WHERE tenant.id = $tenantId "
+                           "AND history.timestamp >= $starttime "
+                           "AND history.timestamp <= $endtime "
+                    "WITH history.timestamp AS timestamp, "
+                          "100 - toInteger(ROUND(toFloat(history.score) * 100.0)) AS risk_value "
+                    "RETURN COLLECT([timestamp, risk_value]) AS series")
+          
+          result = {}
+          if hsi_trend_data and isinstance(hsi_trend_data, list) and hsi_trend_data[0]:
+              result = {"series": hsi_trend_data[0]['series']}
+
+          total_record_count = 1
+          formatted_data = {"data": result, "total_record_count": total_record_count}
+          return formatted_data
+  - name: radio_buttons
+    type: radio
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          result = {"radio_1": "HSI Trend"}
+          
+          total_record_count = 1
+          formatted_data = {"data": [result], "total_record_count": total_record_count}
+          return formatted_data
+  - name: chart
+    type: solidgauge
+    data_source_type: knowledgegraph
+    lambda: |
+      def fn(client):
+          from app.utils.serialization import RequestContext
+          print(f"token: {RequestContext.get()}")
+          data_result = client.fetch_data(
+              query="MATCH (tenant:TENANT) "
+                    "WHERE tenant.id = $tenantId "
+                    "RETURN 100 - toInteger(ROUND(toFloat(tenant.score) * 100.0)) AS risk_value "
+          )
+          
+          result = {}
+          if data_result and isinstance(data_result, list) and data_result[0]:
+              result = {"series": [data_result[0]['risk_value']]}
+      
+          count_result = client.total_record_count(
+             "MATCH (tenant:TENANT) "
+             "WHERE tenant.id = $tenantId "
+             "RETURN count(DISTINCT tenant.id) as count"
+          )
+    
+          total_record_count = 0
+          if count_result:
+              total_record_count = count_result[0].get('count')
+    
+          formatted_data = {"data": result, "total_record_count": total_record_count}
+          return formatted_data
+version: 1.0

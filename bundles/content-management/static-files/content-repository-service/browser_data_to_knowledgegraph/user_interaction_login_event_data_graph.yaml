@@ -1,0 +1,212 @@
+id: 306c890a-64d2-4b19-a177-e0e7970a4ce0
+name: Browser Extension Action, Interaction, Outcome Event Data To Knowledge Graph
+type: ingestion-to-graph
+version: 1.1.19
+schedule: 2m
+historicalrecordduration: 2m
+source:
+  type: query
+  config:
+    query: "SELECT RECORD_METADATA['CreateTime']::bigint AS datetime, USER_BROWSER_EVENTPROPERTIES, QUILR_MATCHED_APP_ID,
+                  QUILR_SUBSCRIBERID, QUILR_TENANTID, EVENT_TIME
+            FROM KAFKA_CONNECT.SNOWDATA_SCHEMA.TRANSFORMEDDATA 
+            WHERE QUILR_INTEGRATION_TYPE = 'extensionBrowser'
+                  AND USER_BROWSER_EVENTNAME = 'user_interaction'
+                  AND RECORD_METADATA['CreateTime']::bigint >= $starttime 
+                  AND RECORD_METADATA['CreateTime']::bigint <= $endtime"
+    type: datalake
+    limit:
+    offset: 0
+destination:
+  type: stream
+  topic: knowledgeGraph
+config:
+  nodes:
+    rule:
+      id: RULE_ID
+      type: RULE
+    finding:
+      type: FINDING
+      when: IS_CRED_SHARING_INTERACTION == false
+      expression: 'EXISTS(($alias)<-[:EVALUATED_TO]-(:RULE {id: $RULE_ID, subscriber: $QUILR_SUBSCRIBERID, tenant: $QUILR_TENANTID})) AND toLower($alias.accountId) = toLower($USER_ACCOUNT_ID)'
+      fallback:
+        property: ruleAccountContext
+        attribute: RULE_ACCOUNT_CONTEXT
+      properties:
+        accountId: USER_ACCOUNT_ID
+        ruleId: RULE_ID
+    cred_sharing_finding:
+      type: FINDING
+      when: IS_CRED_SHARING_INTERACTION == true
+      expression: 'EXISTS(($alias)<-[:EVALUATED_TO]-(:RULE {id: $RULE_ID, subscriber: $QUILR_SUBSCRIBERID, tenant: $QUILR_TENANTID})) AND toLower($alias.accountId) = toLower($USER_ACCOUNT_ID) AND toLower($alias.sharedAccountId) = toLower($SOURCE_USER_ACCOUNT_ID)'
+      fallback:
+        property: ruleAccountContext
+        attribute: RULE_ACCOUNT_CONTEXT
+      properties:
+        accountId: USER_ACCOUNT_ID
+        sharedAccountId: SOURCE_USER_ACCOUNT_ID
+        ruleId: RULE_ID
+    action:
+      type: ACTION
+      merge:
+        property: encoded_finding_context
+        attribute: $.ENCODED_CONTEXT
+      properties:
+        id: ACTION_ID
+        type: "@ACTP_02"
+        state: "@inprogress"
+        channel: "@Browser"
+        mode: $.USER_BROWSER_EVENTPROPERTIES.mode
+        name: $.USER_BROWSER_EVENTPROPERTIES.action_name
+        control: $.USER_BROWSER_EVENTPROPERTIES.control
+        context_id: $.USER_BROWSER_EVENTPROPERTIES.context_id
+        timestamp: CURRENT_TIMESTAMP
+    interaction_system:
+      type: INTERACTION
+      id: INTERACTION_SYSTEM_ID
+      properties:
+        name: "@System Message"
+        state: "@inprogress"
+        channel: "@Browser"
+        mode: $.USER_BROWSER_EVENTPROPERTIES.mode
+        context_id: $.USER_BROWSER_EVENTPROPERTIES.context_id
+        message: $.USER_BROWSER_EVENTPROPERTIES.summary
+        messageTime: SYSTEM_MESSAGE_TIME
+        initiator: "@system"
+        timestamp: CURRENT_TIMESTAMP
+      when: CREATE_SYSTEM_INTERACTION == true
+    interaction_user_response:
+      type: INTERACTION
+      id: INTERACTION_USER_RESPONSE_ID
+      properties:
+        name: "@User Message"
+        state: "@inprogress"
+        channel: "@Browser"
+        mode: $.USER_BROWSER_EVENTPROPERTIES.mode
+        context_id: $.USER_BROWSER_EVENTPROPERTIES.context_id
+        message: $.USER_BROWSER_EVENTPROPERTIES.user_justification
+        messageTime: USER_RESPONSE_TIME
+        initiator: "@user"
+        timestamp: CURRENT_TIMESTAMP
+      when: CREATE_USER_INTERACTION == true
+    outcome:
+      type: OUTCOME
+      id: OUTCOME_ID
+      properties:
+        id: OUTCOME_ID
+        name: "@Outcome Just In Time"
+        state: "@completed"
+        context_id: $.USER_BROWSER_EVENTPROPERTIES.context_id
+        value: OUTCOME_VALUE
+        timestamp: CURRENT_TIMESTAMP
+  edges:
+    - destination: finding
+      direction: out
+      relation: EVALUATED_TO
+      source: rule
+    - destination: action
+      direction: out
+      relation: TRIGGERED
+      source: finding
+      counters:
+        - property: browser_interaction_count
+          # for this, we are counting the number of times the action was triggered. Conditions: - action is taken on browser - finding resolution channel is browser
+          expression: "RESOLUTIONCHANNEL == 'browser'"
+          # location where property should be stored: source / destination / relation (default: relation)
+          locationReference: source
+    - destination: cred_sharing_finding
+      direction: out
+      relation: EVALUATED_TO
+      source: rule
+    - destination: action
+      direction: out
+      relation: TRIGGERED
+      source: cred_sharing_finding
+      counters:
+        - property: browser_interaction_count
+          # for this, we are counting the number of times the action was triggered. Conditions: - action is taken on browser - finding resolution channel is browser
+          expression: "RESOLUTIONCHANNEL == 'browser'"
+          # location where property should be stored: source / destination / relation (default: relation)
+          locationReference: source
+    - destination: interaction_system
+      direction: out
+      relation: HAS_INTERACTION
+      source: action
+    - destination: interaction_user_response
+      direction: out
+      relation: HAS_INTERACTION
+      source: action
+    - destination: outcome
+      direction: out
+      relation: RESULTED_IN
+      source: action
+lambda: |
+  def fn(payload):
+      import time
+      import uuid
+      import base64
+  
+      def b64encode(message):
+        message_bytes = message.encode('ascii')
+        base64_bytes = base64.b64encode(message_bytes)
+        return base64_bytes.decode('ascii')
+  
+      for item in payload:
+          item["ACTION_ID"] = str(uuid.uuid4())
+          item["CREATE_USER_INTERACTION"] = False
+          item["CREATE_SYSTEM_INTERACTION"] = False
+          item["CURRENT_TIMESTAMP"] = int(time.time()) * 1000
+          
+          event_time = item.get("EVENTTIME")
+          mode = item.get("USER_BROWSER_EVENTPROPERTIES", {}).get("mode")
+          user_mail = item.get("USER_BROWSER_EVENTPROPERTIES", {}).get("user_mail")
+          source_user_mail = item.get("USER_BROWSER_EVENTPROPERTIES", {}).get("source_user_mail")
+          system_message = item.get("USER_BROWSER_EVENTPROPERTIES", {}).get("summary")
+          user_response = item.get("USER_BROWSER_EVENTPROPERTIES", {}).get("user_justification")
+          outcome = item.get("USER_BROWSER_EVENTPROPERTIES", {}).get("outcome")
+          context_id = item.get("USER_BROWSER_EVENTPROPERTIES", {}).get("context_id", "")
+          control = item.get("USER_BROWSER_EVENTPROPERTIES", {}).get("control", "")
+          tenant_id = item.get("QUILR_TENANTID")
+          app_id = item.get("QUILR_MATCHED_APP_ID")
+          resolution_channel = item.get("USER_BROWSER_EVENTPROPERTIES", {}).get("resolution_channel", "")
+  
+          item["RESOLUTIONCHANNEL"] = resolution_channel if resolution_channel else "Not Set"
+          
+          if user_mail and app_id:
+            item["USER_ACCOUNT_ID"] = f"{user_mail}_{app_id}".lower()
+          
+          associated_accounts = item.get("USER_ACCOUNT_ID", "")
+  
+          item["IS_CRED_SHARING_INTERACTION"] = True if source_user_mail and user_mail and source_user_mail != user_mail else False
+  
+          if item["IS_CRED_SHARING_INTERACTION"]:
+            item["SOURCE_USER_ACCOUNT_ID"] = f"{source_user_mail}_{app_id}".lower()
+            associated_accounts += "_" + item["SOURCE_USER_ACCOUNT_ID"]
+  
+          if control:
+            item["RULE_ID"] = f"{control}_{tenant_id}"
+            item["RULE_ACCOUNT_CONTEXT"] = b64encode(f"{item['RULE_ID']}_{associated_accounts}")
+          item["ENCODED_CONTEXT"] = b64encode(f"{context_id}_{control}_{tenant_id}")
+
+          if system_message:
+              item["CREATE_SYSTEM_INTERACTION"] = True
+              item["INTERACTION_SYSTEM_ID"] = str(uuid.uuid4())
+              if event_time:
+                  item["SYSTEM_MESSAGE_TIME"] = event_time
+              else:
+                  item["SYSTEM_MESSAGE_TIME"] = int(time.time()) * 1000
+
+          if user_response:
+              item["CREATE_USER_INTERACTION"] = True
+              item["INTERACTION_USER_RESPONSE_ID"] = str(uuid.uuid4())
+              if event_time:
+                  item["USER_RESPONSE_TIME"] = event_time + 30000
+              else:
+                  item["USER_RESPONSE_TIME"] = (int(time.time()) * 1000) + 30000
+          
+          if user_response or outcome:
+              item["OUTCOME_ID"] = str(uuid.uuid4())
+              item["OUTCOME_VALUE"] = outcome or user_response
+      return payload
+createdon: 1707315500
+updatedon: 1707315500

@@ -1,0 +1,17 @@
+id: 6294e4be-38b9-49aa-b6e7-c5e6edaaf0c7
+version: 3.0
+code: Q032
+name: Login to Unapproved Non Critical SaaS App
+description: Login to an unapproved application that does not handle sensitive data.
+type: rule
+view: identity_protection
+impact: moderate
+likelihood: High
+createdon: 1720396800000
+updatedon: 1720396800000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_18
+examples: []
+recommendations: []

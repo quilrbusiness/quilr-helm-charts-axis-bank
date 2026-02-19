@@ -1,0 +1,178 @@
+id: 218d2e16-c311-49ad-b64f-3510b1c8594c
+version: 22.0.32
+code: ATTR_ACC_001
+type: attributes
+category: Account
+attributes:
+  - graph_property: account.creationTime
+    duplicate_allowed: false
+    possible_values:
+      - tags:
+          - UC007
+          - UC008
+          - UC010
+          - UC011
+          - UC001
+          - UC025
+          - UC026
+          - UC027
+          - UC028
+        label: last 1 month
+        value: timestamp() - 1000*60*60*24*30
+      - tags:
+          - UC007
+          - UC008
+          - UC010
+          - UC011
+        label: last 3 months
+        value: timestamp() - 1000*60*60*24*90
+      - tags:
+          - UC007
+          - UC008
+          - UC010
+          - UC011
+        label: last 6 months
+        value: timestamp() - 1000*60*60*24*180
+      - tags:
+          - UC007
+          - UC008
+          - UC010
+          - UC011
+        label: last 1 year
+        value: timestamp() - 1000*60*60*24*365
+    expected_datatype: string
+    tags:
+      - UC002
+    name: first created
+    description: When was the account is created.
+    supported_operators:
+      - is greater than
+      - is less than
+    id: ACC-001
+  - graph_property: credsbased_account.be_mfa_enabled
+    duplicate_allowed: false
+    possible_values:
+      - tags:
+          - UC007
+          - UC008
+          - UC010
+          - UC011
+        label: 'True'
+        value: 'true'
+      - tags:
+          - UC007
+          - UC008
+          - UC010
+          - UC011
+        label: 'False'
+        value: 'false'
+    expected_datatype: string
+    tags: [ ]
+    extension_property: checkOb.check.properties.be_mfa_enabled
+    name: using MFA
+    description: Whether or not account uses MFA on app or not.
+    supported_operators:
+      - is equal to
+      - is not equal to
+    id: ACC-002
+  - graph_property: cred_fingerprint.password_strength
+    duplicate_allowed: false
+    possible_values:
+      - tags: [ ]
+        label: Strong
+        value: '4'
+      - tags:
+          - UC007
+          - UC008
+          - UC010
+          - UC011
+        label: moderate threshold
+        value: '3'
+      - tags:
+          - UC007
+          - UC008
+          - UC010
+          - UC011
+        label: weak threshold
+        value: '2'
+    expected_datatype: string
+    tags: [ ]
+    extension_property: checkOb.check.properties.password_strength
+    name: password strength
+    description: What password strength account has to access application.
+    supported_operators:
+      - is less than equal to
+    id: ACC-003
+  - graph_property: cred_fingerprint.compromised_password_status
+    duplicate_allowed: false
+    possible_values:
+      - tags:
+          - UC007
+          - UC008
+          - UC010
+          - UC011
+        label: 'True'
+        value: 'true'
+      - tags:
+          - UC007
+          - UC008
+          - UC010
+          - UC011
+        label: 'False'
+        value: 'false'
+    expected_datatype: string
+    tags: [ ]
+    extension_property: check.isPasswordCompromised
+    name: compromised password
+    description: Define if password is compromised or not.
+    supported_operators:
+      - is equal to
+    id: ACC-004
+  - graph_property: credsbased_account.last_access_time
+    duplicate_allowed: false
+    possible_values:
+      - tags:
+          - UC007
+          - UC008
+          - UC010
+          - UC011
+          - UC025
+          - UC026
+          - UC027
+          - UC028
+        label: last 1 month
+        value: timestamp() - 1000*60*60*24*30
+      - tags:
+          - UC007
+          - UC008
+          - UC010
+          - UC011
+        label: last 3 month
+        value: timestamp() - 1000*60*60*24*90
+      - tags:
+          - UC007
+          - UC008
+          - UC010
+          - UC011
+        label: last 6 month
+        value: timestamp() - 1000*60*60*24*180
+      - tags:
+          - UC007
+          - UC008
+          - UC010
+          - UC011
+        label: last 1 year
+        value: timestamp() - 1000*60*60*24*365
+    expected_datatype: string
+    tags:
+      - UC007
+      - UC008
+      - UC010
+      - UC011
+    name: last accessed
+    description: When was the account last used.
+    supported_operators:
+      - is greater than
+      - is less than
+    id: ACC-005
+tags: []

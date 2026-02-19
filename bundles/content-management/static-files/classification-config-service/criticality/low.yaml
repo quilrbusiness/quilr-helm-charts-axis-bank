@@ -1,0 +1,9 @@
+id: 6db74822-91dd-43ce-8396-76cb99f69593
+version: 2.0
+code: low
+name: Low
+type: criticality
+factor: 0.4
+priority: 4
+createdon: 1710504494000
+updatedon: 1710504494000

@@ -1,0 +1,20 @@
+id: 358aa7a0-f8e0-46f8-a471-a7c6949228ae
+version: 1.3
+code: ACT_40
+name: Justify login using shared non-administrator credentials
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: templatized
+    message_template: justify-login-for-use-of-shared-non-administrator-credentials
+    execution_type: tool
+    execution_module: send_templated_user_message
+    browser_action: Justify
+tags:
+  - UC008
+behavior:
+  - BID_09
+createdon: 1710504494000
+updatedon: 1710504494000

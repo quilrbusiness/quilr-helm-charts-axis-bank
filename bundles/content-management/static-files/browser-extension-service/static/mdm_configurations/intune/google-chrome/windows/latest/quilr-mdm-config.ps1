@@ -1,0 +1,3 @@
+if((Test-Path -LiteralPath "HKLM:\SOFTWARE\Policies\Google\Chrome\ExtensionSettings") -ne $true) { New-Item "HKLM:\SOFTWARE\Policies\Google\Chrome\ExtensionSettings" -force -ea SilentlyContinue };
+if((Test-Path -LiteralPath "HKLM:\SOFTWARE\Policies\Google\Chrome\ExtensionSettings\piajhjohgigijkddhdpgbjdcfhmammbk") -ne $true) { New-Item "HKLM:\SOFTWARE\Policies\Google\Chrome\ExtensionSettings\piajhjohgigijkddhdpgbjdcfhmammbk;https://saas-extension.quilr.ai/manifest.xml" -force -ea SilentlyContinue };
+New-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Policies\Google\Chrome\ExtensionSettings\piajhjohgigijkddhdpgbjdcfhmammbk' -Name 'override_update_url' -Value '1' -PropertyType String -Force -ea SilentlyContinue;

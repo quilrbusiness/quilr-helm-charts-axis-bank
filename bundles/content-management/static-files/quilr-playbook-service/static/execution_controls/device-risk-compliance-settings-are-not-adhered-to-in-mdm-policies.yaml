@@ -1,0 +1,29 @@
+version: 1.0.0
+criticality: 3
+mode: monitor
+control_name: Enforcing compliance settings for a device as defined in MDM policies
+control_description: Compliance settings in MDM policies define the rules and conditions devices must meet to be considered compliant, such as requiring encryption, PIN codes, operating system updates, or specific security baselines. When these settings are not adhered to, it can result in devices being flagged as non-compliant or even bypassing the intended security controls altogether.
+posture:
+  id: PID_05
+behavior:
+  id: BID_105
+use_case:
+  id: UC103
+trigger_conditions:
+- operator: 
+  filter_condition:
+    attribute_type: ATTR_DEV_001
+    attribute_id: DEV-006
+    extension_property: device.complianceState
+    condition: is_not_equal_to
+    value: compliant
+  filter_group: 
+actions:
+- type:
+    id: ACTP_01
+  name:
+    id: ACT_101
+  meta:
+    prompt_frequency:
+    
+

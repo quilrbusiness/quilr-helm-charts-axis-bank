@@ -1,0 +1,23 @@
+id: 757f5a12-53fe-48cc-b8dd-8bb571db1877
+name: device is not enrolled in mobile device management (mdm)
+updatedon: 1710504494000
+condition:
+- filter_condition:
+    condition: is equal to
+    value: "null"
+    attribute_id: DEV-011
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: 
+  editable: false
+createdon: 1710504494000
+version: 1.7
+description: Detects devices that are not enrolled in the organization's Mobile Device Management (MDM) system as required by security policies, which may indicate non-compliance or unauthorized access risks.
+posture:
+- PID_05
+code: UC107
+disabled: false
+type: use-case
+behavior:
+- BID_101
+

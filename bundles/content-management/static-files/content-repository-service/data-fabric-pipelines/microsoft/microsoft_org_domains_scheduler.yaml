@@ -1,0 +1,21 @@
+id: 88c09687-f836-4743-8c4a-5c0694d09681
+name: Microsoft Entra ID Sub-Domains Fabric Pipeline Scheduler
+type: fabric
+version: 1.0
+schedule: "30D"
+historicalrecordduration: "4h"
+istrackable: true
+source:
+  type: api
+  config:
+    uri: http://data-fabric-core-service:9031/fabric/start?fabricid=909f93e4-b43b-4734-9fa6-0881e8cc27ae
+    method: POST
+    headers: {}
+    body: {}
+destination:
+  type: stream
+  topic: pipelineTracking
+config: {}
+lambda: ""
+createdon: 1726650423
+updatedon: 1726650423

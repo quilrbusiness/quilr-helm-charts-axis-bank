@@ -1,0 +1,31 @@
+id: 7f5c4dea-4575-472b-84fa-fac911629405
+name: device anti-spyware requirement not met
+updatedon: 1739368381826
+condition:
+- filter_condition:
+    condition: is equal to
+    value: AntiSpywareRequired
+    attribute_id: DEV-003
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: 
+  editable: false
+- filter_condition:
+    condition: is not equal to
+    value: compliant
+    attribute_id: DEV-005
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: AND
+  editable: false
+createdon: 1739368381826
+version: 1.2
+description: The device does not meet the required anti-spyware protection standards, increasing the risk of malware infections and unauthorized data access
+posture:
+- PID_05
+code: UC112
+disabled: false
+type: use-case
+behavior:
+- BID_101
+

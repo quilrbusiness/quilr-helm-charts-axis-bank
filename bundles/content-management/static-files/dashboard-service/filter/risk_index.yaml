@@ -1,0 +1,4 @@
+filter_id: "9fc5b88a-0e2f-4d2d-8351-cc3ec28c2d0c"
+config:
+  risk_index: "SELECT risk_index FROM network_risk_data"
+version: "1.0"

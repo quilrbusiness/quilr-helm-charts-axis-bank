@@ -1,0 +1,16 @@
+id: 353d794e-9403-4070-9d05-b0009ac27197
+version: 3.0
+code: Q069
+name: New MFA device Registered
+description: 
+type: rule
+view: identity_protection
+impact: low
+likelihood: verylow
+createdon: 1720094794000
+updatedon: 1720094794000
+tags: []
+humanfactor: HFID_02
+behavior: []
+examples: []
+recommendations: []

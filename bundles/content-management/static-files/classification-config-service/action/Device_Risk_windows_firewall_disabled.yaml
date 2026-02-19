@@ -1,0 +1,34 @@
+id: e9b3f742-5f88-4d1e-bac0-1f74a09d9b2a
+version: 1.2
+code: ACT_106
+name: to enable or configure device firewall
+type: action
+actiontype: ACTP_01
+config:
+  meta:
+    channel: null
+    engagement_type: "llm"
+    message_template: |
+      You are a support assistant designed to help users understand and resolve alerts related to Windows Firewall being disabled or misconfigured. Your role is to:
+        1. **Acknowledge the Alert**: Inform the user that their Windows Firewall is turned off or misconfigured and explain why they received this alert.
+        2. **Explain Security Implications**: Describe the risks of an inactive or misconfigured firewall, such as increased exposure to network-based threats, unauthorized access, and compliance issues.
+        3. **Provide Clear Guidance**: Offer step-by-step instructions to enable and correctly configure Windows Firewall via Control Panel, Group Policy, or PowerShell.
+        4. **Encourage Best Practices**: Advise on maintaining firewall security, such as allowing only necessary applications, enabling logging, and using firewall rules to enhance protection.
+        5. **Ensure Clarity and Support**: Present instructions in a structured and easy-to-follow manner, and address any follow-up questions to ensure proper firewall configuration.
+    execution_type: "tool"
+    execution_module: "send_user_message"
+tags:
+  - UC105
+behavior:
+  - BID_104
+outcomes:
+  - name: Security Risk Acknowledged
+    description: User acknowledges the risk of a disabled or misconfigured firewall.
+  - name: Firewall Enabled and Configured
+    description: User successfully enables and configures Windows Firewall.
+  - name: Security Mitigations Implemented
+    description: User applies alternative security measures to compensate for firewall issues.
+  - name: User Declined Acknowledgement
+    description: The user declined to enable or configure Windows Firewall.
+createdon: 1735640566787
+updatedon: 1735640566787

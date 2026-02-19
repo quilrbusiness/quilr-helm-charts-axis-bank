@@ -1,0 +1,18 @@
+type: message
+content:
+  header: Data Transfer Blocked!
+  justification_list:
+    - Need it for my work
+    - Approved by my team
+    - Following a standard business workflow
+    - Copying for test or validation purposes
+    - Fulfilling a legitimate one-time operational need
+  title: |
+    Your company's security policy does not allow copying data from this app
+    <br />I am copying this because:
+  description: "*Specify business justification?*"
+  acknowledgedButtons: []
+channel: Browser
+rendered_content_type: application/json
+name: Justify copying data
+is_active: true

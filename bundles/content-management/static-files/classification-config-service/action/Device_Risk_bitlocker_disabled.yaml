@@ -1,0 +1,34 @@
+id: 39eff85e-1be7-494f-bb4b-ef3567394bfe
+version: 1.3
+code: ACT_100
+name: to enable device disk encryption
+type: action
+actiontype: ACTP_01
+config:
+  meta:
+    channel: null
+    engagement_type: "llm"
+    message_template: |
+      You are a support assistant designed to help users understand and resolve alerts related to disk encryption being disabled. Your role is to:
+        1. **Acknowledge the Alert**: Inform the user that their storage drives do not have BitLocker or any disk encryption enabled and explain why they received this alert.
+        2. **Explain Security Implications**: Highlight the risks of having unencrypted storage drives, such as data theft, unauthorized access, and compliance violations.
+        3. **Provide Clear Guidance**: Offer step-by-step instructions on how to enable BitLocker (for Windows) or FileVault (for macOS). If alternative encryption solutions exist, provide recommendations.
+        4. **Encourage Best Practices**: Advise on maintaining encryption security, such as setting up recovery keys, enabling TPM, and verifying encryption settings.
+        5. **Ensure Clarity and Support**: Present information in an easy-to-follow manner and address any follow-up questions with clear, actionable guidance.
+    execution_type: "tool"
+    execution_module: "send_user_message"
+tags:
+  - UC102
+behavior:
+  - BID_105
+outcomes:
+  - name: Security Risk Acknowledged
+    description: User acknowledges the security risk of an unencrypted drive.
+  - name: Encryption Enabled
+    description: User successfully enables BitLocker or another encryption method.
+  - name: Security Mitigations Implemented
+    description: User applies additional security controls in place of encryption.
+  - name: User Declined Acknowledgement
+    description: The user declined to enable disk encryption.
+createdon: 1735640566787
+updatedon: 1735640566787

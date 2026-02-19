@@ -1,0 +1,50 @@
+datatype: DICT
+defaultValue:
+  name: Sensitive Personal Information
+  description: Personal data with significant privacy or safety implications
+  criticality: HIGH
+  sensitivity: Sensitive
+  examples:
+    - Detailed Medical History + Treatment Plans
+    - Political Affiliations + Donation Records
+    - Sexual Orientation + Relationship Status
+    - Precise Geolocation Data Over Time
+    - Comprehensive Online Behavior Profile
+  indicators:
+    - Presence of intimate personal details
+    - Information on protected characteristics
+    - Detailed behavioral or preference data
+    - Combination of personal attributes enabling profiling
+  contentMarkers:
+    - Medical or health-related terminology
+    - Political or ideological keywords
+    - Demographic classifiers
+    - Precise location coordinates or patterns
+  impactSummary: >-
+    Severe privacy violation risk; potential for discrimination or exploitation;
+    personal harm
+  classificationRules:
+    positive: >-
+      Contains intimate personal details; information on protected
+      characteristics; detailed behavioral data
+    negative: >-
+      General demographic information; publicly shared personal data; broad
+      preference categories
+    resolution: >-
+      Assess the intimacy of personal information and its potential for profiling
+      or discrimination
+  relatedClasses:
+    - PII001
+    - PPI001
+    - FIN001
+    - COM001
+entityDescription: |-
+  Data Definition to classify and extract Sensitive Personal Information from text
+entityId: SPI001
+entityMeta:
+  category: Data Protection Rule
+  source: default
+entityName: Sensitive Personal Information
+entityType: dlp_rule
+isDisabled: false
+isModifiable: true

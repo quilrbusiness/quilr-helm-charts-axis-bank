@@ -1,0 +1,4 @@
+filter_id: "1f44ef56-89c1-4bd8-87b6-b5e6cec0d545"
+config:
+  location: "SELECT location FROM application_logs_data"
+version: "1.0"

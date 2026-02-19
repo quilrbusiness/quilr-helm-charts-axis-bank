@@ -1,0 +1,120 @@
+widget_id: 8394d252-4a8c-4ff3-89a1-07271aa80f1a
+template_id: PostureRiskLevels
+active: true
+title: Posture Risks Level
+components:
+  - name: Posture Risks Level
+    type: table
+    data_source_type: datalake
+    lambda: |
+      def fn(client):
+        data_result = client.fetch_data(
+            query="WITH initial_data AS ("
+                  " SELECT"
+                  " DISTINCT agg_type_name,"
+                  " agg_subtype_name,"
+                  " ROUND((alert_percentile * 4) + 1) AS initial_risk_index"
+                  " FROM"
+                  " kafka_connect.snowdata_schema.postureprofileaggregated"
+                  " WHERE"
+                  " agg_subtype = 'posture'"
+                  " AND agg_type = 'userid'"
+                  " AND DATE_FROM_PARTS(year, monthofyear, dayofmonth) > TO_DATE(TO_TIMESTAMP($starttime / 1000))"
+                  " AND subscriber = $subscriber AND tenant = $tenant"
+                  " ),"
+                  " filtered_data AS ("
+                  " SELECT"
+                  " DISTINCT agg_type_name," 
+                  " agg_subtype_name,"
+                  " ROUND((alert_percentile * 4) + 1) AS current_risk_index"
+                  " FROM"
+                  " kafka_connect.snowdata_schema.postureprofileaggregated" 
+                  " WHERE"
+                  " agg_subtype = 'posture'"
+                  " AND agg_type = 'userid'"
+                  " AND DATE_FROM_PARTS(year, monthofyear, dayofmonth) < TO_DATE(TO_TIMESTAMP($endtime / 1000))"
+                  " AND subscriber = $subscriber AND tenant = $tenant"
+                  " ),"
+                  " comparison AS ("
+                  " SELECT"
+                  " f.agg_type_name,"
+                  " f.agg_subtype_name,"
+                  " f.current_risk_index,"
+                  " i.initial_risk_index,"
+                  " CASE"
+                  " WHEN f.current_risk_index < i.initial_risk_index THEN 1"
+                  " ELSE 0"
+                  " END AS improved,"
+                  " CASE"
+                  " WHEN f.current_risk_index > i.initial_risk_index THEN 1"
+                  " ELSE 0"
+                  " END AS worsened"
+                  " FROM"
+                  " filtered_data f"
+                  " LEFT JOIN"
+                  " initial_data i ON f.agg_type_name = i.agg_type_name"
+                  " ),"
+                  " user_counts AS ("
+                  " SELECT"
+                  " agg_subtype_name,"
+                  " COUNT(DISTINCT CASE WHEN initial_risk_index > 1 THEN agg_type_name END) AS risky_users,"
+                  " COUNT(DISTINCT CASE WHEN current_risk_index > 0 THEN agg_type_name END) AS total_users,"
+                  " COUNT(DISTINCT CASE WHEN improved = 1 THEN agg_type_name END) AS improved_users,"
+                  " COUNT(DISTINCT CASE WHEN worsened = 1 THEN agg_type_name END) AS worsened_users"
+                  " FROM"
+                  " comparison"
+                  " GROUP BY"
+                  " agg_subtype_name"
+                  " )"
+                  " SELECT"
+                  " agg_subtype_name AS posturename,"
+                  " (risky_users * 100.0 / NULLIF(total_users, 0)) AS percentage_risky_users,"
+                  " (improved_users * 100.0 / NULLIF(total_users, 0)) AS percentage_improved,"
+                  " (worsened_users * 100.0 / NULLIF(total_users, 0)) AS percentage_worsened,"
+                  " total_users"
+                  " FROM "
+                  " user_counts"
+        )
+        if data_result and isinstance(data_result, list) and data_result[0]:
+            posture_list = ["Personal Security","Data Handling","Workstation Security","Password Hygiene","SaaS Usage","MFA usage","Authentication & Access","Social Engineering","Inherent Risk"]
+            formatted_data = {"data": []}
+            for item in data_result:
+              # Extract values
+              key1 = item.get("POSTURENAME")
+              key2 = item.get("PERCENTAGE_RISKY_USERS")
+              key2 = int(round(key2))
+              key3 = item.get("PERCENTAGE_IMPROVED")
+              key4 = item.get("PERCENTAGE_WORSENED") 
+              key4 = key3 - key4  #improved minus worsened
+              key4 = int(round(key4))
+              # Append to records list with custom key names
+              data = {
+                  "posture": key1,
+                  "count": key2,
+                  "change" : key4
+              }
+              formatted_data["data"].append(data)
+            existing_postures = {item['posture'].lower() for item in formatted_data["data"]}
+            client_limit = int(client.limit)
+            for posture in posture_list:
+              if len(formatted_data["data"]) >= client_limit:
+                break
+              if posture.lower() not in existing_postures:
+                data = {
+                    "posture": posture,
+                    "count": 0,
+                    "change": 0
+                }
+                formatted_data["data"].append(data)
+                existing_postures.add(posture.lower())
+            total_record_count = len(formatted_data["data"])
+            formatted_data["total_record_count"] = total_record_count
+            return formatted_data
+        else:
+            # Handle case where data_result is empty or doesn't contain expected structure
+            formatted_data = {
+                "data": [],
+                "total_record_count": 0
+            }
+            return formatted_data
+version: 1.0.3

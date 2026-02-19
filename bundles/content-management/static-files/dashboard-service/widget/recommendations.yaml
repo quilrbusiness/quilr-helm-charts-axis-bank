@@ -1,0 +1,49 @@
+widget_id: 63d3d061-ec61-478f-92c4-becc2fb1739f
+template_id: ActionableCardTemplate
+active: true
+title: Recommendations
+components:
+  - name: actionCard
+    type: text
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          data = {"iconType": "thumbsUp",
+                  "variant": "danger",
+                  "buttonContent": "Give personal kudos to segments owners",
+                  "text": "10% decrease in the use of Unapproved SaaS Apps increasing HSI by 3 Points.",
+                  "buttonStyleType": "outline",
+                  "buttonOnClick": {
+                    "url": "",
+                    "body": "",
+                    "headers": ""
+                  },
+                  "crossOnClick": {
+                    "url": "",
+                    "body": "",
+                    "headers": ""
+                  }
+                }
+          return data
+  - name: actionCard
+    type: text
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          data = {"iconType": "cognition",
+                  "variant": "green",
+                  "text": "Recent Increase in Successful Vendor Email Compromise delivery to end User's Mailbox",
+                  "crossOnClick": {
+                    "url": "",
+                    "body": "",
+                    "headers": ""
+                  }
+                }
+          return data
+dimensions:
+  x_cord: 4
+  y_cord: 0
+  width: 4
+  height: 8
+filter_ids:
+version: 6.0

@@ -1,0 +1,48 @@
+datatype: DICT
+defaultValue:
+  name: Partial Personal Information
+  description: Incomplete personal data with moderate privacy implications
+  criticality: MEDIUM
+  sensitivity: Sensitive
+  examples:
+    - First Name or Last Name Only
+    - Birth Year (without full date)
+    - Partial Contact Information
+    - Job Title and Company Name
+    - General Location (City or Region)
+  indicators:
+    - Presence of partial identifiers
+    - Demographic information without full context
+    - Professional details without complete personal data
+    - Broad location or temporal information
+  contentMarkers:
+    - Name fragments or initials
+    - Partial date formats
+    - Job-related terminology
+    - Broad geographical references
+  impactSummary: Moderate privacy concerns; potential for partial identification or profiling
+  classificationRules:
+    positive: >-
+      Contains partial personal identifiers; professional information without full
+      personal context; broad demographic data
+    negative: >-
+      Fully anonymized data; publicly available personal information; general
+      statistics
+    resolution: >-
+      Evaluate the potential for identification when combined with other data
+      sources
+  relatedClasses:
+    - PII001
+    - SPI001
+    - COM001
+    - CTX001
+entityDescription: |-
+  Data Definition to classify and extract Partial Personal Information from text
+entityId: PPI001
+entityMeta:
+  category: Data Protection Rule
+  source: default
+entityName: Partial Personal Information
+entityType: dlp_rule
+isDisabled: false
+isModifiable: true

@@ -1,0 +1,67 @@
+id: 813e375d-fbde-4aba-8fc8-88241e6f138c
+version: 2.3
+code: ACTP_04
+name: Activate Agent
+type: action-type
+createdon: 1710504494000
+updatedon: 1710504494000
+tags:
+  - UC001
+  - UC002
+  - UC204
+  - UC025
+  - UC005
+  - UC026
+  - UC040
+  - UC041
+  - UC010
+  - UC013
+  - UC033
+  - UC044
+  - UC043
+  - UC201
+  - UC007
+  - UC500
+  - UC303
+  - UC304
+  - UC203
+  - UC008
+  - UC011
+  - UC012
+  - UC014
+  - UC090
+  - UC202
+  - UC006
+  - UC027
+  - UC028
+  - UC031
+  - UC038
+  - UC039
+  - UC112
+  - UC100
+  - UC102
+  - UC113
+  - UC117
+  - UC103
+  - UC116
+  - UC107
+  - UC120
+  - UC101
+  - UC118
+  - UC109
+  - UC114
+  - UC111
+  - UC108
+  - UC110
+  - UC115
+  - UC104
+  - UC105
+  - UC106
+  - UC701
+  - UC702
+  - UC703
+  - UC704
+  - UC705
+  - UC706
+  - UC707
+  - UC708

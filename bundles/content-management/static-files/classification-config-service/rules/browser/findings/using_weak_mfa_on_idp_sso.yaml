@@ -1,0 +1,17 @@
+id: 4b8da072-0810-471f-9e7b-e76ce89b6ae7
+version: 3.0
+code: Q059
+name: Using Weak MFA on SSO/IDP
+description: 
+type: rule
+view: identity_protection
+impact: low
+likelihood: low
+createdon: 1720094794000
+updatedon: 1720094794000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_30
+examples: []
+recommendations: []

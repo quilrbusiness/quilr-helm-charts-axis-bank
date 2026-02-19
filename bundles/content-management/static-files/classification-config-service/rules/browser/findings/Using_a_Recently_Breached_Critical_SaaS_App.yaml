@@ -1,0 +1,17 @@
+id: ad741f35-9149-4f75-a6ff-d1b3a62ea021
+version: 3.0
+code: Q036
+name: Login to a Recently Breached Critical SaaS App
+description: Login to a recently breached application that does handle sensitive data or is critical to business operations.
+type: rule
+view: identity_protection
+impact: high
+likelihood: moderate
+createdon: 1720396800000
+updatedon: 1720396800000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_02
+examples: []
+recommendations: []

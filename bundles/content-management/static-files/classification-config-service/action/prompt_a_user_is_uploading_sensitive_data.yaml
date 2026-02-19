@@ -1,0 +1,20 @@
+id: 0a1b2c3d-4e5f-4678-9a0b-1c2d3e4f8043
+version: 1.1
+code: ACT_245
+name: Prompt user about uploading sensitive data
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: templatized
+    message_template: prompt-uploading-sensitive-data
+    execution_type: tool
+    execution_module: send_templated_user_message
+    browser_action: Ask
+tags:
+  - UC043
+behavior:
+  - BID_203
+createdon: 1755715200000
+updatedon: 1755715200000

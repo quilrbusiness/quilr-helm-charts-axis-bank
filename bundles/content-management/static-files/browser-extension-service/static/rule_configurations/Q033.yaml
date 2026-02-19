@@ -1,0 +1,21 @@
+datatype: DICT
+defaultValue:
+  message: "This is an unapproved application where sensitive data could be uploaded, please provide a business justification if you have to proceed. "
+  mode: Justify
+entityDescription: |-
+  Login to unapproved application increases vulnerability of organization for security.
+entityId: Q033
+entityMeta:
+  behavior: Unapproved SaaS Usage
+  category: ISPM
+  posture:  SaaS Usage
+  check_id:
+    form_check_ids:
+      - CH-FORM-LOGIN
+      - CH-APP-UNAPPROVED
+      - CH-APP-CRITICAL
+entityName: |-
+  Login to Unapproved Critical SaaS App
+entityType: rule
+isDisabled: false
+isModifiable: true

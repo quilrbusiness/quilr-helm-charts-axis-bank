@@ -1,0 +1,17 @@
+id: bc906e1a-4244-4256-bcc4-81ca63141358
+version: 3.0
+code: Q054
+name: Not using MFA on admin account
+description: 
+type: rule
+view: identity_protection
+impact: veryhigh
+likelihood: moderate
+createdon: 1720094794000
+updatedon: 1720094794000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_29
+examples: []
+recommendations: []

@@ -1,0 +1,58 @@
+version: 1.0.3
+criticality: 3
+mode: monitor
+control_name: Tracking Usage Of An Unapproved AI App
+control_description: "This control tracks the usage of unapproved AI applications to ensure compliance with company policies."
+posture:
+  id: PID_01
+behavior:
+  id: BID_04
+use_case:
+  id: UC303
+trigger_conditions:
+- operator: null
+  filter_group: null
+  filter_condition:
+    value: generative ai
+    condition: is_equal_to
+    attribute_id: APP-001
+    attribute_type: ATTR_APP_001
+- operator: AND
+  filter_group: null
+  filter_condition:
+    value: Unapproved
+    condition: is_equal_to
+    attribute_id: APP-002
+    attribute_type: ATTR_APP_001
+- operator: AND
+  filter_group: null
+  filter_condition:
+    attribute_type: ATTR_Browser_001
+    attribute_id: BROWSER-001
+    condition: is in
+    value: 
+       - "true"
+       - "false"
+actions:
+- type:
+    id: ACTP_02
+  name:
+    id: ACT_312
+  description: 
+  meta:
+    channel: browser
+    engagement_type: templatized
+    message_template: block-using-an-unapproved-ai-app
+    execution_type: tool
+    execution_module: send_templated_user_message
+    browser_action: Block
+    prompt_frequency: 
+    default_conversation_params:
+      is_urgent: false
+      tone: 
+      cc_manager: false
+      sla: 
+      sla_duration_unit: 
+      reminder_count: 
+      custom_message: 
+    custom_conversation_params:

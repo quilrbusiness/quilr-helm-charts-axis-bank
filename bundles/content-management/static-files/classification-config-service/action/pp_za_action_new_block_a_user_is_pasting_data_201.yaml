@@ -1,0 +1,22 @@
+id: 8f2e42e8-35d7-44e7-bff7-4273e07020cc
+version: 1.8
+code: ACT_201
+name: Block user from pasting data
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: templatized
+    message_template: block-pasting-data
+    execution_type: tool
+    execution_module: send_templated_user_message
+    browser_action: Block
+    blocked: false
+tags:
+  - UC026
+  - UC028
+behavior:
+  - BID_201
+createdon: 1710504494000
+updatedon: 1758018676721

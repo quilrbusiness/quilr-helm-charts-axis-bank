@@ -1,0 +1,546 @@
+version: 1.0.6
+type: attributes
+tags:
+- UC026
+- UC028
+- UC031
+- UC040
+- UC041
+attributes:
+- possible_values_query: MATCH (app_category:APP_CATEGORY) WHERE (app_category.priority < 2 OR app_category.priority is null) AND app_category.name <> '-' AND toLower(app_category.name) =~ toLower('.*{search_text}.*') RETURN distinct(app_category.name)
+  description: List of application category like AI, security and more.
+  graph_property: null
+  discard_gp: true
+  supported_operators:
+  - is equal to
+  - is in
+  - is not equal to
+  tags: null
+  name: Category
+  duplicate_allowed: false
+  expected_datatype: string
+  is_searchable: true
+  id: CLP_020
+  extension_property: clipboard.source.application.app_category.name
+- description: Application is approved, unapproved or tolerated in organization.
+  graph_property: null
+  discard_gp: true
+  supported_operators:
+  - is equal to
+  - is in
+  tags: null
+  name: Status
+  duplicate_allowed: false
+  expected_datatype: string
+  possible_values:
+  - label: Needs Review
+    tags: null
+    value: Needs Review
+  - label: Approved
+    tags: null
+    value: Approved
+  - label: Tolerated
+    tags: null
+    value: Tolerated
+  - label: Unapproved
+    tags: null
+    value: Unapproved
+  id: CLP_021
+  extension_property: clipboard.source.application.has_app_settings.approval_status
+- description: Application is critical or not in organization.
+  graph_property: null
+  discard_gp: true
+  supported_operators:
+  - is equal to
+  - is in
+  tags: null
+  name: Criticality
+  duplicate_allowed: false
+  expected_datatype: string
+  possible_values:
+  - label: Critical
+    tags: 
+    value: Critical
+  - label: Not Critical
+    tags: 
+    value: Not Critical
+  - label: Not Set
+    tags: 
+    value: Not Set
+  id: CLP_022
+  extension_property: clipboard.source.application.has_app_settings.criticality
+- possible_values_query: MATCH (app:APPLICATION) WHERE NOT app.domain IN ['','-'] AND toLower(app.domain) =~ toLower('.*{search_text}.*') RETURN distinct(app.domain)
+  description: Define application domain to include or exclude.
+  graph_property: null
+  discard_gp: true
+  supported_operators:
+  - is equal to
+  - is not equal to
+  - is in
+  - is not in
+  tags: null
+  name: Domain
+  duplicate_allowed: false
+  expected_datatype: string
+  is_searchable: true
+  id: CLP_023
+  extension_property: clipboard.source.application.app.domain
+- description: Application support MFA or not.
+  graph_property: null
+  discard_gp: true
+  supported_operators:
+  - is equal to
+  tags: null
+  name: Multi-Factor Authentication (MFA) support
+  duplicate_allowed: false
+  expected_datatype: string
+  possible_values:
+  - label: 'True'
+    tags: null
+    value: 'true'
+  - label: 'False'
+    tags: null
+    value: 'false'
+  id: CLP_024
+  extension_property: clipboard.source.application.application.isMfaSupported
+- description: Score is based on application support MFA, SSL version.
+  graph_property: null
+  discard_gp: true
+  supported_operators:
+  - is equal to
+  - is not equal to
+  - is in
+  - is not in
+  tags: null
+  name: Security Score
+  duplicate_allowed: false
+  expected_datatype: int
+  possible_values:
+  - label: Very Low
+    tags: 
+    value: 0
+  - label: Very Low
+    tags: 
+    value: 1
+  - label: Very Low
+    tags: 
+    value: 2
+  - label: Low
+    tags: 
+    value: 3
+  - label: Low
+    tags: 
+    value: 4
+  - label: Moderate
+    tags: 
+    value: 5
+  - label: Moderate
+    tags: 
+    value: 6
+  - label: High
+    tags: 
+    value: 7
+  - label: High
+    tags: 
+    value: 8
+  - label: Very High
+    tags: 
+    value: 9
+  - label: Very High
+    tags: 
+    value: 10
+  id: CLP_025
+  extension_property: clipboard.source.application.application.securityScore
+- description: Score is based on compliance application has.
+  graph_property: null
+  discard_gp: true
+  supported_operators:
+  - is equal to
+  - is not equal to
+  - is in
+  - is not in
+  tags: null
+  name: Compliance Score
+  duplicate_allowed: false
+  expected_datatype: int
+  possible_values:
+  - label: Very Low
+    tags: 
+    value: 0
+  - label: Very Low
+    tags: 
+    value: 1
+  - label: Very Low
+    tags: 
+    value: 2
+  - label: Low
+    tags: 
+    value: 3
+  - label: Low
+    tags: 
+    value: 4
+  - label: Moderate
+    tags: 
+    value: 5
+  - label: Moderate
+    tags: 
+    value: 6
+  - label: High
+    tags: 
+    value: 7
+  - label: High
+    tags: 
+    value: 8
+  - label: Very High
+    tags: 
+    value: 9
+  - label: Very High
+    tags: 
+    value: 10
+  id: CLP_026
+  extension_property: clipboard.source.application.application.complianceScore
+- description: Whether or not application support SAML.
+  graph_property: null
+  discard_gp: true
+  supported_operators:
+  - is equal to
+  - is not equal to
+  tags: null
+  name: Support SAML
+  duplicate_allowed: false
+  expected_datatype: string
+  possible_values:
+  - label: 'True'
+    tags: 
+    value: 'true'
+  - label: 'False'
+    tags: 
+    value: 'false'
+  id: CLP_027
+  extension_property: clipboard.source.application.application.supportSaml
+- description: When was the application last breached.
+  graph_property: null
+  discard_gp: true
+  supported_operators:
+  - is less than equal to
+  tags: null
+  name: Breach Date
+  duplicate_allowed: false
+  expected_datatype: string
+  possible_values:
+  - label: last 1 month
+    tags: 
+    value: timestamp() - 1000*60*60*24*30
+  - label: last 6 month
+    tags: null
+    value: timestamp() - 1000*60*60*24*180
+  - label: last 1 year
+    tags: 
+    value: timestamp() - 1000*60*60*24*365
+  - label: last 2 year
+    tags: 
+    value: timestamp() - 1000*60*60*24*730
+  id: CLP_028
+  extension_property: clipboard.source.application.application.breachDate
+- description: What compliance should application have.
+  graph_property: null
+  discard_gp: true
+  supported_operators:
+  - is in
+  - is not in
+  tags: null
+  name: Compliance
+  duplicate_allowed: false
+  expected_datatype: string
+  possible_values:
+  - label: SOC1
+    tags: 
+    value: SOC1
+  - label: SOC2
+    tags: 
+    value: SOC2
+  - label: SOC3
+    tags: 
+    value: SOC3
+  - label: SP800_53
+    tags: 
+    value: SP800_53
+  - label: SSAE18
+    tags: 
+    value: SSAE18
+  - label: PCIDSS
+    tags: 
+    value: PCIDSS
+  - label: SP800_53
+    tags: 
+    value: SP800_53
+  - label: COBIT
+    tags: 
+    value: COBIT
+  - label: COPPA
+    tags: 
+    value: COPPA
+  - label: FERPA
+    tags: 
+    value: FERPA
+  - label: FFIEC
+    tags: 
+    value: FFIEC
+  - label: FINRA
+    tags: 
+    value: FINRA
+  - label: FISMA
+    tags: 
+    value: FISMA
+  - label: GAAP
+    tags: 
+    value: GAAP
+  - label: GLBA
+    tags: 
+    value: GLBA
+  - label: HIPPA
+    tags: 
+    value: HIPPA
+  - label: HITRUSTCSF
+    tags: 
+    value: HITRUSTCSF
+  - label: ISO27001
+    tags: 
+    value: ISO27001
+  - label: ISO27002
+    tags: 
+    value: ISO27002
+  - label: ISO27017
+    tags: 
+    value: ISO27017
+  - label: ISO27018
+    tags: 
+    value: ISO27018
+  - label: ITAR
+    tags: 
+    value: ITAR
+  id: CLP_029
+  extension_property: clipboard.source.application.application.compliance
+- description: Which FedRAMP application should have.
+  graph_property: null
+  discard_gp: true
+  supported_operators:
+  - is equal to
+  - is not equal to
+  tags: null
+  name: FedRAMP Level
+  duplicate_allowed: false
+  expected_datatype: string
+  possible_values:
+  - label: High
+    tags: 
+    value: High
+  - label: Moderate
+    tags: 
+    value: Moderate
+  - label: Low
+    tags: 
+    value: Low
+  - label: LI-SaaS
+    tags: 
+    value: LI-SaaS
+  id: CLP_030
+  extension_property: clipboard.source.application.application.ComplianceFedRAMPLevel
+- description: When was the application first seen in organization.
+  graph_property: null
+  discard_gp: true
+  supported_operators:
+  - is less than equal to
+  tags: null
+  name: first account creation time
+  duplicate_allowed: false
+  expected_datatype: datetime
+  possible_values:
+  - label: last 1 month
+    tags: 
+    value: timestamp() - 1000*60*60*24*30
+  - label: last 2 month
+    tags: 
+    value: timestamp() - 1000*60*60*24*60
+  - label: last 1 year
+    tags: 
+    value: timestamp() - 1000*60*60*24*365
+  - label: last 2 year
+    tags: 
+    value: timestamp() - 1000*60*60*24*730
+  id: CLP_031
+  extension_property: clipboard.source.application.credbased_account.first_seen
+- description: When the application has no accounts in the organization.
+  graph_property: null
+  discard_gp: true
+  supported_operators:
+  - is equal to
+  tags: null
+  name: is newly introduced
+  duplicate_allowed: false
+  expected_datatype: boolean
+  possible_values:
+  - label: 'True'
+    tags: 
+    value: 'true'
+  - label: 'False'
+    tags: 
+    value: 'false'
+  id: CLP_032
+  extension_property: clipboard.source.application.is_new_app
+- description: First account ever on an app for the current user
+  graph_property: null
+  discard_gp: true
+  supported_operators:
+  - is less than equal to
+  tags: null
+  name: User's first account creation time
+  duplicate_allowed: false
+  expected_datatype: datetime
+  possible_values:
+  - label: last 1 month
+    tags: 
+    value: timestamp() - 1000*60*60*24*30
+  - label: last 2 month
+    tags: 
+    value: timestamp() - 1000*60*60*24*60
+  - label: last 1 year
+    tags: 
+    value: timestamp() - 1000*60*60*24*365
+  - label: last 2 year
+    tags: 
+    value: timestamp() - 1000*60*60*24*730
+  id: CLP_033
+  extension_property: clipboard.source.application.user_first_seen
+- description: When was the application last seen in organization.
+  graph_property: null
+  discard_gp: true
+  supported_operators:
+  - is less than equal to
+  tags: null
+  name: Last Observed in the Organization
+  duplicate_allowed: false
+  expected_datatype: datetime
+  possible_values:
+  - label: last 1 month
+    tags: 
+    value: timestamp() - 1000*60*60*24*30
+  - label: last 2 month
+    tags: 
+    value: timestamp() - 1000*60*60*24*60
+  - label: last 1 year
+    tags: 
+    value: timestamp() - 1000*60*60*24*365
+  - label: last 2 year
+    tags: 
+    value: timestamp() - 1000*60*60*24*730
+  id: CLP_034
+  extension_property: clipboard.source.application.credsbased_account.last_access_time
+- possible_values_query: 
+  description: Specify who owns an application.
+  graph_property: null
+  discard_gp: true
+  supported_operators:
+  - is equal to
+  - is not equal to
+  tags: null
+  name: Owner
+  duplicate_allowed: false
+  expected_datatype: string
+  is_searchable: true
+  id: CLP_035
+  extension_property: clipboard.source.application.application.owner
+- description: Describe what domain age application should have.
+  graph_property: null
+  discard_gp: true
+  supported_operators:
+  - is in
+  - is not in
+  - is greater than
+  - is less than
+  tags: null
+  name: Domain Age
+  duplicate_allowed: false
+  expected_datatype: string
+  possible_values:
+  - label: registered last month
+    tags: null
+    value: timestamp() - 1000*60*60*24*30
+  - label: registered in last 3 months
+    tags: null
+    value: timestamp() - 1000*60*60*24*90
+  - label: registered in last 6 month
+    tags: null
+    value: timestamp() - 1000*60*60*24*180
+  - label: registered in last 1 year
+    tags: null
+    value: timestamp() - 1000*60*60*24*365
+  - label: registered in last 2 year
+    tags: null
+    value: timestamp() - 1000*60*60*24*730
+  id: CLP_036
+  extension_property: clipboard.source.application.null
+- description: Is the application identity provider or not.
+  graph_property: null
+  discard_gp: true
+  supported_operators:
+  - is equal to
+  tags: null
+  name: IdP status
+  duplicate_allowed: false
+  expected_datatype: boolean
+  possible_values:
+  - label: 'True'
+    tags: 
+    value: 'true'
+  - label: 'False'
+    tags: 
+    value: 'false'
+  id: CLP_037
+  extension_property: clipboard.source.application.isIdp
+- possible_values_query: MATCH (app:APPLICATION) WHERE NOT app.name IN ['','-'] AND toLower(app.name) =~ toLower('.*{search_text}.*') RETURN distinct(app.name)
+  description: Name of the application.
+  graph_property: null
+  discard_gp: true
+  supported_operators:
+  - is equal to
+  - is not equal to
+  - is in
+  - is not in
+  tags:
+  - UC031
+  - UC040
+  - UC041
+  name: Name
+  duplicate_allowed: false
+  expected_datatype: string
+  is_searchable: true
+  id: CLP_038
+  extension_property: clipboard.source.application.app.name
+  
+  # New attribute: Application Sensitive Data Indicator
+  # Assumption: underlying APPLICATION node exposes boolean property app.isSensitive
+  # If actual property differs, adjust graph_property & extension_property accordingly.
+- description: Indicates whether the application processes or stores sensitive data.
+  graph_property: null
+  discard_gp: true
+  supported_operators:
+  - is equal to
+  - is not equal to
+  tags: null
+  name: Sensitive Data
+  duplicate_allowed: false
+  expected_datatype: boolean
+  possible_values:
+  - label: 'True'
+    tags: 
+    value: 'true'
+  - label: 'False'
+    tags: 
+    value: 'false'
+  id: CLP_039
+  extension_property: clipboard.sensitive
+code: ATTR_CLP_001
+category: Source Application
+id: 0f4cb68f-3b81-45f8-a821-8e04309483a6
+

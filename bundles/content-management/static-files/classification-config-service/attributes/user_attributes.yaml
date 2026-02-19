@@ -1,0 +1,387 @@
+id: 218d2e16-c311-49ad-b64f-3510b1c8594d
+version: 9.3.8
+category: User
+code: ATTR_USER_001
+tags:
+  - UC001
+  - UC002
+  - UC004
+  - UC005
+  - UC006
+  - UC007
+  - UC008
+  - UC009
+  - UC010
+  - UC011
+  - UC012
+  - UC014
+  - UC013
+  - UC015
+  - UC016
+  - UC017
+  - UC018
+  - UC019
+  - UC025
+  - UC026
+  - UC027
+  - UC028
+  - UC303
+  - UC304
+  - UC203
+  - UC201
+  - UC029
+  - UC030
+  - UC031
+  - UC032
+  - UC033
+  - UC034
+  - UC035
+  - UC036
+  - UC037
+  - UC038
+  - UC039
+  - UC042
+  - UC045
+  - UC043
+  - UC044
+  - UC040
+  - UC041
+type: attributes
+attributes:
+  - name: Department
+    description: Provide user department.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC005
+      - UC006
+      - UC007
+      - UC008
+      - UC010
+      - UC011
+      - UC012
+      - UC014
+      - UC013
+      - UC026
+      - UC027
+      - UC028
+      - UC303
+      - UC304
+      - UC203
+      - UC201
+      - UC025
+      - UC029
+      - UC030
+      - UC031
+      - UC032
+      - UC033
+      - UC034
+      - UC035
+      - UC036
+      - UC037
+      - UC038
+      - UC039
+      - UC042
+      - UC045
+      - UC043
+      - UC044
+      - UC040
+      - UC041
+    graph_property: department.name
+    extension_property: department
+    expected_datatype: string
+    possible_values_query:  MATCH (department:DEPARTMENT) WHERE department.name <> '-' AND department.subscriber = $subscriber AND department.tenant = $tenant AND toLower(department.name) =~ toLower('.*{search_text}.*') RETURN distinct(department.name)
+    is_searchable: true
+    supported_operators:
+      - is in
+      - is not in
+    id: USER-001
+  - name: Smart Group
+    description: User belongs to which user group.
+    duplicate_allowed: false
+    tags:
+      - UC002
+      - UC303
+      - UC304
+      - UC005
+      - UC006
+      - UC007
+      - UC008
+      - UC010
+      - UC011
+      - UC012
+      - UC014
+      - UC013
+      - UC025
+      - UC026
+      - UC027
+      - UC028
+      - UC203
+      - UC201
+      - UC001
+      - UC029
+      - UC030
+      - UC031
+      - UC032
+      - UC033
+      - UC034
+      - UC035
+      - UC036
+      - UC037
+      - UC038
+      - UC039
+      - UC042
+      - UC045
+      - UC043
+      - UC044
+      - UC040
+      - UC041
+    graph_property: group.displayName
+    extension_property: groups
+    expected_datatype: string
+    possible_values_query: "MATCH (group:GROUP {userDefined: true}) WHERE group.displayName <> '-' AND group.subscriber = $subscriber AND group.tenant = $tenant AND CASE WHEN '{search_text}' = '' OR '{search_text}' IS NULL THEN true ELSE toLower(group.displayName) = toLower('{search_text}') END RETURN distinct group.displayName as groupName, group.description as groupDescription"
+    is_searchable: true
+    supported_operators:
+      - is in
+      - is not in
+    id: USER-002
+  - name: Status
+    description: Define if user is active or inactive in organization.
+    duplicate_allowed: false
+    tags:
+      - UC005
+      - UC006
+      - UC007
+      - UC008
+      - UC010
+      - UC011
+      - UC012
+      - UC014
+      - UC013
+      - UC025
+      - UC026
+      - UC027
+      - UC028
+      - UC303
+      - UC304
+      - UC203
+      - UC201
+      - UC002
+      - UC001
+      - UC029
+      - UC030
+      - UC031
+      - UC032
+      - UC033
+      - UC034
+      - UC035
+      - UC036
+      - UC037
+      - UC038
+      - UC039
+      - UC042
+      - UC045
+      - UC043
+      - UC044
+      - UC040
+      - UC041
+    graph_property: user.accountEnabled
+    extension_property: user.accountEnabled
+    expected_datatype: string
+    possible_values:
+      - label: Active
+        value: ACTIVE
+        tags: null
+      - label: Inactive
+        value: INACTIVE
+        tags: null
+    supported_operators:
+      - is equal to
+      - is not equal to
+    id: USER-003
+  - name: Risk Level
+    description: Define what risk user belongs to.
+    duplicate_allowed: false
+    tags:
+      - UC025
+      - UC026
+      - UC027
+      - UC028
+      - UC010
+      - UC013
+      - UC029
+      - UC030
+      - UC031
+      - UC032
+      - UC033
+      - UC034
+      - UC035
+      - UC036
+      - UC037
+      - UC038
+      - UC039
+      - UC042
+      - UC045
+      - UC043
+      - UC044
+      - UC040
+      - UC041
+    graph_property: user.risk_metric
+    extension_property: user.risk_level
+    expected_datatype: string
+    possible_values:
+      - label: Very High
+        value: Very High
+        tags: null
+      - label: High
+        value: High
+        tags: null
+      - label: Medium
+        value: Medium
+        tags: null
+      - label: Low
+        value: Low
+        tags: null
+      - label: Very Low
+        value: Very Low
+        tags: null
+    supported_operators:
+      - is equal to
+      - is not equal to
+    id: USER-004
+  - name: Title
+    description: Define what title user should have.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC303
+      - UC304
+      - UC005
+      - UC006
+      - UC007
+      - UC008
+      - UC010
+      - UC011
+      - UC012
+      - UC014
+      - UC013
+      - UC025
+      - UC026
+      - UC027
+      - UC028
+      - UC203
+      - UC201
+      - UC029
+      - UC030
+      - UC031
+      - UC032
+      - UC033
+      - UC034
+      - UC035
+      - UC036
+      - UC037
+      - UC038
+      - UC039
+      - UC042
+      - UC045
+      - UC043
+      - UC044
+      - UC040
+      - UC041
+    graph_property: user.jobTitle
+    extension_property: user.jobTitle
+    expected_datatype: string
+    possible_values_query: MATCH (user:USER) WHERE user.jobTitle <> '-' AND user.subscriber = $subscriber AND user.tenant = $tenant AND toLower(user.jobTitle) =~ toLower('.*{search_text}.*') RETURN distinct(user.jobTitle)
+    is_searchable: true
+    supported_operators:
+      - is equal to
+      - is not equal to
+    id: USER-005
+  - name: Location
+    description: Define user location.
+    duplicate_allowed: false
+    tags:
+      - UC025
+      - UC026
+      - UC027
+      - UC028
+      - UC010
+      - UC013
+      - UC029
+      - UC030
+      - UC031
+      - UC032
+      - UC033
+      - UC034
+      - UC035
+      - UC036
+      - UC037
+      - UC038
+      - UC039
+      - UC042
+      - UC045
+      - UC043
+      - UC044
+      - UC040
+      - UC041
+    graph_property: location.id
+    extension_property: user.location
+    expected_datatype: string
+    possible_values_query: "MATCH (:USER)-[:LOCATED_AT]->(location:OFFICE_LOCATION) WHERE location.id <> '-' AND location.subscriber = $subscriber AND location.tenant = $tenant AND toLower(location.id) =~ toLower('.*{search_text}.*') RETURN distinct(location.id)"
+    is_searchable: true
+    supported_operators:
+      - is equal to
+      - is not equal to
+    id: USER-006
+  - name: has account on any AI app
+    description: When user has account on any AI app.
+    duplicate_allowed: false
+    tags:
+      - UC002
+      - UC025
+      - UC026
+      - UC027
+      - UC028
+      - UC010
+      - UC013
+      - UC029
+      - UC030
+      - UC031
+      - UC032
+      - UC035
+      - UC036
+      - UC037
+      - UC038
+      - UC039
+      - UC040
+      - UC041
+    graph_property: COALESCE(using_app.has_other_ai_app_accounts, true)
+    extension_property: user_has_ai_app_accounts
+    expected_datatype: boolean
+    possible_values:
+      - label: true
+        value: true
+        tags: null
+      - label: false
+        value: false
+        tags: null
+    supported_operators:
+      - is equal to
+    id: USER-007
+  - name: has user type
+    description: Define type of user account.
+    duplicate_allowed: false
+    tags:
+      - UC040
+      - UC041
+    graph_property: user.userType
+    extension_property: user.userType
+    expected_datatype: string
+    possible_values_query: MATCH (user:USER) WHERE NOT user.userType IN ['', '-'] AND user.subscriber = $subscriber AND user.tenant = $tenant AND toLower(user.userType) =~ toLower('.*{search_text}.*') RETURN distinct(user.userType)
+    is_searchable: true
+    supported_operators:
+      - is equal to
+      - is not equal to
+    id: USER-008

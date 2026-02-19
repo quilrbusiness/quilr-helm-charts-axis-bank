@@ -1,0 +1,10 @@
+version: 1.0.1
+screen_id: saas-risk
+title: SaaS Risks
+tag: Posture Screen
+description: Monitor your organization's security posture
+active: true
+type: options
+iconUrl: https://staticcontent1.blob.core.windows.net/finding-icons/posture-ai-usage.svg
+path: postures/saas-risk
+order: 7

@@ -1,0 +1,93 @@
+widget_id: 9cdfcdb3-acb4-4920-86fe-b1b379d46d87
+template_id: NotableGroups
+active: true
+title: Notable Groups
+components:
+  - name: Notable Group Table
+    type: table
+    data_source_type: knowledgegraph
+    lambda: |
+      def fn(client):
+          data_result = client.fetch_data(
+              "CALL { "
+                  "MATCH (user:USER) "
+                  "WHERE toFloat(user.score) IS NOT NULL "
+                         "AND user.department <> 'NA' "
+                         "AND (toLower(user.department) =~ '.*' + toLower($search_text) + '.*' " 
+                               "OR toLower('Department') =~ '.*' + toLower($search_text) + '.*' ) "
+                  "WITH user.department AS segmentName, "
+                        "'Department' AS type, "
+                        "COUNT(user) AS userCount, "
+                        "COLLECT(user.id) AS userIds, "
+                        "COLLECT(user.displayName) AS people, "
+                        "toInteger(AVG(toFloat(user.score)) * 100) AS avgScore "
+                  "RETURN segmentName, type, avgScore AS score, userCount AS count, userIds, people "
+              "UNION "
+                  "MATCH (user:USER) "
+                  "WHERE toFloat(user.score) IS NOT NULL "
+                         "AND user.officeLocation <> 'NA' "
+                         "AND (toLower(user.officeLocation) =~ '.*' + toLower($search_text) + '.*' "
+                               "OR toLower('Location') =~ '.*' + toLower($search_text) + '.*' ) "
+                  "WITH user.officeLocation AS segmentName, "
+                        "'Location' AS type, "
+                        "COUNT(user) AS userCount, "
+                        "COLLECT(user.id) AS userIds, "
+                        "COLLECT(user.displayName) AS people, "
+                        "toInteger(AVG(toFloat(user.score)) * 100) AS avgScore "
+                  "RETURN segmentName, type, avgScore AS score, userCount AS count, userIds, people "
+              "UNION "
+                  "MATCH (user:USER) "
+                  "WHERE toFloat(user.score) IS NOT NULL "
+                         "AND user.jobTitle <> 'NA' "
+                         "AND (toLower(user.jobTitle) =~ '.*' + toLower($search_text) + '.*' "
+                               "OR toLower('JobTitle') =~ '.*' + toLower($search_text) + '.*' ) "
+                  "WITH user.jobTitle AS segmentName, "
+                        "'JobTitle' AS type, "
+                        "COUNT(user) AS userCount, "
+                        "COLLECT(user.id) AS userIds, "
+                        "COLLECT(user.displayName) AS people, "
+                        "toInteger(AVG(toFloat(user.score)) * 100) AS avgScore "
+                  "RETURN segmentName, type, avgScore AS score, userCount AS count, userIds, people "
+                     "} "
+              "RETURN segmentName, "
+                      "type, " 
+                      "count, "
+                      "userIds, "
+                      "people, "
+                      "score, "
+                      "CASE "
+                          "WHEN score >= 0 AND score <= 20 THEN 'Excellent' "
+                          "WHEN score > 20 AND score <= 40 THEN 'Good' "
+                          "WHEN score > 40 AND score <= 60 THEN 'Moderate' "
+                          "WHEN score > 60 AND score <= 80 THEN 'At Risk' "
+                          "ELSE 'Critical' "
+                      "END AS risk_level")
+      
+          count_result = client.total_record_count(
+              "MATCH (user:USER) "
+              "WHERE toFloat(user.score) IS NOT NULL "
+                     "AND (user.department <> 'NA' OR user.jobTitle <> 'NA' OR user.officeLocation <> 'NA') "
+              "WITH  COUNT(DISTINCT CASE WHEN user.department <> 'NA' "
+                           "AND (toLower(user.department) =~ '.*' + toLower($search_text) + '.*' " 
+                               "OR toLower('Department') =~ '.*' + toLower($search_text) + '.*' ) "
+                           "THEN user.department END) AS departmentCount, "
+                     "COUNT(DISTINCT CASE WHEN user.jobTitle <> 'NA' "
+                           "AND (toLower(user.jobTitle) =~ '.*' + toLower($search_text) + '.*' "
+                               "OR toLower('JobTitle') =~ '.*' + toLower($search_text) + '.*' ) "
+                           "THEN user.jobTitle END) AS jobTitleCount, "
+                     "COUNT(DISTINCT CASE WHEN user.officeLocation <> 'NA' "
+                           "AND (toLower(user.officeLocation) =~ '.*' + toLower($search_text) + '.*' "
+                               "OR toLower('officeLocation') =~ '.*' + toLower($search_text) + '.*' ) "
+                           "THEN user.officeLocation END) AS officeLocationCount "
+              "RETURN departmentCount + jobTitleCount + officeLocationCount AS count ")
+      
+          total_record_count = 0
+          if count_result:
+              total_record_count = count_result[0].get('count')
+      
+          formatted_data = {"data": data_result, "total_record_count": total_record_count}
+          return formatted_data
+version: 24.0
+
+#                         "AND user.lastgenerationtime >= toString($starttime) "
+#                         "AND user.lastgenerationtime <= toString($endtime) "

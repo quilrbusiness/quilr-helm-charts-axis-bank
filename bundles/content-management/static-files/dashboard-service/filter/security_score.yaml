@@ -1,0 +1,4 @@
+filter_id: "c3af9b14-24a2-4a5f-8cf4-5276c1a9e7e7"
+config:
+  security_score: "SELECT security_score FROM security_data"
+version: "1.0"

@@ -1,0 +1,24 @@
+widget_id: 9a4805db-74ae-427c-862d-0b1c54672380
+template_id: placeholder
+active: true
+title: Resolution Plan 
+components:
+  - name: dummy
+    type: dummy
+    data_source_type: static
+    lambda: |
+        def fn(client):
+            forced_reset = {
+            "totalUsers" : 20 , "status" : "Approve"
+            }
+            weak_password ={
+            "totalUsers" : 12 , "status" : "In-Progress"
+            }
+            force_password = {
+            "total_users" : 10 , "status" : "Approve"
+            }
+            total_record_count = 1
+            formatted_data = {"Force Password Breach" : forced_reset , "Weak Password Awareness" : weak_password , "Force Password Reset" : force_password 
+            , "total_record_count": total_record_count}
+            return formatted_data
+version: 1.0.3

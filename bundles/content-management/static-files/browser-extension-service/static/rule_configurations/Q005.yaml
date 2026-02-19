@@ -1,0 +1,21 @@
+datatype: DICT
+defaultValue:
+  message: |-
+    Please do not use this password - its weak and easily guessable.
+  mode: Ask
+entityDescription: |-
+  A new account was created with a weak password on an application that does not handle sensitive data.
+entityId: Q005
+entityMeta:
+  behavior: Weak Password
+  category: ISPM
+  posture: Password Hygiene
+  check_id:
+    form_check_ids:
+      - CH-FORM-SIGNUP
+      - CH-FORM-WEAK-PASSWORD
+entityName: |-
+  New Account created with Weak Password on Non Critical Apps
+entityType: rule
+isDisabled: false
+isModifiable: true

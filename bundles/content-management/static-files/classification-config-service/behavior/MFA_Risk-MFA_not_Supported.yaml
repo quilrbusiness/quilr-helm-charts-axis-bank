@@ -1,0 +1,86 @@
+id: pa791751-db78-516e-ab6b-8040dcd7e8e2
+version: 3.8
+code: BID_05
+name: MFA not suppported
+type: behavior
+createdon: 1710504494000
+updatedon: 1710504494000
+posture:
+  - PID_02
+browser_enabled: true
+description: These are the application where MFA is not supported.
+query: "MATCH (user:USER {subscriber: $subscriber, tenant: $tenant})-[has_email:HAS_EMAIL] - (email:EMAIL)-[credsbased_account:CREDSBASED_ACCOUNT]-(account:ACCOUNT)-[using_app:USING_APP] - (app:APPLICATION),
+              (account)-[has_cred_fingerprint:HAS_CRED_FINGERPRINT] - (cred_fingerprint:CRED_FINGERPRINT)
+            OPTIONAL MATCH (app) - [has_app_category:HAS_APP_CATEGORY] - (app_category:APP_CATEGORY)
+            OPTIONAL MATCH (tenant:TENANT {id: $tenant})-[app_settings:HAS_APP_SETTINGS]-(app) 
+            OPTIONAL MATCH (account)-[using_browser:HAS_BROWSER] - (browser:BROWSER)
+            OPTIONAL MATCH (user)-[:BELONGS_TO]->(group:GROUP {userDefined: true})
+            OPTIONAL MATCH (user)-[:HAS_DEPARTMENT]->(department:DEPARTMENT)
+            OPTIONAL MATCH (tenant:TENANT {id: $tenant})-[:HAS_INSTANCE]-(instance:INSTANCE)-[has_idp:HAS_IDP]-(app:APPLICATION)
+            WITH user,has_email,email,credsbased_account,account,using_app,app,app_settings,tenant,has_cred_fingerprint,cred_fingerprint,app_category, group, department,browser,instance,has_idp
+            WHERE COALESCE(app.isMfaSupported, true) = false
+                AND credsbased_account.timestamp >= $starttime
+                AND credsbased_account.timestamp <= $endtime
+            WITH user,has_email,email,credsbased_account,account,using_app,app,app_settings,tenant,has_cred_fingerprint,cred_fingerprint,app_category, group, department,browser,instance,has_idp
+            RETURN DISTINCT
+                user.id AS userId,
+                user.displayName AS userName,
+                user.mail AS userMail,
+                user.accountEnabled as userAccountEnabled,
+                user.tenant as TENANT,               
+                user.subscriber AS SUBSCRIBER,
+                app.id_ as appId,
+                COALESCE(CASE WHEN NOT app.name IN ['', '-'] THEN app.name ELSE NULL END, app.domain) AS appName,
+                app.Url AS appUrl,
+                COALESCE(app.isMfaSupported, true) as MFAstatus,
+                COLLECT(app_category.name) AS appCategory,
+                COALESCE(app_settings.criticality, app.criticality, 'NOT SET') AS appCriticality, 
+                account.id AS userAppAccount, 
+                browser.id as browserUsed,
+                cred_fingerprint.id as credFingerprintId,
+                app.domain AS appDomain,
+                has_cred_fingerprint.last_access_time as EVENTTIME"
+config:
+  expression: "def fn(message): return True if message.get('userName') else False "
+  type: finding
+  subtype: status
+  status: open
+  sla: 1W
+  entity: userName
+  entitytype: user
+  tags:
+    - insecure_behavior
+  sourceofalert: Quilr
+  template: "Received an alert for the User: ${userName} on Application: ${appName}"
+  artifacts: 
+    - type: "APPLICATION" 
+      context: "global" 
+      property: id_
+      value: "$appId"
+      artifactproperties: 
+        artifactValue: $appName
+        displayInUI: enabled
+        artifactKey: "Application"
+#    - type: "App Criticality"
+#      property: "criticality"
+#      value: "$appCriticality"
+#      artifactproperties:
+#        artifactValue: $appCriticality
+#        displayInUI: enabled
+#        artifactKey: "Critical"
+  properties:
+    userId: $userId  #FORMAT - findingattribute: variable from the top of this YAML
+    userName: $userName
+    userMail: $userMail
+    userAccountEnabled: $userAccountEnabled
+    TENANT: $TENANT
+    SUBSCRIBER: $SUBSCRIBER
+    appName: $appName
+    appUrl: $appUrl
+    appId: $appId
+    accountId: $userAppAccount
+    appCategory: $appCategory  
+    appDomain: $appDomain
+    browser: $browserUsed
+    time: $EVENTTIME
+lambda: ""

@@ -1,0 +1,19 @@
+id: c98a980f-d4e6-4d5b-b8b0-86b14c37b71e
+version: 10.6
+code: ACT_34
+name: Allow original prompt with optional justification
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: "templatized"
+    message_template: ""
+    browser_action: Allow_Original_Prompt_With_Optional_Justification
+tags:
+  - UC012
+  - UC014
+behavior:
+  - BID_03
+createdon: 1710504494000
+updatedon: 1710504494000

@@ -1,0 +1,39 @@
+id: 88464314-d401-46aa-9b67-74d81b718391
+name: antivirus software is missing, disabled, or outdated
+updatedon: 1738214607106
+condition:
+- filter_condition:
+    condition: is equal to
+    value: "False"
+    attribute_id: DEV-008
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: 
+  editable: false
+- filter_condition:
+    condition: is equal to
+    value: "False"
+    attribute_id: DEV-009
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: OR
+  editable: false
+- filter_condition:
+    condition: is equal to
+    value: "null"
+    attribute_id: DEV-010
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: OR
+  editable: false
+createdon: 1738214607106
+version: 2.1
+description: Detects devices where antivirus software is either not installed, disabled, or outdated, potentially increasing security risks.
+posture:
+- PID_05
+code: UC100
+disabled: false
+type: use-case
+behavior:
+- BID_101
+

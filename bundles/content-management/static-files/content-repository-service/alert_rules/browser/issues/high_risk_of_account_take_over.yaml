@@ -1,0 +1,77 @@
+id: ce6da511-adfa-4f93-af29-8012c2873aac
+type: rule
+name: High Risk of Account Takeover
+version: 2.1
+active: false
+schedule: 5m
+historicalrecordduration: 5m
+source:
+  type: query
+  config:
+    query: "MATCH(user:USER)-[has_email]-(email:PRIMARY),
+                (email)-[]-(acc:ACCOUNT),
+                (acc)-[using_app:USING_APP]-(app:APPLICATION),
+                (acc)-[has_finding:HAS_FINDING]-(finding:FINDING),
+                (finding)-[evaluated_to:EVALUATED_TO]-(rule:RULE),
+                (user)-[belongs_to:BELONGS_TO]-(group:GROUP)
+            WHERE group.displayName = 'Admins'
+                AND finding.timestamp >= $starttime
+                AND finding.timestamp <= $endtime
+            RETURN user.id as userId,
+                user.displayName as userName,
+                user.mail as userMail,
+                user.userDepartment as userDepartment,
+                user.subscriber as SUBSCRIBER,
+                user.tenant as TENANT,
+                app.id_ as appId,
+                app.name as appName,
+                app.domain as appDomain,
+                user.mail + '_' + app.id_ AS userAppAccount,
+                finding.id as findingId,
+                finding.timestamp as findingTimestamp,
+                rule.id as ruleId,
+                rule.name as ruleName,
+                finding.context_id as CONTEXTID,
+                finding.eventTime as EVENTTIME"
+    type: knowledgegraph 
+    limit:
+    offset: 0
+destination:
+  type: stream
+  topic: ruleEvaluator
+config:
+  expression: 'def fn(message): return True'
+  type: issue
+  code: I002
+  sla: 1W
+  entity: $userMail
+  entitytype: user
+  sourceofalert: Quilr
+  findingsequence:
+    groups:
+    - rules:
+      - ruleId: Q010
+        mandatory: true
+      - ruleId: Q051
+        mandatory: true
+      condition: all
+    timeGap:
+  template: 'Verify and Create issue related to password for User: ${userName}'
+  artifacts:
+    - type: ACCOUNT
+      property: id
+      value: $userAppAccount
+      artifactproperties: 
+        artifactValue: $userName
+        displayInUI: enabled
+  properties:
+    userId: $userId
+    userName: $userName
+    userMail: $userMail
+    appDomain: $appDomain
+    appId: $appId
+    findingIds: $findingIds
+    ruleIds: $ruleIds
+lambda: ""
+createdon: 1709547181
+updatedon: 1709547181

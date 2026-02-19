@@ -1,0 +1,22 @@
+datatype: DICT
+defaultValue:
+  message:
+    "Looks like this is a different employee's acccount. Please avoid using\
+    \ it and if you have to, please provide a business justification. "
+  mode: Justify
+entityDescription: |-
+  Login with the credentials of another user on an application that does not handle sensitive data.
+entityId: Q029
+entityMeta:
+  behavior: Credential Sharing
+  category: ISPM
+  posture: Password Hygiene
+  check_id:
+    form_check_ids:
+      - CH-FORM-SHARED-CREDENTIAL
+      - CH-FORM-LOGIN
+entityName: |-
+  Login with Credentials of Another User on Non Critical Apps
+entityType: rule
+isDisabled: false
+isModifiable: true

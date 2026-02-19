@@ -1,0 +1,93 @@
+id: 8c14fc0c-f3e9-476f-80f8-8ef67c608c3f
+version: 3.0
+code: BID_04
+name: Unapproved AI Applications Used
+type: behavior
+createdon: 1710504494000
+updatedon: 1710504494000
+posture:
+  - PID_01
+browser_enabled: true
+description: These are the applications being used but have not been approved in your organization.
+query: "MATCH (email:EMAIL {subscriber: $subscriber, tenant: $tenant})-[credsbased_account]->(account:ACCOUNT)-[using_app:USING_APP]->(app:APPLICATION)
+            OPTIONAL MATCH (user:USER)-[has_email:HAS_EMAIL]->(email)
+            OPTIONAL MATCH (account)-[:INITIATED]->(browser_event:BROWSER_EVENT)
+            OPTIONAL MATCH (app)-[has_app_category:HAS_APP_CATEGORY]->(app_category:APP_CATEGORY)
+            OPTIONAL MATCH (user)-[:BELONGS_TO]->(group:GROUP {userDefined: true})
+            OPTIONAL MATCH (user)-[:HAS_DEPARTMENT]->(department:DEPARTMENT)
+            OPTIONAL MATCH (tenant:TENANT {id: $tenant})-[app_settings:HAS_APP_SETTINGS]-(app)
+            OPTIONAL MATCH (tenant:TENANT {id: $tenant})-[:HAS_INSTANCE]-(instance:INSTANCE)-[has_idp:HAS_IDP]-(app:APPLICATION)
+            WITH user, credsbased_account, account, browser_event, app, app_category, app_settings, group, department,instance,has_idp
+            WHERE credsbased_account.timestamp >= $starttime
+              AND credsbased_account.timestamp <= $endtime
+              AND toLower(app_category.name) = 'generative ai'
+              AND type(credsbased_account) IN ['GUEST_ACCOUNT', 'CREDSBASED_ACCOUNT', 'OAUTH_ACCOUNT']
+            WITH user, credsbased_account, account, browser_event, app, app_category, app_settings, group, department,instance,has_idp
+            RETURN DISTINCT
+              user.id AS userId,
+              user.displayName AS userName,
+              user.mail AS userMail,
+              user.accountEnabled AS userAccountEnabled,
+              user.tenant AS TENANT,
+              user.subscriber AS SUBSCRIBER,
+              app.id_ AS appId,
+              COALESCE(CASE WHEN NOT app.name IN ['', '-'] THEN app.name ELSE NULL END, app.domain) AS appName,
+              app.Url AS appUrl,
+              app.domain AS appDomain,
+              COLLECT(app_category.name) AS appCategory,
+              account.id AS userAppAccount,
+              COALESCE(app_settings.criticality, app.criticality, 'NOT SET') AS appCriticality,
+              COALESCE(app_settings.approval_status, app.approval_status, 'NEEDS REVIEW') as appApprovalStatus,
+              credsbased_account.context_id as CONTEXTID,
+              credsbased_account.last_access_time as EVENTTIME"
+config:
+  expression: "def fn(message): return True if message.get('userName') else False "
+  type: finding
+  subtype: status
+  status: open
+  sla: 1W
+  entity: userName
+  entitytype: user
+  tags:
+    - insecure_behavior
+  sourceofalert: Quilr
+  template: "Received an alert for the User: ${userName} on Application: ${appName}"
+  artifacts: 
+    - type: "ACCOUNT"
+      property: "id"
+      value: "$userAppAccount"
+      artifactproperties: 
+        artifactValue: $userName
+        displayInUI: enabled
+        artifactKey: "User"
+    - type: "APPLICATION" 
+      context: "global" 
+      property: id_
+      value: "$appId"
+      artifactproperties: 
+        artifactValue: $appName
+        displayInUI: enabled
+        artifactKey: "Application"
+    - type: "APP_CRITICALITY"
+      property: "criticality"                                 
+      value: "$appCriticality"                                
+      artifactproperties: 
+        artifactValue: $appCriticality
+        displayInUI: enabled
+        artifactKey: "Critical"
+  properties:
+    userId: $userId
+    userName: $userName
+    userMail: $userMail
+    userAccountEnabled: $userAccountEnabled
+    TENANT: $TENANT
+    SUBSCRIBER: $SUBSCRIBER
+    appName: $appName
+    appUrl: $appUrl
+    appId: $appId
+    accountId: $userAppAccount
+    appCategory: $appCategory 
+    appDomain: $appDomain
+    context_id: $CONTEXTID
+    time: $EVENTTIME
+lambda: ""

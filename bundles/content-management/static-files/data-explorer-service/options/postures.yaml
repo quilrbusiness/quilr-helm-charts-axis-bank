@@ -1,0 +1,9 @@
+version: 1.0.5
+screen_id: 5c3b016e-b649-4d9a-9e3e-b17d5f8921a4
+title: Posture
+tag: Posture Screen
+description: Monitor your organization's security posture
+active: false
+type: options
+path: posture
+iconUrl: "https://staticcontent1.blob.core.windows.net/quilrstatic/sidebar-icons/Posture2.svg"

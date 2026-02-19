@@ -1,0 +1,31 @@
+id: 7e7b2e2a-8c5a-4e3e-9b6e-2f7e8e2a9c5a
+version: 1.1
+code: UC014
+name: a user shares sensitive data with non-AI application
+type: use-case
+description: Define what should be done when a user shares sensitive data with a non-AI application.
+posture:
+  - PID_01
+behavior:
+  - BID_03
+condition:
+  - operator: null
+    filter_condition:
+      attribute_type: ATTR_APP_001
+      attribute_id: APP-001
+      condition: is not equal to
+      value: Generative AI
+    filter_group: null
+    editable: false
+  - operator: AND
+    filter_condition:
+      attribute_type: ATTR_DATA_001
+      attribute_id: DATA-009
+      condition: is equal to
+      value: "true"
+    filter_group: null
+    editable: false
+disabled: false
+tags: []
+createdon: 1710504494000
+updatedon: 1710504494000

@@ -1,0 +1,123 @@
+id: 94686bab-af17-4467-8c2f-9921b3bd0955
+name: okta-api-policies-data
+type: fabric
+version: 1.0.0
+trail:
+  block: start
+  dependson: []
+  attempt:
+    - block: list_policies
+      attempt:
+        - block: get_policy_rules
+          attempt:
+            - block: get_policy_mappings
+              attempt:
+                - block: merge_policy_data
+                  attempt:
+                    - block: publish_to_rawOutput
+                      attempt:
+                        - block: end
+                          attempt: []
+                          otherwise: []
+                          start: false
+                          end: true
+                      otherwise: []
+                      start: false
+                      end: false
+                  otherwise: []
+                  start: false
+                  end: false
+              otherwise: []
+              start: false
+              end: false
+          otherwise: []
+          start: false
+          end: false
+      otherwise: []
+      start: false
+      end: false
+  otherwise:
+    - block: end
+      attempt: []
+      otherwise: []
+      start: false
+      end: true
+  start: true
+  end: false
+blocks:
+  - name: start
+    type: start
+    config: {}
+  - name: end
+    type: end
+    config: {}
+  - name: policytype
+    type: util
+    config:
+      type: script
+      expression: "PolicyType = ['ACCESS_POLICY','MFA_ENROLL']; PolicyType;"
+  - name: list_policies
+    type: receiver
+    config:
+      type: rest
+      uri: $.credential.config.url/api/v1/policies?type=$.input.using
+      method: GET
+      headers:
+        Authorization: SSWS $.credential.config.key
+      body: {}
+      batchsize: 5
+      timeout: 60000
+      foreach: $.block.policytype.output.response.response[*]
+  - name: get_policy_rules
+    type: receiver
+    config:
+      type: rest
+      uri: $.input.using._links.rules.href
+      method: GET
+      headers:
+        Authorization: SSWS $.credential.config.key
+      body: {}
+      foreach: $.block.list_policies.output.response.response[*]
+      batchsize: 5
+      timeout: 60000
+  - name: get_policy_mappings
+    type: receiver
+    config:
+      type: rest
+      uri: $.block.list_policies.output.response.response[*]._links.mappings.href
+      method: GET
+      headers:
+        Authorization: SSWS $.credential.config.key
+      body: {}
+      foreach: $.block.list_policies.output.response.response[*]
+      batchsize: 5
+      timeout: 60000
+  - name: merge_policy_data
+    type: util
+    config:
+      type: merge
+      primary: $.block.list_policies.output.response.response
+      secondary:
+        rules: $.block.get_policy_rules.output.response
+        mappings: $.block.get_policy_mappings.output.response
+      sinkto:
+        rules: rules
+        mappings: mappings
+      condition: "$.primary.id == $.secondary.body.policyId && $.secondary.response.error.code == null"
+  - name: publish_to_rawOutput
+    type: sender
+    config:
+      type: kafka
+      topic: rawOutput
+      facade:
+        name: Okta Policies Connector
+        description: Okta Connector for Policies
+        type: policies
+        vendor: Okta
+        product: Okta Identity Cloud
+        subProduct: /v1/policies
+        data: $.input.using
+        subscriber: $.context.subscriber
+        tenant: $.context.tenant
+        instance_id: $.context.context.instanceid
+      foreach: $.block.merge_policy_data.output.response.response[*]

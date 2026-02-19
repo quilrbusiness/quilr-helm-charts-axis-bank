@@ -1,0 +1,17 @@
+id: cf867250-fe43-4794-9084-7ecdc7c2b0b4
+name: X Applications Need Review
+version: 1.0
+code: RCMD_01
+type: recommendation
+behavior:
+  - BID_04
+query: |
+  MATCH (app:APPLICATION)
+  OPTIONAL MATCH (tenant:TENANT)-[settings:HAS_APP_SETTINGS]-(app)
+  WITH app, settings, tenant
+  WHERE toLower(COALESCE(CASE WHEN settings.approval_status = '-' THEN 'Needs Review' ELSE settings.approval_status END, 'Needs Review')) = 'needs review'
+  RETURN COUNT(DISTINCT app) AS num, tenant.subscriber AS subscriber, tenant.tenant AS tenant
+config:
+  schedule: 10m
+  template: ${num} application Need Review
+  dataSourceType: knowledgegraph

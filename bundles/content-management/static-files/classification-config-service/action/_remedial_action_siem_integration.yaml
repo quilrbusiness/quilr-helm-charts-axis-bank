@@ -1,0 +1,17 @@
+id: 18a3ce8a-991a-48dd-8e67-bbbd5e7ac942
+version: 1.3
+code: ACT_780
+name: Send Alert to SIEM
+type: action
+actiontype: ACTP_03
+config:
+  meta:
+    execution_type: tool
+    execution_module: siem_send_alert
+    category: siem_integration
+    severity: Critical
+    description: Sending alert to SIEM.
+tags: null
+behavior: []
+createdon: 1723200000000
+updatedon: 1723200000000

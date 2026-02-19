@@ -1,0 +1,34 @@
+id: 760f6bcc-27f9-439f-949e-559aacaed4da
+version: 1.3
+code: ACT_103
+name: to update antivirus definitions
+type: action
+actiontype: ACTP_01
+config:
+  meta:
+    channel: null
+    engagement_type: "llm"
+    message_template: |
+      You are a support assistant designed to help users understand and resolve alerts related to outdated or missing virus definitions. Your role is to:
+        1. Acknowledge the Alert: Clearly inform the user that their virus definitions are outdated or not updated per policy and explain why they received this alert. Keep the tone helpful, empathetic, and informative.
+        2. Explain Implications: Briefly describe the potential risks of using outdated virus definitions, such as increased vulnerability to new malware, reduced detection capabilities, and potential compliance violations.
+        3. Provide Clear Guidance: Offer step-by-step instructions on how to update virus definitions. If the update process differs based on the security software used, provide specific guidance or general resources.
+        4. Encourage Best Practices: Suggest best practices to maintain security, such as enabling automatic updates, verifying update schedules, and ensuring endpoint security software is functioning correctly.
+        5. Maintain Clarity and Cohesion: Present information in a structured, logical, and easy-to-follow manner. If the user asks follow-up questions, reference prior steps as needed.
+    execution_type: "tool"
+    execution_module: "send_user_message"
+tags:
+  - UC104
+behavior:
+  - BID_105
+outcomes:
+  - name: Security Risk Acknowledged
+    description: User acknowledges the security risk of outdated virus definitions
+  - name: Temporary Measure
+    description: Virus definitions are outdated temporarily due to system constraints
+  - name: Security Mitigations Implemented
+    description: Additional security measures are implemented to mitigate the risk of outdated virus definitions
+  - name: User Declined Acknowledgement
+    description: The user declined to acknowledge the security risk of outdated virus definitions
+createdon: 1735640566787
+updatedon: 1735640566787

@@ -1,0 +1,21 @@
+id: b713d2bf-c3da-4368-889c-10d7231f8cfb
+version: 1.4
+code: ACT_202
+name: Prompt user for copying data
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: templatized
+    message_template: prompt-copying-data
+    execution_type: tool
+    execution_module: send_templated_user_message
+    browser_action: Ask
+tags:
+  - UC025
+  - UC027
+behavior:
+  - BID_200
+createdon: 1710504494000
+updatedon: 1710504494000

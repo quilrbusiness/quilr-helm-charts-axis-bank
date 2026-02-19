@@ -1,0 +1,22 @@
+datatype: DICT
+defaultValue:
+  message: |-
+    This is a data sensitive app. Please change this password - its weak and easily guessable. Will only take 2 mins.
+  mode: Ask
+  resolution_channel: browser
+entityDescription: |-
+  Login with a weak password on applications that do handle sensitive data.
+entityId: Q002
+entityMeta:
+  behavior: Weak Password
+  category: ISPM
+  posture: Password Hygiene
+  check_id:
+    form_check_ids:
+      - CH-FORM-LOGIN
+      - CH-FORM-WEAK-PASSWORD
+      - CH-APP-CRITICAL
+entityName: Login with Weak Password on Critical Apps
+entityType: rule
+isDisabled: false
+isModifiable: true

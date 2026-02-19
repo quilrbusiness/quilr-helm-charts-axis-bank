@@ -1,0 +1,20 @@
+code: ACT_226
+id: 734aca50-247a-495e-a184-7de2fa549de2
+version: 1.1
+name: justify when user copies data between applications
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: templatized
+    message_template: justify-when-user-is-copy-pasting-data-from-one-app-to-another
+    execution_type: tool
+    execution_module: send_templated_user_message
+    browser_action: Justify
+tags:
+  - UC031
+behavior:
+  - BID_200
+createdon: 1710504494000
+updatedon: 1710504494000

@@ -1,0 +1,44 @@
+id: c8d4fc6b-0c4d-44b3-8938-5157f6e4f50a
+name: Create Fidings/Issues from DLP Events From Browser
+type: rule
+version: 2.1
+active: false
+schedule: 2m 
+historicalrecordduration: 2m
+source: 
+  type: query 
+  config:
+    query: "SELECT RECORD_METADATA['CreateTime']::bigint AS datetime, ALERT_NAME, ALERT_TYPE, RULE_CODE,
+                  ALERT_PROPERTIES, ALERT_ARTIFACTS, ALERT_USERPRINCIPALNAME, CONTEXT_ID AS CONTEXTID, ALERT_STATUS,
+                  ALERT_SEVERITY, ALERT_ACTIONTAKEN, QUILR_SUBSCRIBERID AS SUBSCRIBER, QUILR_TENANTID AS TENANT
+            FROM KAFKA_CONNECT.SNOWDATA_SCHEMA.TRANSFORMEDDATA
+            WHERE ALERT_NAME IS NOT NULL
+                AND RULE_CODE IS NOT NULL
+                AND ALERT_ARTIFACTS IS NOT NULL
+                AND ALERT_PROPERTIES IS NOT NULL
+                AND QUILR_INTEGRATION_TYPE = 'alerts'
+                AND QUILR_INTEGRATION_VENDOR_NAME = 'Quilr'
+                AND RECORD_METADATA['CreateTime']::bigint > $starttime
+                AND RECORD_METADATA['CreateTime']::bigint < $endtime"
+    type: datalake
+    limit:
+    offset: 0
+destination:
+  type: stream
+  topic: ruleEvaluator
+config:
+  expression: "def fn(message): return True"
+  type: $ALERT_TYPE
+  subtype: event
+  code: $RULE_CODE
+  sla: 3D
+  entity: $ALERT_USERPRINCIPALNAME
+  entitytype: user
+  tags:
+  sourceofalert: Quilr
+  template: ${ALERT_NAME}
+  artifacts: $ALERT_ARTIFACTS
+  properties: $ALERT_PROPERTIES
+lambda: ""
+createdon: 1709547181
+updatedon: 1709547181

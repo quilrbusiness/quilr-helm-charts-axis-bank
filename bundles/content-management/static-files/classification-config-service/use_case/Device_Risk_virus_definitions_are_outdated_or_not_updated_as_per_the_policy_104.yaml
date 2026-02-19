@@ -1,0 +1,23 @@
+id: 4f1b2f1b-4922-4b02-88ba-2431ef844c62
+name: virus definitions are outdated or not updated as per policy
+updatedon: 1738306601943
+condition:
+- filter_condition:
+    condition: is equal to
+    value: "True"
+    attribute_id: DEV-009
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: 
+  editable: false
+createdon: 1738306601943
+version: 1.7
+description: Detects devices with outdated antivirus definitions or those not updated as per the organization's security policy, which may leave systems vulnerable to malware threats.
+posture:
+- PID_05
+code: UC104
+disabled: false
+type: use-case
+behavior:
+- BID_105
+

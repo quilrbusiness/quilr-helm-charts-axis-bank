@@ -1,0 +1,58 @@
+# Inactive yaml
+id: c1fe13ff-fa69-4611-9375-7dd5638eadb5
+name: Rare Login of a User
+type: rule 
+version: 2.0
+schedule: 10m 
+historicalrecordduration: 10m
+active: false
+source:
+  type: query
+  config:
+    query: "select QUILR_INTEGRATION_VENDOR_NAME,QUILR_INTEGRATION_VENDOR_PRODUCT,QUILR_TENANTID AS TENANT,QUILR_SUBSCRIBERID AS SUBSCRIBER
+      ,ALERT_SEVERITY,ALERT_TYPE,ALERT_TENANTID,ALERT_LASTUPDATETIME,ALERT_LASTACTIVITYTIME,ALERT_ID,ALERT_SOURCE,ALERT_RECOMMENDEDACTIONS,
+      ALERT_CATEGORY,ALERT_MITRETECHNIQUE,ALERT_CREATETIME,alert_status,alert_description,alert_assignedto,alert_lastupdatetime,alert_firstactivitytime,
+      alert_userid,alert_domainname,alert_userlogontime,alert_userlogonip,alert_userlogonlocation,alert_tenantid, alert_userprincipalname 
+      from kafka_connect.snowdata_schema.transformeddata where contains(alert_name,'Unfamiliar') AND \"RECORD_METADATA\":CreateTime > $starttime 
+      AND \"RECORD_METADATA\":CreateTime < $endtime"
+    type: datalake
+    limit:
+    offset: 0 
+destination:
+  type: stream
+  topic: ruleEvaluator
+config:
+  expression: "def fn(message): return True if message.get('ALERT_USERPRINCIPALNAME') else False" # condition to evaluate the rule
+  type: finding 
+  subtype: status 
+  code: Q101
+  findingcode: Q101
+  status: open 
+  sla: 3D 
+  entity: ALERT_USERPRINCIPALNAME
+  entitytype: user 
+  tags:
+    - Insecure Human Behavior
+  sourceofalert: Microsoft Defender
+  template: "Rare login for user : ${ALERT_USERPRINCIPALNAME} detected"
+  artifacts:
+    Description: ALERT_DESCRIPTION
+    Category: ALERT_CATEGORY
+    Status: ALERT_STATUS
+    Name: ALERT_NAME
+    Alerttime: ALERT_CREATETIME
+    Domain: ALERT_DOMAINNAME 
+    Recommendations: ALERT_RECOMMENDEDACTIONS
+    LastTime: ALERT_LASTACTIVITYTIME
+    Severity: ALERT_SEVERITY
+    LastUpdate: ALERT_LASTUPDATETIME
+    LastActivity: ALERT_LASTACTIVITYTIME
+    Account: ALERT_ACCOUNTNAME
+    IPaddress: ALERT_IPADDRESS
+    Source: ALERT_SOURCE
+    ID: ALERT_ID
+    Location: ALERT_USERLOGONLOCATION
+
+lambda: ""
+createdon: 1709547181
+updatedon: 1709547181

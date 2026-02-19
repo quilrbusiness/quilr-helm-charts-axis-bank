@@ -1,0 +1,46 @@
+datatype: DICT
+defaultValue:
+  name: Financial Information
+  description: Sensitive financial data for individuals or organizations
+  criticality: CRITICAL
+  sensitivity: Sensitive
+  examples:
+    - Credit Card Number + CVV + Expiration
+    - Bank Account Number + Routing Number
+    - Investment Account Credentials
+    - Tax Identification Number + Associated Name
+    - Detailed Financial Statements with Identifiers
+  indicators:
+    - Presence of standardized financial identifiers
+    - Combination of account numbers with security codes
+    - Detailed financial projections or performance data
+    - Access credentials for financial systems
+  contentMarkers:
+    - Numerical patterns consistent with financial data
+    - Specific financial terminology
+    - 'Security-related elements (e.g., CVV, PIN)'
+    - Currency symbols combined with precise figures
+  impactSummary: Financial fraud risk; unauthorized transactions; market manipulation potential
+  classificationRules:
+    positive: >-
+      Contains complete financial identifiers or credentials; detailed non-public
+      financial data
+    negative: General financial terms; publicly reported financial information
+    resolution: >-
+      Evaluate the specificity and potential for direct financial access or
+      insight
+  relatedClasses:
+    - PII001
+    - AUTH001
+    - BCI001
+    - CTX001
+entityDescription: |-
+  Data Definition to classify and extract Financial Information from text
+entityId: FIN001
+entityMeta:
+  category: Data Protection Rule
+  source: default
+entityName: Financial Information
+entityType: dlp_rule
+isDisabled: false
+isModifiable: true

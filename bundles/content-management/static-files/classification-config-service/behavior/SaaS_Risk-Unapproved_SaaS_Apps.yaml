@@ -1,0 +1,107 @@
+id: eb8756f0-7bfc-4a6c-9342-97ecd3bba386
+version: 4.7
+code: BID_14
+name: Unapproved SaaS app
+type: behavior
+createdon: 1710504494000
+updatedon: 1710504494000
+posture:
+  - PID_04
+browser_enabled: true
+description: User using unapproved app in your organization.
+query: "MATCH (user:USER {subscriber: $subscriber, tenant: $tenant}) - [has_email:HAS_EMAIL] - (email:EMAIL),
+          (email)-[credsbased_account]-(account:ACCOUNT)-[using_app:USING_APP]-(app:APPLICATION)
+        OPTIONAL MATCH (app) - [has_app_category:HAS_APP_CATEGORY] - (app_category:APP_CATEGORY)
+        OPTIONAL MATCH (tenant:TENANT {id: $tenant})-[app_settings:HAS_APP_SETTINGS]-(app) 
+        OPTIONAL MATCH (account)-[using_browser:HAS_BROWSER] - (browser:BROWSER)
+        OPTIONAL MATCH (app) - [has_grant:HAS_GRANT] - (grant:GRANT) - [has_scope:HAS_SCOPE] - (scope:SCOPE)
+        OPTIONAL MATCH (user)-[:HAS_DEPARTMENT]->(department:DEPARTMENT)
+        OPTIONAL MATCH (user)-[:BELONGS_TO]->(group:GROUP {userDefined: true})
+        OPTIONAL MATCH (tenant:TENANT {id: $tenant})-[:HAS_INSTANCE]-(instance:INSTANCE)-[has_idp:HAS_IDP]-(app:APPLICATION)
+        WITH user, has_email,email, app, account, using_app, app_category, app_settings, credsbased_account, group, department, scope, grant,instance,has_idp
+        WHERE type(credsbased_account) IN ['CREDSBASED_ACCOUNT', 'OAUTH_ACCOUNT']
+          AND credsbased_account.timestamp >= $starttime
+          AND credsbased_account.timestamp <= $endtime
+          AND toUpper(COALESCE(app_settings.approval_status, app.approval_status, 'NOT SET'))= 'UNAPPROVED'
+        WITH user, has_email, email, app, account, using_app, app_category, app_settings, credsbased_account, group, department, scope, grant,instance,has_idp
+        RETURN DISTINCT
+          user.displayName AS userName,
+          user.tenant as TENANT,               
+          user.subscriber AS SUBSCRIBER,
+          app.id_ as appId,
+          COALESCE(CASE WHEN NOT app.name IN ['', '-'] THEN app.name ELSE NULL END, app.domain) AS appName,
+          COALESCE(app_settings.criticality, app.criticality, 'NOT SET') AS appCriticality,
+          COALESCE(app_settings.approval_status, app.approval_status, 'NEEDS REVIEW') as appApprovalStatus,
+          user.id AS userId,
+          user.mail AS userMail,
+          user.accountEnabled as userAccountEnabled,
+          app.Url AS appUrl,
+          COLLECT(app_category.name) AS appCategory,
+          account.id AS userAppAccount,
+          app.domain AS appDomain,
+          credsbased_account.context_id as CONTEXTID, 
+          credsbased_account.last_access_time as EVENTTIME"
+config:
+  expression: "def fn(message): return True if message.get('userName') else False "
+  type: finding
+  subtype: status
+  status: open
+  sla: 1W
+  entity: userName
+  entitytype: user
+  tags:
+    - insecure_behavior
+  sourceofalert: Quilr
+  template: "Received an alert for the User: ${userName} on Application: ${appName}"
+  artifacts: 
+    - type: "ACCOUNT"
+      property: "id"
+      value: "$userAppAccount"
+      artifactproperties: 
+        artifactValue: $userName
+        displayInUI: enabled
+        artifactKey: "User"
+    - type: "APPLICATION" 
+      context: "global" 
+      property: id_
+      value: "$appId"
+      artifactproperties: 
+        artifactValue: $appName
+        displayInUI: enabled
+        artifactKey: "Application"
+#    - type: "App Criticality"
+#      property: "criticality"
+#      value: "$appCriticality"
+#      artifactproperties:
+#        artifactValue: $appCriticality
+#        displayInUI: enabled
+#        artifactKey: "Critical"
+#    - type: "First Seen"
+#      property: ""                                 #is this correct for matching ?
+#      value: "$"                                # need to add first seen and last seen in the artifact
+#      artifactproperties:
+#        artifactValue: $
+#        displayInUI: enabled
+#        artifactKey: ""
+#    - type: "Last Seen"
+#      property: ""                                 #is this correct for matching ?
+#      value: "$"                                # need to add first seen and last seen in the artifact
+#      artifactproperties:
+#        artifactValue: $
+#        displayInUI: enabled
+#        artifactKey: ""
+  properties:
+    userName: $userName
+    userMail: $userMail
+    userAccountEnabled: $userAccountEnabled
+    TENANT: $TENANT
+    SUBSCRIBER: $SUBSCRIBER
+    appName: $appName
+    appUrl: $appUrl
+    appId: $appId
+    accountId: $userAppAccount
+    appCategory: $appCategory 
+    appDomain: $appDomain
+    context_id: $CONTEXTID
+    eventtime: $EVENTTIME
+lambda: ""

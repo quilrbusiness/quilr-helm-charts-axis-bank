@@ -1,0 +1,21 @@
+id: 4a5d8b12-0fda-4a55-980f-9cfb3a6bf1f7
+version: 1.0
+code: ACT_314
+name: Block visiting an unapproved AI app
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: templatized
+    message_template: block-visiting-an-unapproved-ai-app
+    execution_type: tool
+    execution_module: send_templated_user_message
+    browser_action: Block
+    blocked: True
+tags:
+  - UC304
+behavior:
+  - BID_04
+createdon: 1710504494000
+updatedon: 1710504494000

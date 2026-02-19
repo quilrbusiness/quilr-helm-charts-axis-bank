@@ -1,0 +1,16 @@
+filter_id: 13571726-c3ed-4116-8531-2f4238d6ea5b
+config:
+  - name: searchText
+    type: string
+  - name: orderby
+    type: string
+  - name: order
+    type: dropdown
+    options:
+      - ASC
+      - DESC
+  - name: limit
+    type: int
+  - name: offset
+    type: int
+version: 2.0

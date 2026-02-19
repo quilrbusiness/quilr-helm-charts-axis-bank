@@ -1,0 +1,1492 @@
+id: device-risks
+name: Device Risks
+type: screen
+enabled: true
+version: 1.0.80
+icon_url: https://staticcontent1.blob.core.windows.net/finding-icons/posture-ai-usage.svg
+table_query:
+  id: 82f39be8-e238-4a2e-bee3-5ecb6bd420a3
+  name: Display Table Data
+  queryString: null
+  type: merge
+  allowed_params: true
+  allowed_body: true
+  input_params:
+    sample: value
+  input_body: null
+  dataSourceType: knowledgegraph
+  sortOrder: desc
+  sortColumn: lastseen
+  limit: 10
+  offset: 0
+detailed_widget:
+  - id: BID_105_detailed
+    name: "Improperly Configured Devices"
+    input_params:
+      behavior: $behavior 
+      deviceName: $deviceName
+    dataSourceType: "knowledgegraph"
+    enabled: true
+    allowed_params: true
+    sortOrder: ""
+    sortColumn: ""
+    position: null
+    template: null
+    className: null
+    query: "MATCH (device:DEVICE)-[]-(finding:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(rule:RULE)-[]-(behavior:BEHAVIOR {id: $behavior})
+            WHERE device.deviceName = $deviceName
+            OPTIONAL MATCH (finding)-[:TRIGGERED]->(action:ACTION)
+            OPTIONAL MATCH (action)-[:RESULTED_IN]-(outcome:OUTCOME)
+            OPTIONAL MATCH (action)-[:HAS_INTERACTION]->(interaction:INTERACTION)
+            
+            WITH device, finding, rule, 
+                 COLLECT(DISTINCT action) AS actions,
+                 COLLECT(DISTINCT interaction) AS interactions,
+                 COLLECT(DISTINCT outcome) AS outcomes
+            
+            WITH device, finding, rule, actions, interactions, outcomes,
+                 datetime({epochSeconds: toInteger(finding.ingestionTime/1000)}) as creation_time,
+                 apoc.text.regexGroups(finding.sla, '(\\d+)(\\w+)')[0] as slaregex
+            
+            WITH device, finding, rule, actions, interactions, outcomes, creation_time,
+                 tointeger(slaregex[1]) as slano, 
+                 slaregex[2] as slaunit,
+                 SIZE([i IN interactions WHERE i IS NOT NULL]) > 0 AS interactionsExist
+            
+            WITH device, finding, rule, actions, interactions, outcomes, creation_time, interactionsExist,
+                 CASE 
+                     WHEN interactionsExist THEN apoc.map.fromPairs([[rule.name, true]])
+                     ELSE {}
+                 END AS ruleInteractionMap
+            
+            RETURN 
+                device.deviceName AS deviceName,
+                interactionsExist,
+                ruleInteractionMap,
+                finding.name AS finding,
+                ALL(action IN actions WHERE action.actionStatus = 'COMPLETED') AS completed,
+                duration.between(creation_time, datetime()).days as sla_duration,
+                finding.status as status,
+                finding.actionStatus as actionstatus,
+                finding.resolutionMessage as actiondesc"
+    pagination_query: "MATCH (device:DEVICE)-[]-(finding:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(rule:RULE)-[]-(behavior:BEHAVIOR {id: $behavior})
+            WHERE device.deviceName = $deviceName
+            OPTIONAL MATCH (finding)-[:TRIGGERED]->(action:ACTION)
+            OPTIONAL MATCH (action)-[:RESULTED_IN]-(outcome:OUTCOME)
+            OPTIONAL MATCH (action)-[:HAS_INTERACTION]->(interaction:INTERACTION)
+            
+            WITH device, finding, rule, 
+                 COLLECT(DISTINCT action) AS actions,
+                 COLLECT(DISTINCT interaction) AS interactions,
+                 COLLECT(DISTINCT outcome) AS outcomes
+            
+            WITH device, finding, rule, actions, interactions, outcomes,
+                 datetime({epochSeconds: toInteger(finding.ingestionTime/1000)}) as creation_time,
+                 apoc.text.regexGroups(finding.sla, '(\\d+)(\\w+)')[0] as slaregex
+            
+            WITH device, finding, rule, actions, interactions, outcomes, creation_time,
+                 tointeger(slaregex[1]) as slano, 
+                 slaregex[2] as slaunit,
+                 SIZE([i IN interactions WHERE i IS NOT NULL]) > 0 AS interactionsExist
+            
+            WITH device, finding, rule, actions, interactions, outcomes, creation_time, interactionsExist,
+                 CASE 
+                     WHEN interactionsExist THEN apoc.map.fromPairs([[rule.name, true]])
+                     ELSE {}
+                 END AS ruleInteractionMap
+            
+            WITH 
+                device.deviceName AS deviceName,
+                interactionsExist,
+                ruleInteractionMap,
+                finding.name AS finding,
+                ALL(action IN actions WHERE action.actionStatus = 'COMPLETED') AS completed,
+                duration.between(creation_time, datetime()).days as sla_duration,
+                finding.status as status,
+                finding.actionStatus as actionstatus,
+                finding.resolutionMessage as actiondesc
+                
+            RETURN COUNT(*) AS totalCount"
+  - id: BID_104_detailed
+    name: "Misconfigured Devices Network"
+    input_params:
+      behavior: $behavior
+      deviceName: $deviceName
+    dataSourceType: "knowledgegraph"
+    enabled: true
+    allowed_params: true
+    sortOrder: ""
+    sortColumn: ""
+    position: null
+    template: null
+    className: null
+    query: "MATCH (device:DEVICE)-[]-(finding:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(rule:RULE)-[]-(behavior:BEHAVIOR {id: $behavior})
+            WHERE device.deviceName = $deviceName
+            OPTIONAL MATCH (finding)-[:TRIGGERED]->(action:ACTION)
+            OPTIONAL MATCH (action)-[:RESULTED_IN]-(outcome:OUTCOME)
+            OPTIONAL MATCH (action)-[:HAS_INTERACTION]->(interaction:INTERACTION)
+            WITH device, action, interaction, finding, rule, outcome, 
+            COLLECT({
+                 findingId: finding.id,
+                 rule: rule.name, 
+                 action: action.name,
+                 outcomeDesc: outcome.description,
+                 actionDesc: action.description,
+                 interaction: CASE WHEN interaction IS NOT NULL THEN true ELSE false END
+            }) AS findingData
+            WITH device, COLLECT(action) AS actions, interaction, finding, rule, outcome, findingData
+            WITH device, actions, interaction, finding, rule, outcome, findingData, datetime({epochSeconds: toInteger(finding.ingestionTime/1000)}) as creation_time, apoc.text.regexGroups(finding.sla, '(\\d+)(\\w+)')[0] as slaregex
+            
+            WITH device, actions, interaction, finding, rule, outcome, creation_time, findingData, tointeger(slaregex[1]) as slano, slaregex[2] as slaunit,
+            ANY(data IN findingData WHERE data.interaction IS NOT NULL AND data.interaction) AS interactionsExist
+
+            WITH device, actions, interaction, finding, rule, outcome, creation_time,
+            interactionsExist, 
+            apoc.map.fromPairs(
+                    CASE 
+                        WHEN interactionsExist IS NOT NULL AND interactionsExist 
+                        THEN [data IN findingData WHERE data.interaction IS NOT NULL AND data.interaction | [data.rule, true]]
+                        ELSE []
+                    END
+                ) AS ruleInteractionMap
+                
+            WITH device, actions, interaction, finding, rule, outcome, creation_time as sladue,
+            interactionsExist, ruleInteractionMap
+            
+            RETURN 
+            device.deviceName AS deviceName, 
+            interactionsExist, 
+            ruleInteractionMap, 
+            finding.name AS finding, 
+            [n in apoc.coll.flatten(collect(actions)) WHERE n.actionStatus <> 'COMPLETED'][0].actionStatus = 'COMPLETED' AS completed, 
+            duration.between(sladue, datetime()).days as sla_duration, 
+            finding.status as status, 
+            finding.actionStatus as actionstatus,
+            finding.resolutionMessage as actiondesc"
+    pagination_query: "MATCH (device:DEVICE)-[]-(finding:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(rule:RULE)-[]-(behavior:BEHAVIOR {id: $behavior})
+            WHERE device.deviceName = $deviceName
+            OPTIONAL MATCH (finding)-[:TRIGGERED]->(action:ACTION)
+            OPTIONAL MATCH (action)-[:RESULTED_IN]-(outcome:OUTCOME)
+            OPTIONAL MATCH (action)-[:HAS_INTERACTION]->(interaction:INTERACTION)
+            WITH device, action, interaction, finding, rule, outcome, 
+            COLLECT({
+                 findingId: finding.id,
+                 rule: rule.name, 
+                 action: action.name,
+                 outcomeDesc: outcome.description,
+                 actionDesc: action.description,
+                 interaction: CASE WHEN interaction IS NOT NULL THEN true ELSE false END
+            }) AS findingData
+            WITH device, COLLECT(action) AS actions, interaction, finding, rule, outcome, findingData
+            WITH device, actions, interaction, finding, rule, outcome, findingData, datetime({epochSeconds: toInteger(finding.ingestionTime/1000)}) as creation_time, apoc.text.regexGroups(finding.sla, '(\\d+)(\\w+)')[0] as slaregex
+            
+            WITH device, actions, interaction, finding, rule, outcome, creation_time, findingData, tointeger(slaregex[1]) as slano, slaregex[2] as slaunit,
+            ANY(data IN findingData WHERE data.interaction IS NOT NULL AND data.interaction) AS interactionsExist
+
+            WITH device, actions, interaction, finding, rule, outcome, creation_time,
+            interactionsExist, 
+            apoc.map.fromPairs(
+                    CASE 
+                        WHEN interactionsExist IS NOT NULL AND interactionsExist 
+                        THEN [data IN findingData WHERE data.interaction IS NOT NULL AND data.interaction | [data.rule, true]]
+                        ELSE []
+                    END
+                ) AS ruleInteractionMap
+                
+            WITH device, actions, interaction, finding, rule, outcome, creation_time as sladue,
+            interactionsExist, ruleInteractionMap
+            
+            WITH 
+            device.deviceName AS deviceName, 
+            interactionsExist, 
+            ruleInteractionMap, 
+            finding.name AS finding, 
+            [n in apoc.coll.flatten(collect(actions)) WHERE n.actionStatus <> 'COMPLETED'][0].actionStatus = 'COMPLETED' AS completed, 
+            duration.between(sladue, datetime()).days as sla_duration, 
+            finding.status as status, 
+            finding.actionStatus as actionstatus,
+            finding.resolutionMessage as actiondesc
+            
+            
+            RETURN COUNT(*) AS totalCount"
+  - id: BID_103_detailed
+    name: "Overprivilege Accounts"
+    input_params:
+      behavior: $behavior
+      deviceName: $deviceName
+    dataSourceType: "knowledgegraph"
+    enabled: true
+    allowed_params: true
+    sortOrder: ""
+    sortColumn: ""
+    position: null
+    template: null
+    className: null
+    query: "MATCH (device:DEVICE)-[]-(finding:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(rule:RULE)-[]-(behavior:BEHAVIOR {id: $behavior})
+            WHERE device.deviceName = $deviceName
+            OPTIONAL MATCH (finding)-[:TRIGGERED]->(action:ACTION)
+            OPTIONAL MATCH (action)-[:RESULTED_IN]-(outcome:OUTCOME)
+            OPTIONAL MATCH (action)-[:HAS_INTERACTION]->(interaction:INTERACTION)
+            WITH device, action, interaction, finding, rule, outcome, 
+            COLLECT({
+                 findingId: finding.id,
+                 rule: rule.name, 
+                 action: action.name,
+                 outcomeDesc: outcome.description,
+                 actionDesc: action.description,
+                 interaction: CASE WHEN interaction IS NOT NULL THEN true ELSE false END
+            }) AS findingData
+            WITH device, COLLECT(action) AS actions, interaction, finding, rule, outcome, findingData
+            WITH device, actions, interaction, finding, rule, outcome, findingData, datetime({epochSeconds: toInteger(finding.ingestionTime/1000)}) as creation_time, apoc.text.regexGroups(finding.sla, '(\\d+)(\\w+)')[0] as slaregex
+            
+            WITH device, actions, interaction, finding, rule, outcome, creation_time, findingData, tointeger(slaregex[1]) as slano, slaregex[2] as slaunit,
+            ANY(data IN findingData WHERE data.interaction IS NOT NULL AND data.interaction) AS interactionsExist
+
+            WITH device, actions, interaction, finding, rule, outcome, creation_time,
+            interactionsExist, 
+            apoc.map.fromPairs(
+                    CASE 
+                        WHEN interactionsExist IS NOT NULL AND interactionsExist 
+                        THEN [data IN findingData WHERE data.interaction IS NOT NULL AND data.interaction | [data.rule, true]]
+                        ELSE []
+                    END
+                ) AS ruleInteractionMap
+                
+            WITH device, actions, interaction, finding, rule, outcome, creation_time as sladue,
+            interactionsExist, ruleInteractionMap
+            
+            RETURN 
+            device.deviceName AS deviceName, 
+            interactionsExist, 
+            ruleInteractionMap, 
+            finding.name AS finding, 
+            [n in apoc.coll.flatten(collect(actions)) WHERE n.actionStatus <> 'COMPLETED'][0].actionStatus = 'COMPLETED' AS completed, 
+            duration.between(sladue, datetime()).days as sla_duration, 
+            finding.status as status, 
+            finding.actionStatus as actionstatus,
+            finding.resolutionMessage as actiondesc"
+    pagination_query: "MATCH (device:DEVICE)-[]-(finding:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(rule:RULE)-[]-(behavior:BEHAVIOR {id: $behavior})
+            WHERE device.deviceName = $deviceName
+            OPTIONAL MATCH (finding)-[:TRIGGERED]->(action:ACTION)
+            OPTIONAL MATCH (action)-[:RESULTED_IN]-(outcome:OUTCOME)
+            OPTIONAL MATCH (action)-[:HAS_INTERACTION]->(interaction:INTERACTION)
+            WITH device, action, interaction, finding, rule, outcome, 
+            COLLECT({
+                 findingId: finding.id,
+                 rule: rule.name, 
+                 action: action.name,
+                 outcomeDesc: outcome.description,
+                 actionDesc: action.description,
+                 interaction: CASE WHEN interaction IS NOT NULL THEN true ELSE false END
+            }) AS findingData
+            WITH device, COLLECT(action) AS actions, interaction, finding, rule, outcome, findingData
+            WITH device, actions, interaction, finding, rule, outcome, findingData, datetime({epochSeconds: toInteger(finding.ingestionTime/1000)}) as creation_time, apoc.text.regexGroups(finding.sla, '(\\d+)(\\w+)')[0] as slaregex
+            
+            WITH device, actions, interaction, finding, rule, outcome, creation_time, findingData, tointeger(slaregex[1]) as slano, slaregex[2] as slaunit,
+            ANY(data IN findingData WHERE data.interaction IS NOT NULL AND data.interaction) AS interactionsExist
+
+            WITH device, actions, interaction, finding, rule, outcome, creation_time,
+            interactionsExist, 
+            apoc.map.fromPairs(
+                    CASE 
+                        WHEN interactionsExist IS NOT NULL AND interactionsExist 
+                        THEN [data IN findingData WHERE data.interaction IS NOT NULL AND data.interaction | [data.rule, true]]
+                        ELSE []
+                    END
+                ) AS ruleInteractionMap
+                
+            WITH device, actions, interaction, finding, rule, outcome, creation_time as sladue,
+            interactionsExist, ruleInteractionMap
+            
+            WITH 
+            device.deviceName AS deviceName, 
+            interactionsExist, 
+            ruleInteractionMap, 
+            finding.name AS finding, 
+            [n in apoc.coll.flatten(collect(actions)) WHERE n.actionStatus <> 'COMPLETED'][0].actionStatus = 'COMPLETED' AS completed, 
+            duration.between(sladue, datetime()).days as sla_duration, 
+            finding.status as status, 
+            finding.actionStatus as actionstatus,
+            finding.resolutionMessage as actiondesc
+            
+            
+            RETURN COUNT(*) AS totalCount"
+  - id: BID_102_detailed
+    name: "Unpatched Systems"
+    input_params:
+      behavior: $behavior
+      deviceName: $deviceName
+    dataSourceType: "knowledgegraph"
+    enabled: true
+    allowed_params: true
+    sortOrder: ""
+    sortColumn: ""
+    position: null
+    template: null
+    className: null
+    query: "MATCH (device:DEVICE)-[]-(finding:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(rule:RULE)-[]-(behavior:BEHAVIOR {id: $behavior})
+            WHERE device.deviceName = $deviceName
+            OPTIONAL MATCH (finding)-[:TRIGGERED]->(action:ACTION)
+            OPTIONAL MATCH (action)-[:RESULTED_IN]-(outcome:OUTCOME)
+            OPTIONAL MATCH (action)-[:HAS_INTERACTION]->(interaction:INTERACTION)
+            WITH device, action, interaction, finding, rule, outcome, 
+            COLLECT({
+                 findingId: finding.id,
+                 rule: rule.name, 
+                 action: action.name,
+                 outcomeDesc: outcome.description,
+                 actionDesc: action.description,
+                 interaction: CASE WHEN interaction IS NOT NULL THEN true ELSE false END
+            }) AS findingData
+            WITH device, COLLECT(action) AS actions, interaction, finding, rule, outcome, findingData
+            WITH device, actions, interaction, finding, rule, outcome, findingData, datetime({epochSeconds: toInteger(finding.ingestionTime/1000)}) as creation_time, apoc.text.regexGroups(finding.sla, '(\\d+)(\\w+)')[0] as slaregex
+            
+            WITH device, actions, interaction, finding, rule, outcome, creation_time, findingData, tointeger(slaregex[1]) as slano, slaregex[2] as slaunit,
+            ANY(data IN findingData WHERE data.interaction IS NOT NULL AND data.interaction) AS interactionsExist
+
+            WITH device, actions, interaction, finding, rule, outcome, creation_time,
+            interactionsExist, 
+            apoc.map.fromPairs(
+                    CASE 
+                        WHEN interactionsExist IS NOT NULL AND interactionsExist 
+                        THEN [data IN findingData WHERE data.interaction IS NOT NULL AND data.interaction | [data.rule, true]]
+                        ELSE []
+                    END
+                ) AS ruleInteractionMap
+                
+            WITH device, actions, interaction, finding, rule, outcome, creation_time as sladue,
+            interactionsExist, ruleInteractionMap
+            
+            RETURN 
+            device.deviceName AS deviceName, 
+            interactionsExist, 
+            ruleInteractionMap, 
+            finding.name AS finding, 
+            [n in apoc.coll.flatten(collect(actions)) WHERE n.actionStatus <> 'COMPLETED'][0].actionStatus = 'COMPLETED' AS completed, 
+            duration.between(sladue, datetime()).days as sla_duration, 
+            finding.status as status, 
+            finding.actionStatus as actionstatus,
+            finding.resolutionMessage as actiondesc"
+    pagination_query: "MATCH (device:DEVICE)-[]-(finding:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(rule:RULE)-[]-(behavior:BEHAVIOR {id: $behavior})
+            WHERE device.deviceName = $deviceName
+            OPTIONAL MATCH (finding)-[:TRIGGERED]->(action:ACTION)
+            OPTIONAL MATCH (action)-[:RESULTED_IN]-(outcome:OUTCOME)
+            OPTIONAL MATCH (action)-[:HAS_INTERACTION]->(interaction:INTERACTION)
+            WITH device, action, interaction, finding, rule, outcome, 
+            COLLECT({
+                 findingId: finding.id,
+                 rule: rule.name, 
+                 action: action.name,
+                 outcomeDesc: outcome.description,
+                 actionDesc: action.description,
+                 interaction: CASE WHEN interaction IS NOT NULL THEN true ELSE false END
+            }) AS findingData
+            WITH device, COLLECT(action) AS actions, interaction, finding, rule, outcome, findingData
+            WITH device, actions, interaction, finding, rule, outcome, findingData, datetime({epochSeconds: toInteger(finding.ingestionTime/1000)}) as creation_time, apoc.text.regexGroups(finding.sla, '(\\d+)(\\w+)')[0] as slaregex
+            
+            WITH device, actions, interaction, finding, rule, outcome, creation_time, findingData, tointeger(slaregex[1]) as slano, slaregex[2] as slaunit,
+            ANY(data IN findingData WHERE data.interaction IS NOT NULL AND data.interaction) AS interactionsExist
+
+            WITH device, actions, interaction, finding, rule, outcome, creation_time,
+            interactionsExist, 
+            apoc.map.fromPairs(
+                    CASE 
+                        WHEN interactionsExist IS NOT NULL AND interactionsExist 
+                        THEN [data IN findingData WHERE data.interaction IS NOT NULL AND data.interaction | [data.rule, true]]
+                        ELSE []
+                    END
+                ) AS ruleInteractionMap
+                
+            WITH device, actions, interaction, finding, rule, outcome, creation_time as sladue,
+            interactionsExist, ruleInteractionMap
+            
+            WITH 
+            device.deviceName AS deviceName, 
+            interactionsExist, 
+            ruleInteractionMap, 
+            finding.name AS finding, 
+            [n in apoc.coll.flatten(collect(actions)) WHERE n.actionStatus <> 'COMPLETED'][0].actionStatus = 'COMPLETED' AS completed, 
+            duration.between(sladue, datetime()).days as sla_duration, 
+            finding.status as status, 
+            finding.actionStatus as actionstatus,
+            finding.resolutionMessage as actiondesc
+            
+            
+            RETURN COUNT(*) AS totalCount"
+  - id: BID_101_detailed
+    name: "Unprotected Devices or Assets"
+    input_params:
+      behavior: $behavior
+      deviceName: $deviceName
+    dataSourceType: "knowledgegraph"
+    enabled: true
+    allowed_params: true
+    sortOrder: ""
+    sortColumn: ""
+    position: null
+    template: null
+    className: null
+    query: "MATCH (device:DEVICE)-[]-(finding:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(rule:RULE)-[]-(behavior:BEHAVIOR {id: $behavior})
+            WHERE device.deviceName = $deviceName
+            OPTIONAL MATCH (finding)-[:TRIGGERED]->(action:ACTION)
+            OPTIONAL MATCH (action)-[:RESULTED_IN]-(outcome:OUTCOME)
+            OPTIONAL MATCH (action)-[:HAS_INTERACTION]->(interaction:INTERACTION)
+            WITH device, action, interaction, finding, rule, outcome, 
+            COLLECT({
+                 findingId: finding.id,
+                 rule: rule.name, 
+                 action: action.name,
+                 outcomeDesc: outcome.description,
+                 actionDesc: action.description,
+                 interaction: CASE WHEN interaction IS NOT NULL THEN true ELSE false END
+            }) AS findingData
+            WITH device, COLLECT(action) AS actions, interaction, finding, rule, outcome, findingData
+            WITH device, actions, interaction, finding, rule, outcome, findingData, datetime({epochSeconds: toInteger(finding.ingestionTime/1000)}) as creation_time, apoc.text.regexGroups(finding.sla, '(\\d+)(\\w+)')[0] as slaregex
+            
+            WITH device, actions, interaction, finding, rule, outcome, creation_time, findingData, tointeger(slaregex[1]) as slano, slaregex[2] as slaunit,
+            ANY(data IN findingData WHERE data.interaction IS NOT NULL AND data.interaction) AS interactionsExist
+
+            WITH device, actions, interaction, finding, rule, outcome, creation_time,
+            interactionsExist, 
+            apoc.map.fromPairs(
+                    CASE 
+                        WHEN interactionsExist IS NOT NULL AND interactionsExist 
+                        THEN [data IN findingData WHERE data.interaction IS NOT NULL AND data.interaction | [data.rule, true]]
+                        ELSE []
+                    END
+                ) AS ruleInteractionMap
+                
+            WITH device, actions, interaction, finding, rule, outcome, creation_time as sladue,
+            interactionsExist, ruleInteractionMap
+            
+            RETURN 
+            device.deviceName AS deviceName, 
+            interactionsExist, 
+            ruleInteractionMap, 
+            finding.name AS finding, 
+            [n in apoc.coll.flatten(collect(actions)) WHERE n.actionStatus <> 'COMPLETED'][0].actionStatus = 'COMPLETED' AS completed, 
+            duration.between(sladue, datetime()).days as sla_duration, 
+            finding.status as status, 
+            finding.actionStatus as actionstatus,
+            finding.resolutionMessage as actiondesc"
+    pagination_query: "MATCH (device:DEVICE)-[]-(finding:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(rule:RULE)-[]-(behavior:BEHAVIOR {id: $behavior})
+            WHERE device.deviceName = $deviceName
+            OPTIONAL MATCH (finding)-[:TRIGGERED]->(action:ACTION)
+            OPTIONAL MATCH (action)-[:RESULTED_IN]-(outcome:OUTCOME)
+            OPTIONAL MATCH (action)-[:HAS_INTERACTION]->(interaction:INTERACTION)
+            WITH device, action, interaction, finding, rule, outcome, 
+            COLLECT({
+                 findingId: finding.id,
+                 rule: rule.name, 
+                 action: action.name,
+                 outcomeDesc: outcome.description,
+                 actionDesc: action.description,
+                 interaction: CASE WHEN interaction IS NOT NULL THEN true ELSE false END
+            }) AS findingData
+            WITH device, COLLECT(action) AS actions, interaction, finding, rule, outcome, findingData
+            WITH device, actions, interaction, finding, rule, outcome, findingData, datetime({epochSeconds: toInteger(finding.ingestionTime/1000)}) as creation_time, apoc.text.regexGroups(finding.sla, '(\\d+)(\\w+)')[0] as slaregex
+            
+            WITH device, actions, interaction, finding, rule, outcome, creation_time, findingData, tointeger(slaregex[1]) as slano, slaregex[2] as slaunit,
+            ANY(data IN findingData WHERE data.interaction IS NOT NULL AND data.interaction) AS interactionsExist
+
+            WITH device, actions, interaction, finding, rule, outcome, creation_time,
+            interactionsExist, 
+            apoc.map.fromPairs(
+                    CASE 
+                        WHEN interactionsExist IS NOT NULL AND interactionsExist 
+                        THEN [data IN findingData WHERE data.interaction IS NOT NULL AND data.interaction | [data.rule, true]]
+                        ELSE []
+                    END
+                ) AS ruleInteractionMap
+                
+            WITH device, actions, interaction, finding, rule, outcome, creation_time as sladue,
+            interactionsExist, ruleInteractionMap
+            
+            WITH 
+            device.deviceName AS deviceName, 
+            interactionsExist, 
+            ruleInteractionMap, 
+            finding.name AS finding, 
+            [n in apoc.coll.flatten(collect(actions)) WHERE n.actionStatus <> 'COMPLETED'][0].actionStatus = 'COMPLETED' AS completed, 
+            duration.between(sladue, datetime()).days as sla_duration, 
+            finding.status as status, 
+            finding.actionStatus as actionstatus,
+            finding.resolutionMessage as actiondesc
+            
+            
+            RETURN COUNT(*) AS totalCount"
+  - id: interactions_metadata
+    query: "MATCH (device:DEVICE)-[]-(finding:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(rule:RULE)-[]-(behavior:BEHAVIOR {id: $behavior})
+            WHERE device.deviceName = $deviceName
+            OPTIONAL MATCH (finding)-[:TRIGGERED]->(action:ACTION)
+            OPTIONAL MATCH (action)-[:RESULTED_IN]-(outcome:OUTCOME)
+            OPTIONAL MATCH (action)-[:HAS_INTERACTION]->(interaction:INTERACTION)
+            
+            WHERE interaction IS NOT NULL
+            {placeholder}
+                        
+            WITH rule, interaction, action
+            WHERE interaction IS NOT NULL 
+              AND action IS NOT NULL
+              AND btrim(COALESCE(interaction.message, apoc.text.join([interaction.header, interaction.title, interaction.description], ' '))) <> ''
+            
+            RETURN DISTINCT 
+                rule.name AS ruleName,
+                interaction.message AS message, 
+                interaction.name AS name,
+                interaction.initiator AS initiator, 
+                interaction.timestamp AS messageTime, 
+                interaction.channel AS channel, 
+                interaction.mode AS mode
+            ORDER BY messageTime ASC"
+    input_params:
+      behavior: $behavior
+      deviceName: $deviceName
+      ruleName: AND tolower(rule.name) = tolower($ruleName)
+    dataSourceType: "knowledgegraph"
+    enabled: true
+    allowed_params: true
+    sortOrder: ""
+    sortColumn: ""
+    requestType: POST
+    name: "Interaction Metadata"
+    position: null
+    template: null
+    className: null
+    multi_value_params: [ ]
+    pagination_query: "MATCH (device:DEVICE)-[]-(finding:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(rule:RULE)-[]-(behavior:BEHAVIOR {id: $behavior})
+                       WHERE device.deviceName = $deviceName
+                       OPTIONAL MATCH (finding)-[:TRIGGERED]->(action:ACTION)
+                       OPTIONAL MATCH (action)-[:RESULTED_IN]-(outcome:OUTCOME)
+                       OPTIONAL MATCH (action)-[:HAS_INTERACTION]->(interaction:INTERACTION)
+            
+                       WHERE interaction IS NOT NULL
+                       {placeholder}
+                       
+                       WITH rule, interaction, action
+                       WHERE interaction IS NOT NULL 
+                       AND action IS NOT NULL
+                       AND btrim(COALESCE(interaction.message, apoc.text.join([interaction.header, interaction.title, interaction.description], ' '))) <> ''
+            
+                       WITH DISTINCT 
+                           rule.name AS ruleName,
+                           interaction.message AS message, 
+                           interaction.name AS name,
+                           interaction.initiator AS initiator, 
+                           interaction.timestamp AS messageTime, 
+                           interaction.channel AS channel, 
+                           interaction.mode AS mode
+                       
+                       RETURN COUNT(*) AS totalCount"
+view_by: 
+  - id: BID_105
+    name: "Improperly Configured Devices"
+    type: widget
+    active: true
+    defaultValue: null
+    queryFilters: []
+    className: ""
+    query: "MATCH (f:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(r:RULE)-[]-(b:BEHAVIOR { id: $behavior })
+            MATCH (f)-[]-(d:DEVICE)
+            OPTIONAL MATCH (d)-[]-(f)-[]-(a:ACTION)
+            OPTIONAL MATCH (d)-[]-(u:USER)
+            OPTIONAL MATCH (u)-[]-(dep:DEPARTMENT)
+            OPTIONAL MATCH (a)-[]-(o:OUTCOME)
+            WITH DISTINCT f, d, dep, u, a, o  
+
+            WHERE toLower(COALESCE(u.displayName, '')) + ' / ' + toLower(COALESCE(d.deviceName, '')) CONTAINS toLower('{searchText}')
+            {placeholder}
+
+            WITH f.name AS FindingName, d, dep, u, a.name AS ActionName, COUNT(*) AS FindingCount, 
+              COUNT(DISTINCT a) AS ActionCount, o.value AS OutcomeName, COUNT(DISTINCT o) AS OutcomeCount, a.actionStatus as actionstatus
+
+            WITH d, u, dep, 
+              collect([FindingName, FindingCount]) AS FindingPairs, 
+              collect([ActionName, ActionCount]) AS ActionPairs, 
+              collect([OutcomeName, OutcomeCount]) AS OutcomePairs,
+              collect(actionstatus) as actionstatus
+            CALL {
+              WITH FindingPairs
+              RETURN apoc.map.fromPairs(FindingPairs) AS FindingLists, 
+                    REDUCE(sumF = 0, pair IN FindingPairs | sumF + pair[1]) AS TotalFindings
+            }
+            CALL {
+              WITH ActionPairs
+              RETURN apoc.map.fromPairs(ActionPairs) AS actionResults
+            }
+            CALL {
+              WITH OutcomePairs
+              RETURN apoc.map.fromPairs(OutcomePairs) AS actionOutcomes
+            }
+            CALL {
+              with actionstatus
+              RETURN {
+                pending: count(CASE WHEN NOT actionstatus = 'COMPLETED' THEN actionstatus END),
+                actioned: count(CASE WHEN actionstatus = 'COMPLETED' THEN actionstatus END)
+              } AS reviewStatus
+            }
+            RETURN 
+              d.deviceName AS DeviceName,
+              d.id as DeviceId,
+              TotalFindings AS NoOfFinding,
+              FindingLists,
+              u.displayName AS DeviceBelongTo,
+              collect(DISTINCT dep.id) AS DeviceDepartment,
+              collect(DISTINCT u.profilePicUrl) AS UserIcon, 
+              actionResults, 
+              actionOutcomes,
+              reviewStatus"
+    allowed_params: true
+    input_params:
+      behavior: $behavior
+      department: AND toLower(dep.id) IN [ x IN [$department] | toLower(x) ]
+      finding: AND toLower(f.name) IN [ x IN [$finding] | toLower(x) ]
+      device: AND d.deviceName IN [ x IN [$device] | x ]
+      user: AND toLower(u.displayName) IN [ x IN [$user] | toLower(x) ]
+      operating_system: AND toLower(f.osName) IN [ x IN [$operating_system] | toLower(x) ]
+      source: AND toLower(d.vendor) IN [ x IN [$source] | toLower(x) ]
+    multi_value_params:
+      - id: behavior
+        delimiter: ","
+      - id: department
+        delimiter: ","
+      - id: finding
+        delimiter: ","
+      - id: device
+        delimiter: ","
+      - id: user
+        delimiter: ","
+      - id: operating_system
+        delimiter: ","
+      - id: source
+        delimiter: ","
+    dataSourceType: "knowledgegraph"
+    pagination_query: "MATCH (f:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(r:RULE)-[]-(b:BEHAVIOR { id: $behavior })
+                       MATCH (f)-[]-(d:DEVICE)
+                       OPTIONAL MATCH (d)-[]-(f)-[]-(a:ACTION)
+                       OPTIONAL MATCH (d)-[]-(u:USER)
+                       OPTIONAL MATCH (u)-[]-(dep:DEPARTMENT)
+                       OPTIONAL MATCH (a)-[]-(o:OUTCOME)
+
+                       WITH DISTINCT f, d, dep, u, a, o  
+
+                       WHERE toLower(COALESCE(u.displayName, '')) + ' / ' + toLower(COALESCE(d.deviceName, '')) CONTAINS toLower('{searchText}')
+                       {placeholder}
+
+                       WITH f.name AS FindingName, d, dep, u, a.name AS ActionName, COUNT(*) AS FindingCount, 
+                       COUNT(DISTINCT a) AS ActionCount, o.value AS OutcomeName, COUNT(DISTINCT o) AS OutcomeCount, a.actionStatus as actionstatus
+
+                       WITH DISTINCT d
+                       RETURN count(d) AS totalCount"
+  - id: BID_104
+    name: "Misconfigured Devices Network"
+    type: widget
+    active: true
+    defaultValue: null
+    queryFilters: []
+    className: ""
+    query: "MATCH (f:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(r:RULE)-[]-(b:BEHAVIOR { id: $behavior })
+            MATCH (f)-[]-(d:DEVICE)
+            OPTIONAL MATCH (d)-[]-(f)-[]-(a:ACTION)
+            OPTIONAL MATCH (d)-[]-(u:USER)
+            OPTIONAL MATCH (u)-[]-(dep:DEPARTMENT)
+            OPTIONAL MATCH (a)-[]-(o:OUTCOME)
+            WITH DISTINCT f, d, dep, u, a, o  
+
+            WHERE toLower(COALESCE(u.displayName, '')) + ' / ' + toLower(COALESCE(d.deviceName, '')) CONTAINS toLower('{searchText}')
+            {placeholder}
+
+            WITH f.name AS FindingName, d, dep, u, a.name AS ActionName, COUNT(*) AS FindingCount, 
+              COUNT(DISTINCT a) AS ActionCount, o.value AS OutcomeName, COUNT(DISTINCT o) AS OutcomeCount, a.actionStatus as actionstatus
+
+            WITH d, u, dep, 
+              collect([FindingName, FindingCount]) AS FindingPairs, 
+              collect([ActionName, ActionCount]) AS ActionPairs, 
+              collect([OutcomeName, OutcomeCount]) AS OutcomePairs,
+              collect(actionstatus) as actionstatus
+            CALL {
+              WITH FindingPairs
+              RETURN apoc.map.fromPairs(FindingPairs) AS FindingLists, 
+                    REDUCE(sumF = 0, pair IN FindingPairs | sumF + pair[1]) AS TotalFindings
+            }
+            CALL {
+              WITH ActionPairs
+              RETURN apoc.map.fromPairs(ActionPairs) AS actionResults
+            }
+            CALL {
+              WITH OutcomePairs
+              RETURN apoc.map.fromPairs(OutcomePairs) AS actionOutcomes
+            }
+            CALL {
+              with actionstatus
+              RETURN {
+                pending: count(CASE WHEN NOT actionstatus = 'COMPLETED' THEN actionstatus END),
+                actioned: count(CASE WHEN actionstatus = 'COMPLETED' THEN actionstatus END)
+              } AS reviewStatus
+            }
+            RETURN 
+              d.deviceName AS DeviceName,
+              d.id as DeviceId,
+              TotalFindings AS NoOfFinding,
+              FindingLists,
+              u.displayName AS DeviceBelongTo,
+              collect(DISTINCT dep.id) AS DeviceDepartment,
+              collect(DISTINCT u.profilePicUrl) AS UserIcon, 
+              actionResults, 
+              actionOutcomes,
+              reviewStatus"
+    allowed_params: true
+    input_params:
+      behavior: $behavior
+      department: AND toLower(dep.id) IN [ x IN [$department] | toLower(x) ]
+      finding: AND toLower(f.name) IN [ x IN [$finding] | toLower(x) ]
+      device: AND d.deviceName IN [ x IN [$device] | x ]
+      user: AND toLower(u.displayName) IN [ x IN [$user] | toLower(x) ]
+      operating_system: AND toLower(f.osName) IN [ x IN [$operating_system] | toLower(x) ]
+      source: AND toLower(d.vendor) IN [ x IN [$source] | toLower(x) ]
+    multi_value_params:
+      - id: behavior
+        delimiter: ","
+      - id: department
+        delimiter: ","
+      - id: finding
+        delimiter: ","
+      - id: device
+        delimiter: ","
+      - id: user
+        delimiter: ","
+      - id: operating_system
+        delimiter: ","
+      - id: source
+        delimiter: ","
+    dataSourceType: "knowledgegraph"
+    pagination_query: "MATCH (f:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(r:RULE)-[]-(b:BEHAVIOR { id: $behavior })
+                       MATCH (f)-[]-(d:DEVICE)
+                       OPTIONAL MATCH (d)-[]-(f)-[]-(a:ACTION)
+                       OPTIONAL MATCH (d)-[]-(u:USER)
+                       OPTIONAL MATCH (u)-[]-(dep:DEPARTMENT)
+                       OPTIONAL MATCH (a)-[]-(o:OUTCOME)
+
+                       WITH DISTINCT f, d, dep, u, a, o  
+
+                       WHERE toLower(COALESCE(u.displayName, '')) + ' / ' + toLower(COALESCE(d.deviceName, '')) CONTAINS toLower('{searchText}')
+                       {placeholder}
+
+                       WITH f.name AS FindingName, d, dep, u, a.name AS ActionName, COUNT(*) AS FindingCount, 
+                       COUNT(DISTINCT a) AS ActionCount, o.value AS OutcomeName, COUNT(DISTINCT o) AS OutcomeCount, a.actionStatus as actionstatus
+
+                       WITH DISTINCT d
+                       RETURN count(d) AS totalCount"
+  - id: BID_103
+    name: "Overprivilege Accounts"
+    type: widget
+    active: true
+    defaultValue: null
+    queryFilters: []
+    className: ""
+    query: "MATCH (f:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(r:RULE)-[]-(b:BEHAVIOR { id: $behavior })
+            MATCH (f)-[]-(d:DEVICE)
+            OPTIONAL MATCH (d)-[]-(f)-[]-(a:ACTION)
+            OPTIONAL MATCH (d)-[]-(u:USER)
+            OPTIONAL MATCH (u)-[]-(dep:DEPARTMENT)
+            OPTIONAL MATCH (a)-[]-(o:OUTCOME)
+            WITH DISTINCT f, d, dep, u, a, o  
+
+            WHERE toLower(COALESCE(u.displayName, '')) + ' / ' + toLower(COALESCE(d.deviceName, '')) CONTAINS toLower('{searchText}')
+            {placeholder}
+
+            WITH f.name AS FindingName, d, dep, u, a.name AS ActionName, COUNT(*) AS FindingCount, 
+              COUNT(DISTINCT a) AS ActionCount, o.value AS OutcomeName, COUNT(DISTINCT o) AS OutcomeCount, a.actionStatus as actionstatus
+
+            WITH d, u, dep, 
+              collect([FindingName, FindingCount]) AS FindingPairs, 
+              collect([ActionName, ActionCount]) AS ActionPairs, 
+              collect([OutcomeName, OutcomeCount]) AS OutcomePairs,
+              collect(actionstatus) as actionstatus
+            CALL {
+              WITH FindingPairs
+              RETURN apoc.map.fromPairs(FindingPairs) AS FindingLists, 
+                    REDUCE(sumF = 0, pair IN FindingPairs | sumF + pair[1]) AS TotalFindings
+            }
+            CALL {
+              WITH ActionPairs
+              RETURN apoc.map.fromPairs(ActionPairs) AS actionResults
+            }
+            CALL {
+              WITH OutcomePairs
+              RETURN apoc.map.fromPairs(OutcomePairs) AS actionOutcomes
+            }
+            CALL {
+              with actionstatus
+              RETURN {
+                pending: count(CASE WHEN NOT actionstatus = 'COMPLETED' THEN actionstatus END),
+                actioned: count(CASE WHEN actionstatus = 'COMPLETED' THEN actionstatus END)
+              } AS reviewStatus
+            }
+            RETURN 
+              d.deviceName AS DeviceName,
+              d.id as DeviceId,
+              TotalFindings AS NoOfFinding,
+              FindingLists,
+              u.displayName AS DeviceBelongTo,
+              collect(DISTINCT dep.id) AS DeviceDepartment,
+              collect(DISTINCT u.profilePicUrl) AS UserIcon, 
+              actionResults, 
+              actionOutcomes,
+              reviewStatus"
+    allowed_params: true
+    input_params:
+      behavior: $behavior
+      department: AND toLower(dep.id) IN [ x IN [$department] | toLower(x) ]
+      finding: AND toLower(f.name) IN [ x IN [$finding] | toLower(x) ]
+      device: AND d.deviceName IN [ x IN [$device] | x ]
+      user: AND toLower(u.displayName) IN [ x IN [$user] | toLower(x) ]
+      operating_system: AND toLower(f.osName) IN [ x IN [$operating_system] | toLower(x) ]
+      source: AND toLower(d.vendor) IN [ x IN [$source] | toLower(x) ]
+    multi_value_params:
+      - id: behavior
+        delimiter: ","
+      - id: department
+        delimiter: ","
+      - id: finding
+        delimiter: ","
+      - id: device
+        delimiter: ","
+      - id: user
+        delimiter: ","
+      - id: operating_system
+        delimiter: ","
+      - id: source
+        delimiter: ","
+    dataSourceType: "knowledgegraph"
+    pagination_query: "MATCH (f:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(r:RULE)-[]-(b:BEHAVIOR { id: $behavior })
+                       MATCH (f)-[]-(d:DEVICE)
+                       OPTIONAL MATCH (d)-[]-(f)-[]-(a:ACTION)
+                       OPTIONAL MATCH (d)-[]-(u:USER)
+                       OPTIONAL MATCH (u)-[]-(dep:DEPARTMENT)
+                       OPTIONAL MATCH (a)-[]-(o:OUTCOME)
+
+                       WITH DISTINCT f, d, dep, u, a, o  
+
+                       WHERE toLower(COALESCE(u.displayName, '')) + ' / ' + toLower(COALESCE(d.deviceName, '')) CONTAINS toLower('{searchText}')
+                       {placeholder}
+
+                       WITH f.name AS FindingName, d, dep, u, a.name AS ActionName, COUNT(*) AS FindingCount, 
+                       COUNT(DISTINCT a) AS ActionCount, o.value AS OutcomeName, COUNT(DISTINCT o) AS OutcomeCount, a.actionStatus as actionstatus
+
+                       WITH DISTINCT d
+                       RETURN count(d) AS totalCount"
+  - id: BID_102
+    name: "Unpatched Systems"
+    type: widget
+    active: true
+    defaultValue: null
+    queryFilters: []
+    className: ""
+    query: "MATCH (f:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(r:RULE)-[]-(b:BEHAVIOR { id: $behavior })
+            MATCH (f)-[]-(d:DEVICE)
+            OPTIONAL MATCH (d)-[]-(f)-[]-(a:ACTION)
+            OPTIONAL MATCH (d)-[]-(u:USER)
+            OPTIONAL MATCH (u)-[]-(dep:DEPARTMENT)
+            OPTIONAL MATCH (a)-[]-(o:OUTCOME)
+            WITH DISTINCT f, d, dep, u, a, o  
+
+            WHERE toLower(COALESCE(u.displayName, '')) + ' / ' + toLower(COALESCE(d.deviceName, '')) CONTAINS toLower('{searchText}')
+            {placeholder}
+
+            WITH f.name AS FindingName, d, dep, u, a.name AS ActionName, COUNT(*) AS FindingCount, 
+              COUNT(DISTINCT a) AS ActionCount, o.value AS OutcomeName, COUNT(DISTINCT o) AS OutcomeCount, a.actionStatus as actionstatus
+
+            WITH d, u, dep, 
+              collect([FindingName, FindingCount]) AS FindingPairs, 
+              collect([ActionName, ActionCount]) AS ActionPairs, 
+              collect([OutcomeName, OutcomeCount]) AS OutcomePairs,
+              collect(actionstatus) as actionstatus
+            CALL {
+              WITH FindingPairs
+              RETURN apoc.map.fromPairs(FindingPairs) AS FindingLists, 
+                    REDUCE(sumF = 0, pair IN FindingPairs | sumF + pair[1]) AS TotalFindings
+            }
+            CALL {
+              WITH ActionPairs
+              RETURN apoc.map.fromPairs(ActionPairs) AS actionResults
+            }
+            CALL {
+              WITH OutcomePairs
+              RETURN apoc.map.fromPairs(OutcomePairs) AS actionOutcomes
+            }
+            CALL {
+              with actionstatus
+              RETURN {
+                pending: count(CASE WHEN NOT actionstatus = 'COMPLETED' THEN actionstatus END),
+                actioned: count(CASE WHEN actionstatus = 'COMPLETED' THEN actionstatus END)
+              } AS reviewStatus
+            }
+            RETURN 
+              d.deviceName AS DeviceName,
+              d.id as DeviceId,
+              TotalFindings AS NoOfFinding,
+              FindingLists,
+              u.displayName AS DeviceBelongTo,
+              collect(DISTINCT dep.id) AS DeviceDepartment,
+              collect(DISTINCT u.profilePicUrl) AS UserIcon, 
+              actionResults, 
+              actionOutcomes,
+              reviewStatus"
+    allowed_params: true
+    input_params:
+      behavior: $behavior
+      department: AND toLower(dep.id) IN [ x IN [$department] | toLower(x) ]
+      finding: AND toLower(f.name) IN [ x IN [$finding] | toLower(x) ]
+      device: AND d.deviceName IN [ x IN [$device] | x ]
+      user: AND toLower(u.displayName) IN [ x IN [$user] | toLower(x) ]
+      operating_system: AND toLower(f.osName) IN [ x IN [$operating_system] | toLower(x) ]
+      source: AND toLower(d.vendor) IN [ x IN [$source] | toLower(x) ]
+    multi_value_params:
+      - id: behavior
+        delimiter: ","
+      - id: department
+        delimiter: ","
+      - id: finding
+        delimiter: ","
+      - id: device
+        delimiter: ","
+      - id: user
+        delimiter: ","
+      - id: operating_system
+        delimiter: ","
+      - id: source
+        delimiter: ","
+    dataSourceType: "knowledgegraph"
+    pagination_query: "MATCH (f:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(r:RULE)-[]-(b:BEHAVIOR { id: $behavior })
+                       MATCH (f)-[]-(d:DEVICE)
+                       OPTIONAL MATCH (d)-[]-(f)-[]-(a:ACTION)
+                       OPTIONAL MATCH (d)-[]-(u:USER)
+                       OPTIONAL MATCH (u)-[]-(dep:DEPARTMENT)
+                       OPTIONAL MATCH (a)-[]-(o:OUTCOME)
+
+                       WITH DISTINCT f, d, dep, u, a, o  
+
+                       WHERE toLower(COALESCE(u.displayName, '')) + ' / ' + toLower(COALESCE(d.deviceName, '')) CONTAINS toLower('{searchText}')
+                       {placeholder}
+
+                       WITH f.name AS FindingName, d, dep, u, a.name AS ActionName, COUNT(*) AS FindingCount, 
+                       COUNT(DISTINCT a) AS ActionCount, o.value AS OutcomeName, COUNT(DISTINCT o) AS OutcomeCount, a.actionStatus as actionstatus
+
+                       WITH DISTINCT d
+                       RETURN count(d) AS totalCount"
+  - id: BID_101 
+    name: "Unprotected Devices or Assets"
+    type: widget
+    active: true
+    defaultValue: null
+    queryFilters: []
+    className: ""
+    query: "MATCH (f:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(r:RULE)-[]-(b:BEHAVIOR { id: $behavior })
+            MATCH (f)-[]-(d:DEVICE)
+            OPTIONAL MATCH (d)-[]-(f)-[]-(a:ACTION)
+            OPTIONAL MATCH (d)-[]-(u:USER)
+            OPTIONAL MATCH (u)-[]-(dep:DEPARTMENT)
+            OPTIONAL MATCH (a)-[]-(o:OUTCOME)
+            WITH DISTINCT f, d, dep, u, a, o  
+
+            WHERE toLower(COALESCE(u.displayName, '')) + ' / ' + toLower(COALESCE(d.deviceName, '')) CONTAINS toLower('{searchText}')
+            {placeholder}
+
+            WITH f.name AS FindingName, d, dep, u, a.name AS ActionName, COUNT(*) AS FindingCount, 
+              COUNT(DISTINCT a) AS ActionCount, o.value AS OutcomeName, COUNT(DISTINCT o) AS OutcomeCount, a.actionStatus as actionstatus
+
+            WITH d, u, dep, 
+              collect([FindingName, FindingCount]) AS FindingPairs, 
+              collect([ActionName, ActionCount]) AS ActionPairs, 
+              collect([OutcomeName, OutcomeCount]) AS OutcomePairs,
+              collect(actionstatus) as actionstatus
+            CALL {
+              WITH FindingPairs
+              RETURN apoc.map.fromPairs(FindingPairs) AS FindingLists, 
+                    REDUCE(sumF = 0, pair IN FindingPairs | sumF + pair[1]) AS TotalFindings
+            }
+            CALL {
+              WITH ActionPairs
+              RETURN apoc.map.fromPairs(ActionPairs) AS actionResults
+            }
+            CALL {
+              WITH OutcomePairs
+              RETURN apoc.map.fromPairs(OutcomePairs) AS actionOutcomes
+            }
+            CALL {
+              with actionstatus
+              RETURN {
+                pending: count(CASE WHEN NOT actionstatus = 'COMPLETED' THEN actionstatus END),
+                actioned: count(CASE WHEN actionstatus = 'COMPLETED' THEN actionstatus END)
+              } AS reviewStatus
+            }
+            RETURN 
+              d.deviceName AS DeviceName,
+              d.id as DeviceId,
+              TotalFindings AS NoOfFinding,
+              FindingLists,
+              u.displayName AS DeviceBelongTo,
+              collect(DISTINCT dep.id) AS DeviceDepartment,
+              collect(DISTINCT u.profilePicUrl) AS UserIcon, 
+              actionResults, 
+              actionOutcomes,
+              reviewStatus"
+    allowed_params: true
+    input_params:
+      behavior: $behavior
+      department: AND toLower(dep.id) IN [ x IN [$department] | toLower(x) ]
+      finding: AND toLower(f.name) IN [ x IN [$finding] | toLower(x) ]
+      device: AND d.deviceName IN [ x IN [$device] | x ]
+      user: AND toLower(u.displayName) IN [ x IN [$user] | toLower(x) ]
+      operating_system: AND toLower(f.osName) IN [ x IN [$operating_system] | toLower(x) ]
+      source: AND toLower(d.vendor) IN [ x IN [$source] | toLower(x) ]
+    multi_value_params:
+      - id: behavior
+        delimiter: ","
+      - id: department
+        delimiter: ","
+      - id: finding
+        delimiter: ","
+      - id: device
+        delimiter: ","
+      - id: user
+        delimiter: ","
+      - id: operating_system
+        delimiter: ","
+      - id: source
+        delimiter: ","
+    dataSourceType: "knowledgegraph"
+    pagination_query: "MATCH (f:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(r:RULE)-[]-(b:BEHAVIOR { id: $behavior })
+                       MATCH (f)-[]-(d:DEVICE)
+                       OPTIONAL MATCH (d)-[]-(f)-[]-(a:ACTION)
+                       OPTIONAL MATCH (d)-[]-(u:USER)
+                       OPTIONAL MATCH (u)-[]-(dep:DEPARTMENT)
+                       OPTIONAL MATCH (a)-[]-(o:OUTCOME)
+
+                       WITH DISTINCT f, d, dep, u, a, o  
+
+                       WHERE toLower(COALESCE(u.displayName, '')) + ' / ' + toLower(COALESCE(d.deviceName, '')) CONTAINS toLower('{searchText}')
+                       {placeholder}
+
+                       WITH f.name AS FindingName, d, dep, u, a.name AS ActionName, COUNT(*) AS FindingCount, 
+                       COUNT(DISTINCT a) AS ActionCount, o.value AS OutcomeName, COUNT(DISTINCT o) AS OutcomeCount, a.actionStatus as actionstatus
+
+                       WITH DISTINCT d
+                       RETURN count(d) AS totalCount"
+table_filters:
+  - id: department
+    name: Department
+    defaultValue: OPTIONAL MATCH (u)-[]-(dep:DEPARTMENT)
+    active: true
+    view_by:
+      - BID_101
+      - BID_102
+      - BID_103
+      - BID_104
+      - BID_105
+    optional: false
+    defaultOptions: []
+    type: multiselect
+    allowed_params: false
+    dataSourceType: knowledgegraph
+    input_params: null
+    query: "match(d:DEPARTMENT {subscriber: $subscriber, tenant: $tenant}) 
+            return DISTINCT d.id AS id, d.name AS value , d.name AS label"
+  - id: finding
+    name: Finding
+    defaultValue:
+    active: true
+    view_by:
+      - BID_101
+      - BID_102
+      - BID_103
+      - BID_104
+      - BID_105
+    optional: false
+    defaultOptions: []
+    type: multiselect
+    allowed_params: false
+    dataSourceType: knowledgegraph
+    input_params: null
+    query: "match (f:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(d:DEVICE) return DISTINCT f.name as value, f.name as label, f.name as id"
+  - id: device
+    name: Device
+    defaultValue:
+    active: true
+    view_by:
+      - BID_101
+      - BID_102
+      - BID_103
+      - BID_104
+      - BID_105
+    optional: false
+    defaultOptions: []
+    type: multiselect
+    allowed_params: false
+    dataSourceType: knowledgegraph
+    input_params: null
+    query: "MATCH (d:DEVICE {subscriber: $subscriber, tenant: $tenant})-[]-(f:FINDING) RETURN DISTINCT d.deviceName AS value, d.deviceName AS label, d.deviceName as id"
+  - id: user
+    name: User
+    defaultValue:
+    active: true
+    view_by:
+      - BID_101
+      - BID_102
+      - BID_103
+      - BID_104
+      - BID_105
+    optional: false
+    defaultOptions: []
+    type: multiselect
+    allowed_params: false
+    dataSourceType: knowledgegraph
+    input_params: null
+    query: "match (d:DEVICE {subscriber: $subscriber, tenant: $tenant})-[]-(u:USER)
+            match (d)-[]-(f:FINDING)
+            RETURN DISTINCT u.displayName AS value, u.displayName AS label, u.id AS id"
+  - id: operating_system
+    name: Operating System
+    defaultValue: 
+    active: true
+    view_by:
+      - BID_101
+      - BID_102
+      - BID_103
+      - BID_104
+      - BID_105
+    optional: false
+    defaultOptions: []
+    type: single
+    allowed_params: false
+    dataSourceType: knowledgegraph
+    input_params: null
+    query: "MATCH (d:DEVICE {subscriber: $subscriber, tenant: $tenant})-[]-(f:FINDING)
+            where d.osName is not null
+            RETURN DISTINCT d.osName AS value, d.osName AS label, d.osName as id"
+  - id: source
+    name: Source
+    defaultValue:
+    active: true
+    view_by:
+      - BID_101
+      - BID_102
+      - BID_103
+      - BID_104
+      - BID_105
+    optional: false
+    defaultOptions: []
+    type: single
+    allowed_params: false
+    dataSourceType: knowledgegraph
+    input_params: null
+    query: "MATCH (d:DEVICE {subscriber: $subscriber, tenant: $tenant})-[]-(f:FINDING)
+            where d.vendor is not null
+            RETURN DISTINCT d.vendor AS value, d.vendor AS label, d.vendor as id"
+widgets:
+  - id: workstation_risk
+    name: Devices at Risk
+    label: Widget
+    template: identity_risk
+    enabled: true
+    type: pie_chart
+    widget_type: insights_widget
+    dataSourceType: knowledgegraph
+    allowed_params: true
+    className: col-span-1
+    query_id: ""
+    input_params:
+      endtime: $endtime
+      posture: $posture
+    queryFilters:
+    query: "MATCH (d:DEVICE {subscriber: $subscriber, tenant: $tenant})
+            WITH COUNT(d) AS totalDevices
+            MATCH (rd:DEVICE)-[:HAS_FINDING]->(f:FINDING)
+            RETURN totalDevices, COUNT(DISTINCT rd) AS devicesWithFindings"
+  - id: workstation_metrics
+    name: ""
+    label: Widget
+    template: "detailed_chart"
+    enabled: true
+    type: detailed
+    widget_type: insights_widget
+    dataSourceType: knowledgegraph
+    allowed_params: true
+    className: col-span-1
+    query_id: ""
+    dataLabels:
+      - isDetail: true
+        label: "No of Devices"
+        dataIndex: "no_of_devices"
+      - isDetail: true
+        label: "No of Risky Devices"
+        dataIndex: "risky_devices"
+    input_params:
+      endtime: $endtime
+    queryFilters:
+    query:
+      "MATCH (d:DEVICE {subscriber: $subscriber, tenant: $tenant})
+            WITH COUNT(d) AS no_of_devices
+            OPTIONAL MATCH (rd:DEVICE)-[:HAS_FINDING]->(f:FINDING)
+            RETURN no_of_devices, COUNT(DISTINCT rd) AS risky_devices"
+  - id: finding_by_behavior
+    name: "Findings by Device Risks"
+    label: "Widget"
+    template: "findingByBehavior"
+    type: "bar_distribution"
+    widget_type: insights_widget
+    query_id: ""
+    enabled: true
+    queryFilters: []
+    className: ""
+    query: "MATCH (p:POSTURE {id:$posture})-[]-(b:BEHAVIOR)
+            WITH b
+            MATCH (f:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(r:RULE)-[]-(b)
+            WITH b, COUNT(f) AS findings
+            RETURN b.name AS name, findings"
+    allowed_params: true
+    input_params: 
+      posture: $posture
+    dataSourceType: "knowledgegraph"
+  - id: finding_by_vendor
+    name: "Findings by Vendor"
+    label: "Widget"
+    template: "findingByVendor"
+    type: "bar_distribution"
+    widget_type: insights_widget
+    query_id: ""
+    enabled: true
+    queryFilters: []
+    className: ""
+    query: "MATCH (d:DEVICE)-[]-(f:FINDING {subscriber: $subscriber, tenant: $tenant})-[]-(r:RULE)-[]-(b:BEHAVIOR)-[]-(p:POSTURE {id:$posture})
+            RETURN distinct d.vendor AS name, count(distinct f.name) as findings"
+    allowed_params: true
+    input_params: 
+      posture: $posture
+    dataSourceType: "knowledgegraph"
+  - id: BID_105
+    name: "Improperly Configured Devices"
+    label: "Widget"
+    template: ""
+    widget_type: behavior_widget
+    type: behavior_widget
+    query_id: ""
+    enabled: true
+    queryFilters: []
+    className: ""
+    query: "MATCH (d:DEVICE)-[:HAS_FINDING]-(f:FINDING {subscriber: $subscriber, tenant: $tenant})<-[:EVALUATED_TO]-(r:RULE)-[:BELONGS_TO]->(b:BEHAVIOR { id: $behavior })
+            OPTIONAL MATCH (f)-[:TRIGGERED]-(a:ACTION)
+            RETURN 
+                count(distinct d.deviceName) AS total, 
+                count(CASE WHEN NOT a.actionStatus= 'COMPLETED' then a end) AS pending,
+                count(CASE WHEN a.actionStatus= 'COMPLETED' then a end) AS actioned"
+    allowed_params: true
+    input_params:
+      behavior: $behavior
+    dataSourceType: "knowledgegraph"
+  - id: BID_104
+    name: "Misconfigured Devices Network"
+    label: "Widget"
+    template: ""
+    widget_type: behavior_widget
+    type: behavior_widget
+    query_id: ""
+    enabled: true
+    queryFilters: []
+    className: ""
+    query: "MATCH (d:DEVICE)-[:HAS_FINDING]-(f:FINDING {subscriber: $subscriber, tenant: $tenant})<-[:EVALUATED_TO]-(r:RULE)-[:BELONGS_TO]->(b:BEHAVIOR { id: $behavior })
+            OPTIONAL MATCH (f)-[:TRIGGERED]-(a:ACTION)
+            RETURN 
+                count(distinct d.deviceName) AS total, 
+                count(CASE WHEN NOT a.actionStatus= 'COMPLETED' then a end) AS pending,
+                count(CASE WHEN a.actionStatus= 'COMPLETED' then a end) AS actioned"
+    allowed_params: true
+    input_params:
+      behavior: $behavior
+    dataSourceType: "knowledgegraph"
+  - id: BID_103
+    name: "Overprivilege Accounts"
+    label: "Widget"
+    template: ""
+    widget_type: behavior_widget
+    type: behavior_widget
+    query_id: ""
+    enabled: true
+    queryFilters: []
+    className: ""
+    query: "MATCH (d:DEVICE)-[:HAS_FINDING]-(f:FINDING {subscriber: $subscriber, tenant: $tenant})<-[:EVALUATED_TO]-(r:RULE)-[:BELONGS_TO]->(b:BEHAVIOR { id: $behavior })
+            OPTIONAL MATCH (f)-[:TRIGGERED]-(a:ACTION)
+            RETURN 
+                count(distinct d.deviceName) AS total, 
+                count(CASE WHEN NOT a.actionStatus= 'COMPLETED' then a end) AS pending,
+                count(CASE WHEN a.actionStatus= 'COMPLETED' then a end) AS actioned"
+    allowed_params: true
+    input_params:
+      behavior: $behavior
+    dataSourceType: "knowledgegraph"
+  - id: BID_102
+    name: "Unpatched Systems"
+    label: "Widget"
+    template: ""
+    widget_type: behavior_widget
+    type: behavior_widget
+    query_id: ""
+    enabled: true
+    queryFilters: []
+    className: ""
+    query: "MATCH (d:DEVICE)-[:HAS_FINDING]-(f:FINDING {subscriber: $subscriber, tenant: $tenant})<-[:EVALUATED_TO]-(r:RULE)-[:BELONGS_TO]->(b:BEHAVIOR { id: $behavior })
+            OPTIONAL MATCH (f)-[:TRIGGERED]-(a:ACTION)
+            RETURN 
+                count(distinct d.deviceName) AS total, 
+                count(CASE WHEN NOT a.actionStatus= 'COMPLETED' then a end) AS pending,
+                count(CASE WHEN a.actionStatus= 'COMPLETED' then a end) AS actioned"
+    allowed_params: true
+    input_params:
+      behavior: $behavior
+    dataSourceType: "knowledgegraph"
+  - id: BID_101
+    name: "Unprotected Devices or Assets"
+    label: "Widget"
+    template: ""
+    widget_type: behavior_widget
+    type: behavior_widget
+    query_id: ""
+    enabled: true
+    queryFilters: []
+    className: ""
+    query: "MATCH (d:DEVICE)-[:HAS_FINDING]-(f:FINDING {subscriber: $subscriber, tenant: $tenant})<-[:EVALUATED_TO]-(r:RULE)-[:BELONGS_TO]->(b:BEHAVIOR { id: $behavior })
+            OPTIONAL MATCH (f)-[:TRIGGERED]-(a:ACTION)
+            RETURN 
+                count(distinct d.deviceName) AS total, 
+                count(CASE WHEN NOT a.actionStatus= 'COMPLETED' then a end) AS pending,
+                count(CASE WHEN a.actionStatus= 'COMPLETED' then a end) AS actioned"
+    allowed_params: true
+    input_params:
+      behavior: $behavior
+    dataSourceType: "knowledgegraph"
+  - id: device_detailed
+    name: "Finding Details"
+    label: Widget
+    template: this_template
+    enabled: true
+    type: drilldown_widget
+    widget_type: drilldown_widget
+    dataSourceType: knowledgegraph
+    allowed_params: true
+    className: col-span-1
+    query_id: ""
+    input_params:
+      endtime: $endtime
+      behavior: $behavior
+      deviceName: $deviceName
+    queryFilters: []
+    query: "MATCH (d:DEVICE {deviceName: $deviceName})-[]-(f:FINDING {subscriber: $subscriber, tenant: $tenant})<-[:EVALUATED_TO]-(r:RULE)-[:BELONGS_TO]->(b:BEHAVIOR {id: $behavior})
+      OPTIONAL MATCH (d)-[:OWNS_DEVICE]->(u:USER)
+      OPTIONAL MATCH (u)-[:HAS_DEPARTMENT]->(dep:DEPARTMENT)
+      WITH d, u, dep, COLLECT(DISTINCT f) AS allFindings
+      WITH {
+        DeviceName: d.deviceName,
+        OwnedBy: u.displayName,
+        Department: dep.id,
+        CompliantStatus: d.complianceState,
+        lastSyncTime: d.lastSyncDatetime,
+        resgistrationStatus: d.registrationState,
+        operatingSystem: d.osName,
+        osVersion: d.osVersion,
+        physicalMemoryInBytes: d.physicalMemory,
+        freeStorageSpaceInBytes: d.freeStorage,
+        enrolledDateTime: d.enrollmentDatetime,
+        isEncrypted: d.encrypted,
+        malwareProtectionEnabled: d.malwareProtectionEnabled,
+        realTimeProtectionEnabled: d.realTimeProtectionEnabled,
+        rebootRequired: d.rebootRequired,
+        signatureUpdateOverdue: d.signatureUpdateEnabled,
+        fullScanOverdue: d.fullScanEnabled,
+        antiMalwareVersion: d.antiMalwareVersion,
+        isVirtualMachine: d.isVirtualMachine,
+        tamperProtectionEnabled: d.tamperProtectionEnabled
+      } AS devicedetails, allFindings
+      CALL (allFindings) {
+        UNWIND allFindings AS f
+        OPTIONAL MATCH (f)-[:TRIGGERED]->(a:ACTION)
+        OPTIONAL MATCH (a)-[:RESULTED_IN]->(o:OUTCOME)
+        WITH f, a, o,
+            CASE WHEN a.actionStatus='COMPLETED' THEN COALESCE(a.name) ELSE NULL END AS actionName,
+            o.value AS outcomeName
+        WITH f, actionName, COUNT(DISTINCT a.id) AS actionCount,
+            COLLECT({ name: outcomeName, id: o.id }) AS outcomeList
+        WITH f, actionName, actionCount,
+            REDUCE(
+              acc = {},
+              item IN outcomeList |
+              CASE WHEN item.name IS NOT null
+                    THEN apoc.map.setKey(acc, item.name, COALESCE(acc[item.name], 0) + 1)
+                    ELSE acc
+              END
+            ) AS outcomeMap
+        WHERE f.generationTime IS NOT NULL
+        WITH f, apoc.map.fromPairs(COLLECT(DISTINCT [actionName, actionCount])) AS partialActionTracker,
+            apoc.map.fromPairs(COLLECT(DISTINCT [actionName, outcomeMap])) AS partialActionOutcomes,
+            date(datetime({epochMillis: toInteger(f.generationTime)})) AS generationDate
+        OPTIONAL MATCH (f)-[:TRIGGERED]->(a2:ACTION)
+        WITH generationDate, partialActionTracker, partialActionOutcomes,
+            COUNT(CASE WHEN a2.actionStatus <> 'COMPLETED' THEN a2 END) AS pCount,
+            COUNT(CASE WHEN a2.actionStatus  = 'COMPLETED' THEN a2 END) AS cCount,
+            f
+        WITH generationDate,
+            COLLECT(DISTINCT partialActionTracker) AS partialTrackers,
+            COLLECT(DISTINCT partialActionOutcomes) AS partialOutcomes,
+            SUM(pCount) AS dailyPendingCount,
+            SUM(cCount) AS dailyActionedCount,
+            COUNT(DISTINCT f) AS dailyFindingCount
+        RETURN
+          apoc.map.mergeList(partialTrackers) AS actionTracker,
+          apoc.map.mergeList(partialOutcomes) AS actionOutcomes,
+          SUM(dailyPendingCount) AS pendingCount,
+          SUM(dailyActionedCount) AS actionedCount,
+          apoc.coll.sortMaps(
+            COLLECT({
+              date: generationDate,
+              count: dailyFindingCount
+            }),
+            'date'
+          ) AS findingGraph
+      }
+      RETURN
+        devicedetails,
+        apoc.coll.flatten(COLLECT(actionTracker)) as actionTracker,
+        apoc.coll.flatten(COLLECT(actionOutcomes)) as actionOutcomes,
+        apoc.coll.flatten(COLLECT(findingGraph)) as findingGraph,
+        sum(pendingCount) as pendingcount,
+        sum(actionedCount) as actionedCount"
+table_render:
+  insights:
+    queries:
+      - id: "finding_by_behavior"
+        queryParam: posture
+        paramValue: posture
+        defaultValue: "PID_05" 
+      - id: "finding_by_vendor"
+        queryParam: posture
+        paramValue: posture
+        defaultValue: "PID_05"
+  table_additional_data:
+    no_hover: true
+    row_border: true
+    alternate_row_colors: true
+    no_table_padding: true
+    table_heading_bg: bg-dark-300
+    table_filters_wrapper_class: grid grid-cols-12
+    no_calendar: true
+    no_drilldown: true
+  table_filters:
+  table:
+  unapproved_ai_applications:
+  ai_applications_with_risky_oauth_scopes:
+  newly_introduced_ai_users:
+  users_leaking_sensitive_data:
+pagination_query:
+  query: ""
+  dataSourceType: knowledgegraph
+table_widget: []

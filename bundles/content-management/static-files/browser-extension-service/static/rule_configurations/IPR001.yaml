@@ -1,0 +1,50 @@
+datatype: DICT
+defaultValue:
+  name: Intellectual Property
+  description: Valuable creative or innovative content providing competitive advantage
+  criticality: HIGH
+  sensitivity: Sensitive
+  examples:
+    - Unpublished Patent Application Details
+    - Trade Secret Formulations or Processes
+    - Proprietary Research Methodologies
+    - Unreleased Product Designs
+    - Novel Algorithm Descriptions
+  indicators:
+    - Presence of unique inventions or innovations
+    - Detailed technical or creative content
+    - Information on undisclosed products or services
+    - Proprietary methodologies or processes
+  contentMarkers:
+    - Technical jargon specific to field of invention
+    - Patent-related terminology
+    - Detailed schematics or formulas
+    - Confidentiality notices related to IP
+  impactSummary: >-
+    Loss of competitive advantage; potential financial damage; undermined research
+    and development efforts
+  classificationRules:
+    positive: >-
+      Contains detailed descriptions of novel inventions; proprietary processes;
+      unreleased creative works
+    negative: >-
+      General technical information; publicly available patents; common industry
+      practices
+    resolution: >-
+      Evaluate the novelty, potential commercial value, and level of detail in the
+      information
+  relatedClasses:
+    - SRC001
+    - BCI001
+    - RES001
+    - OPS001
+entityDescription: |-
+  Data Definition to classify and extract Intellectual Property from text
+entityId: IPR001
+entityMeta:
+  category: Data Protection Rule
+  source: default
+entityName: Intellectual Property
+entityType: dlp_rule
+isDisabled: false
+isModifiable: true

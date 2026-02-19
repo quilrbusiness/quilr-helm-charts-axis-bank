@@ -1,0 +1,14 @@
+type: message
+content:
+  header: Data Transfer Blocked!
+  justification_list: []
+  acknowledgedButtons: []
+  title: |
+    Your company's security policy does not allow copying data from this app
+    <br />If you believe this is an error, contact your Security Team for assistance.
+  description: '*Specify business justification?*'
+channel: Browser
+rendered_content_type: application/json
+name: Block copying data
+is_active: true
+

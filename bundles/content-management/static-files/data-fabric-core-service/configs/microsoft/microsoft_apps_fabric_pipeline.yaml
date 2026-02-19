@@ -1,0 +1,477 @@
+id: 95dbc667-23eb-4112-970c-7e58f0d98099
+name: graph-api-apps-data
+type: fabric
+version: 1.0.1
+trail:
+  block: start
+  dependson: [ ]
+  attempt:
+    - block: retrieve_token_from_vault
+      dependson: [ ]
+      attempt:
+        - block: update_completion_to_10
+          dependson:
+            - retrieve_token_from_vault
+          attempt: [ ]
+          otherwise: [ ]
+          start: false
+          end: false
+        - block: list_users
+          dependson: [ ]
+          attempt:
+            - block: get_mfa_data
+              dependson: [ ]
+              attempt: [ ]
+              otherwise: [ ]
+              start: false
+              end: false
+          otherwise: [ ]
+          start: false
+          end: false
+        - block: list_servicePrincipals
+          dependson: [ ]
+          attempt:
+            - block: update_completion_to_20
+              dependson: [ ]
+              attempt: [ ]
+              otherwise: [ ]
+              start: false
+              end: false
+            - block: get_app_users
+              dependson: [ ]
+              attempt:
+                - block: update_completion_to_30
+                  dependson: [ ]
+                  attempt: [ ]
+                  otherwise: [ ]
+                  start: false
+                  end: false
+                - block: merge_users_mfa_data
+                  dependson:
+                    - get_mfa_data
+                  attempt: [ ]
+                  otherwise: [ ]
+                  start: false
+                  end: false
+                - block: get_app_owners
+                  dependson: [ ]
+                  attempt:
+                    - block: update_completion_to_40
+                      dependson: [ ]
+                      attempt: [ ]
+                      otherwise: [ ]
+                      start: false
+                      end: false
+                    - block: merge_owners_mfa_data
+                      dependson:
+                        - get_mfa_data
+                      attempt: [ ]
+                      otherwise: [ ]
+                      start: false
+                      end: false
+                    - block: get_app_grants
+                      dependson: [ ]
+                      attempt:
+                        - block: update_completion_to_50
+                          dependson: [ ]
+                          attempt: [ ]
+                          otherwise: [ ]
+                          start: false
+                          end: false
+                        - block: merge_app_users_data
+                          dependson:
+                            - merge_users_mfa_data
+                          attempt:
+                            - block: update_completion_to_60
+                              dependson: [ ]
+                              attempt: [ ]
+                              otherwise: [ ]
+                              start: false
+                              end: false
+                            - block: merge_app_owners_data
+                              dependson:
+                                - merge_owners_mfa_data
+                              attempt:
+                                - block: update_completion_to_70
+                                  dependson: [ ]
+                                  attempt: [ ]
+                                  otherwise: [ ]
+                                  start: false
+                                  end: false
+                                - block: merge_app_grants_data
+                                  dependson:
+                                    - get_app_grants
+                                  attempt:
+                                    - block: publish_to_rawOutput
+                                      dependson:
+                                        - merge_app_grants_data
+                                      attempt:
+                                        - block: update_completion_to_100
+                                          dependson:
+                                            - publish_to_rawOutput
+                                          attempt: [ ]
+                                          otherwise: [ ]
+                                          start: false
+                                          end: false
+                                        - block: end
+                                          dependson:
+                                            - publish_to_rawOutput
+                                          attempt: [ ]
+                                          otherwise: [ ]
+                                          start: false
+                                          end: true
+                                      otherwise:
+                                        - block: end
+                                          dependson: [ ]
+                                          attempt: [ ]
+                                          otherwise: [ ]
+                                          start: false
+                                          end: true
+                                      start: false
+                                      end: false
+                                  otherwise: [ ]
+                                  start: false
+                                  end: false
+                              otherwise: [ ]
+                              start: false
+                              end: false
+                          otherwise: [ ]
+                          start: false
+                          end: false
+                      otherwise: [ ]
+                      start: false
+                      end: false
+                  otherwise: [ ]
+                  start: false
+                  end: false
+              otherwise: [ ]
+              start: false
+              end: false
+          otherwise: [ ]
+          start: false
+          end: false
+      otherwise: [ ]
+      start: false
+      end: false
+  otherwise:
+    - block: end
+      dependson: [ ]
+      attempt: [ ]
+      otherwise: [ ]
+      start: false
+      end: true
+  start: true
+  end: false
+blocks:
+  - name: start
+    type: start
+    config: {}
+  - name: end
+    type: end
+    config: {}
+  - name: retrieve_token_from_vault
+    type: receiver
+    config:
+      type: rest
+      uri: https://login.microsoftonline.com/common/oauth2/v2.0/token
+      method: GET
+      headers: {}
+      body:
+        grant_type: refresh_token
+        client_id: $.env.client_id
+        client_secret: $.env.client_secret
+        scope: https://graph.microsoft.com/.default
+        refresh_token: $.credential.token.refreshToken
+      extract: access_token
+      pagination: null
+      paginationplacement: null
+  - name: list_servicePrincipals
+    type: receiver
+    config:
+      type: rest
+      uri: https://graph.microsoft.com/v1.0/servicePrincipals?$count=true&$select=&$filter=tags/any(t:t eq 'WindowsAzureActiveDirectoryIntegratedApp')
+      method: GET
+      headers:
+        Authorization: Bearer $.block.retrieve_token_from_vault.output.response.response
+      body: {}
+      extract: value
+      pagination: null
+      paginationplacement: null
+  - name: get_app_users
+    type: receiver
+    config:
+      type: rest
+      uri: https://graph.microsoft.com/v1.0/servicePrincipals/$.input.using.id/appRoleAssignedTo
+      method: GET
+      headers:
+        Authorization: Bearer $.block.retrieve_token_from_vault.output.response.response
+      body:
+        appId: $.input.using.id
+      foreach: $.block.list_servicePrincipals.output.response.response[*]
+      extract: value
+      pagination: null
+      paginationplacement: null
+  - name: get_app_owners
+    type: receiver
+    config:
+      type: rest
+      uri: https://graph.microsoft.com/v1.0/servicePrincipals/$.input.using.id/owners
+      method: GET
+      headers:
+        Authorization: Bearer $.block.retrieve_token_from_vault.output.response.response
+      body:
+        appId: $.input.using.id
+      foreach: $.block.list_servicePrincipals.output.response.response[*]
+      extract: value
+      pagination: null
+      paginationplacement: null
+  - name: get_app_grants
+    type: receiver
+    config:
+      type: rest
+      uri: https://graph.microsoft.com/v1.0/servicePrincipals/$.input.using.id/oauth2PermissionGrants
+      method: GET
+      headers:
+        Authorization: Bearer $.block.retrieve_token_from_vault.output.response.response
+      body:
+        appId: $.input.using.id
+      foreach: $.block.list_servicePrincipals.output.response.response[*]
+      extract: value
+      pagination: null
+      paginationplacement: null
+  # - name: get_user_directory_roles
+  #   type: receiver
+  #   config:
+  #     type: rest
+  #     uri: https://graph.microsoft.com/v1.0/users/$.input.using.id/transitiveMemberOf/microsoft.graph.directoryRole
+  #     method: GET
+  #     headers:
+  #       Authorization: Bearer $.block.retrieve_token.output.response.response
+  #     body:
+  #       userid: $.input.using.id
+  #     foreach: $.block.get_app_users.output.response.response[*]
+  #     extract: value
+  #     pagination: null
+  #     paginationplacement: null
+  - name: list_users
+    type: receiver
+    config:
+      type: rest
+      uri: https://graph.microsoft.com/v1.0/users?$select=id,otherMails
+      method: GET
+      headers:
+        Authorization: Bearer $.block.retrieve_token_from_vault.output.response.response
+      body: {}
+      extract: value
+      pagination: null
+      paginationplacement: null
+  - name: get_mfa_data
+    type: receiver
+    config:
+      type: rest
+      foreach: $.block.list_users.output.response.response
+      uri: https://graph.microsoft.com/beta/reports/authenticationMethods/userRegistrationDetails/$.input.using.id
+      method: GET
+      headers:
+        Authorization: Bearer $.block.retrieve_token_from_vault.output.response.response
+      body: {}
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: merge_users_mfa_data
+    type: util
+    config:
+      type: merge
+      foreach: $.block.get_app_users.output.response[*]
+      primary: $.input.using.response
+      secondary: $.block.get_mfa_data.output.response[*]
+      pickfrom: response
+      sinkto: registrationDetails
+      condition: "$.primary.principalId == $.secondary.response.id"
+      passprimarycontext: $.input.using
+  - name: merge_app_users_data
+    type: util
+    config:
+      type: merge
+      primary: $.block.list_servicePrincipals.output.response.response
+      secondary: $.block.merge_users_mfa_data.output.response
+      pickfrom: response
+      sinkto: appUsers
+      condition: "$.primary.id == $.secondary.primarycontext.body.appId && $.secondary.primarycontext.response.error.code == null"
+  - name: merge_owners_mfa_data
+    type: util
+    config:
+      type: merge
+      foreach: $.block.get_app_owners.output.response[*]
+      primary: $.input.using.response
+      secondary: $.block.get_mfa_data.output.response[*]
+      pickfrom: response
+      sinkto: registrationDetails
+      condition: "$.primary.id == $.secondary.response.id"
+      passprimarycontext: $.input.using
+  - name: merge_app_owners_data
+    type: util
+    config:
+      type: merge
+      primary: $.block.merge_app_users_data.output.response.response
+      secondary: $.block.merge_owners_mfa_data.output.response
+      pickfrom: response
+      sinkto: appOwners
+      condition: "$.primary.id == $.secondary.primarycontext.body.appId && $.secondary.primarycontext.response.error.code == null"
+  - name: merge_app_grants_data
+    type: util
+    config:
+      type: merge
+      primary: $.block.merge_app_owners_data.output.response.response
+      secondary: $.block.get_app_grants.output.response
+      pickfrom: response
+      sinkto: appGrants
+      condition: "$.primary.id == $.secondary.body.appId && $.secondary.response.error.code == null"
+  # - name: merge_user_directory_roles
+  #   type: util
+  #   config:
+  #     type: merge
+  #     primary: $.block.merge_app_grants_data.output.response.response
+  #     secondary: $.block.get_user_directory_roles.output.response.response
+  #     pickfrom: response
+  #     sinkto: directoryRoles
+  #     condition: "$.primary.users.id == $.secondary.body.userid"
+  - name: publish_to_rawOutput
+    type: sender
+    config:
+      type: kafka
+      topic: rawOutput
+      facade:
+        domain: login.microsoft.com
+        instance_id: $.context.context.instanceid
+        name: Active Directory Apps Connector
+        description: Azure AD Connector Configuration
+        type: apps
+        vendor: Microsoft
+        product: microsoft.graph
+        subProduct: /v1.0/apps
+        data: $.input.using
+        subscriber: $.context.subscriber
+        tenant: $.context.tenant
+      foreach: $.block.merge_app_grants_data.output.response.response[*]
+  - name: update_completion_to_10
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update
+      method: POST
+      headers:
+        Internal: true
+      body:
+        output :
+          completed_percentage: 10
+          executed_blocks : 1
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: update_completion_to_20
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update
+      method: POST
+      headers:
+        Internal: true
+      body:
+        output :
+          completed_percentage: 20
+          executed_blocks : 6
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: update_completion_to_30
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update
+      method: POST
+      headers:
+        Internal: true
+      body:
+        output :
+          completed_percentage: 30
+          executed_blocks : 8
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: update_completion_to_40
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update
+      method: POST
+      headers:
+        Internal: true
+      body:
+        output:
+          completed_percentage: 40
+          executed_blocks : 11
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: update_completion_to_50
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update
+      method: POST
+      headers:
+        Internal: true
+      body:
+        output :
+          completed_percentage: 50
+          executed_blocks : 14
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: update_completion_to_60
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update
+      method: POST
+      headers:
+        Internal: true
+      body:
+        output :
+          completed_percentage: 60
+          executed_blocks : 16
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: update_completion_to_70
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update
+      method: POST
+      headers:
+        Internal: true
+      body:
+        output :
+          completed_percentage: 70
+          executed_blocks : 18
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: update_completion_to_100
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update
+      method: POST
+      headers:
+        Internal: true
+      body:
+        output :
+          completed_percentage: 100
+          executed_blocks : 23
+          is_completed : true
+      extract: null
+      pagination: null
+      paginationplacement: null

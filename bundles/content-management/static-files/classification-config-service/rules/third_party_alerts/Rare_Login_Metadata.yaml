@@ -1,0 +1,22 @@
+id: 749b7a1d-514d-4f8d-a9e5-cbf5abecb524
+version: 2.0
+code: Q101
+name: Rare Login of a User
+description: This rule identifies rare authentication for an account.
+type: rule
+view: identity_protection
+impact: low
+likelihood: verylow
+createdon: 1718911069000
+updatedon: 1718911069000
+tags:
+  - Login from rare geolocation
+  - Login from rare device
+  - Login from rare browser
+humanfactor: HFID_02
+behavior:
+  - BID_03
+examples:
+  - User authenticating from rare browser, device, location.
+recommendations:
+  - template: "Investigate user for suspicious activities"

@@ -1,0 +1,249 @@
+id: 7c8e3f3e-7414-4529-84d1-228a7d931d03
+name: DLP Event User Interaction Data To Knowledge Graph
+type: rule
+version: 1.1.13
+schedule: 2m 
+historicalrecordduration: 2m
+source: 
+  type: query 
+  config:
+    query: "SELECT RECORD_METADATA['CreateTime']::bigint AS datetime, ALERT_USERPRINCIPALNAME, ALERT_BROWSERNAME,
+                  ALERT_BROWSERVERSION, ALERT_USERHOSTNAME, ALERT_IPADDRESS, ALERT_APPAUTHTYPE, APPLICATION_ROOT_DOMAIN,
+                  QUILR_MATCHED_APP_ID, ALERT_EVENTPROPERTIES, EVENT_TIME, IS_USER_PROMPT_SENSITIVE,
+                  CONTEXT_ID, QUILR_SUBSCRIBERID, QUILR_TENANTID
+            FROM KAFKA_CONNECT.SNOWDATA_SCHEMA.TRANSFORMEDDATA 
+            WHERE
+                ALERT_PROPERTIES IS NOT NULL
+                AND ALERT_ARTIFACTS IS NOT NULL
+                AND IS_USER_PROMPT_SENSITIVE = true
+                AND ALERT_EVENTNAME = 'data_leak_prevention'
+                AND RECORD_METADATA['CreateTime']::bigint > $starttime
+                AND RECORD_METADATA['CreateTime']::bigint < $endtime"
+    type: datalake
+    limit:
+    offset: 0
+destination:
+  type: stream
+  topic: knowledgeGraph
+config:
+  nodes:
+    email:
+      id: ALERT_USERPRINCIPALNAME
+      type: EMAIL
+      ignore_case: true
+      tags:
+        - PRIMARY
+    account:
+      id: ACCOUNT_APPLICATION_ID
+      type: ACCOUNT
+      ignore_case: true
+      properties:
+        email: ALERT_USERPRINCIPALNAME
+        appId: QUILR_MATCHED_APP_ID
+      immutableproperties:
+        creationTime: CURRENT_TIMESTAMP
+    browser:
+      id: ALERT_BROWSERNAME
+      type: BROWSER
+      context: global
+      properties:
+        version: ALERT_BROWSERVERSION
+    application:
+      type: APPLICATION
+      merge:
+        property: id_
+        attribute: QUILR_MATCHED_APP_ID
+      context: global
+      immutableproperties:
+        domain: APPLICATION_ROOT_DOMAIN
+        newApp: newApp
+        globalSyncAllowed: globalSyncAllowed
+    finding:
+      type: FINDING
+      match:
+        property: context_id
+        attribute: $.CONTEXT_ID
+#      expression: |
+#        toLower($alias.checkName) = 'data_leak_prevention' AND $alias.context_id = $CONTEXT_ID
+#      fallback:
+#        property: context_id
+#        attribute: CONTEXT_ID
+    finding_history:
+      type: FINDING_HISTORY
+      match:
+        property: context_id
+        attribute: $.CONTEXT_ID
+#      expression: |
+#        toLower($alias.checkName) = 'data_leak_prevention' AND $alias.context_id = $CONTEXT_ID
+#      fallback:
+#        property: context_id
+#        attribute: CONTEXT_ID
+    action:
+      type: ACTION
+      merge:
+        property: encoded_finding_context
+        attribute: $.ENCODED_CONTEXT
+      properties:
+        id: ACTION_ID
+        type: "@ACTP_02"
+        state: "@inprogress"
+        channel: "@Browser"
+        mode: $.ALERT_EVENTPROPERTIES.properties.mode
+        name: $.ALERT_EVENTPROPERTIES.properties.action_name
+        control: $.TRIGGERED_CONTROL_ID
+        context_id: CONTEXT_ID
+        timestamp: CURRENT_TIMESTAMP
+#        summary: $.ALERT_EVENTPROPERTIES.properties.summary
+#        quilrMessage: $.ALERT_EVENTPROPERTIES.properties.quilr_message
+#        userAction: $.ALERT_EVENTPROPERTIES.properties.user_action
+#        userJustification: $.ALERT_EVENTPROPERTIES.properties.user_justification
+#        resolutionChannel: $.ALERT_EVENTPROPERTIES.properties.resolution_channel
+#        businessJustificationSetting: $.ALERT_EVENTPROPERTIES.properties.business_justification
+#        summaryTime: SYSTEM_MESSAGE_TIME
+#        userJustificationTime: USER_JUSTIFICATIION_TIME
+    interaction_system:
+      type: INTERACTION
+      id: INTERACTION_SYSTEM_ID
+      properties:
+        name: "@System Message"
+        state: "@inprogress"
+        channel: "@Browser"
+#        mode: $.ALERT_EVENTPROPERTIES.properties.mode
+        context_id: $.ALERT_EVENTPROPERTIES.properties.context_id
+        message: $.ALERT_EVENTPROPERTIES.properties.summary
+        messageTime: SYSTEM_MESSAGE_TIME
+        initiator: "@system"
+        timestamp: CURRENT_TIMESTAMP
+    interaction_user_response:
+      type: INTERACTION
+      id: INTERACTION_USER_RESPONSE_ID
+      properties:
+        name: "@User Message"
+        state: "@inprogress"
+        channel: "@Browser"
+#        mode: $.ALERT_EVENTPROPERTIES.properties.mode
+        context_id: $.ALERT_EVENTPROPERTIES.properties.context_id
+        message: $.ALERT_EVENTPROPERTIES.properties.user_justification
+        messageTime: USER_RESPONSE_TIME
+        initiator: "@user"
+        timestamp: CURRENT_TIMESTAMP
+      when: CREATE_USER_INTERACTION == true
+    outcome:
+      type: OUTCOME
+      id: ACTION_OUTCOME_ID
+      properties:
+        name: "@Outcome Just In Time"
+        state: "@completed"
+        channel: "@Browser"
+        context_id: $.ALERT_EVENTPROPERTIES.properties.context_id
+        value: $.ALERT_EVENTPROPERTIES.properties.outcome
+        timestamp: CURRENT_TIMESTAMP
+      when: CREATE_ACTION_OUTCOME == true
+  edges:
+    - destination: browser
+      direction: out
+      relation: HAS_BROWSER
+      source: account
+      properties:
+        machineName: ALERT_USERHOSTNAME
+        client_ip: ALERT_IPADDRESS
+    - destination: account
+      direction: out
+      relation: $AUTHTYPE_RELATION_NAME
+      source: email
+      properties:
+        context_id: $.ALERT_EVENTPROPERTIES.properties.context_id
+        last_access_time: EVENT_TIME
+    - destination: application
+      direction: out
+      relation: USING_APP
+      source: account
+    - destination: interaction_system
+      direction: out
+      relation: HAS_INTERACTION
+      source: action
+    - destination: interaction_user_response
+      direction: out
+      relation: HAS_INTERACTION
+      source: action
+    - destination: outcome
+      direction: out
+      relation: RESULTED_IN
+      source: action
+    - destination: action
+      direction: out
+      relation: TRIGGERED
+      source: finding
+    - destination: action
+      direction: out
+      relation: TRIGGERED
+      source: finding_history
+lambda: |
+  def fn(payload):
+      import time
+      import uuid
+      import base64
+  
+      def b64encode(message):
+        message_bytes = message.encode('ascii')
+        base64_bytes = base64.b64encode(message_bytes)
+        return base64_bytes.decode('ascii')
+  
+      for item in payload:
+          item["ACTION_ID"] = str(uuid.uuid4())
+          item["CREATE_USER_INTERACTION"] = False
+          item["CREATE_ACTION_OUTCOME"] = False
+          item["CURRENT_TIMESTAMP"] = int(time.time()) * 1000
+
+          event_time = item.get("EVENTTIME")
+          summary = item.get("ALERT_EVENTPROPERTIES", {}).get("properties", {}).get("summary")
+          user_justification = item.get("ALERT_EVENTPROPERTIES", {}).get("properties", {}).get("user_justification")
+          outcome = item.get("ALERT_EVENTPROPERTIES", {}).get("properties", {}).get("outcome")
+          business_justification = item.get("ALERT_EVENTPROPERTIES", {}).get("properties", {}).get("business_justification")
+          context_id = item.get("ALERT_EVENTPROPERTIES", {}).get("properties", {}).get("context_id", "")
+          control = item.get("ALERT_EVENTPROPERTIES", {}).get("properties", {}).get("control", "")
+          tenant_id = item.get("QUILR_TENANTID")
+  
+          if user_justification:
+              item["CREATE_USER_INTERACTION"] = True
+              item["INTERACTION_USER_RESPONSE_ID"] = str(uuid.uuid4())
+              if event_time:
+                  item["USER_RESPONSE_TIME"] = event_time + 30000
+              else:
+                  item["USER_RESPONSE_TIME"] = (int(time.time()) * 1000) + 30000
+  
+          if outcome:
+                item["CREATE_ACTION_OUTCOME"] = True
+                item["ACTION_OUTCOME_ID"] = str(uuid.uuid4())
+                if event_time:
+                    item["OUTCOME_TIME"] = event_time + 60000
+                else:
+                    item["OUTCOME_TIME"] = (int(time.time()) * 1000) + 60000
+
+          user_mail = item.get("ALERT_USERPRINCIPALNAME")
+          app_id = item.get("QUILR_MATCHED_APP_ID")
+          if user_mail and app_id:
+              item["ACCOUNT_APPLICATION_ID"] = user_mail + "_" + app_id
+
+          auth_type = item.get("ALERT_APPAUTHTYPE")
+          if auth_type:
+              item["AUTHTYPE_RELATION_NAME"] = auth_type.upper() + "_" + "ACCOUNT"
+          
+          if user_justification:
+              if event_time:
+                  item["USER_JUSTIFICATIION_TIME"] = event_time
+              else:
+                  item["USER_JUSTIFICATIION_TIME"] = int(time.time()) * 1000
+  
+          item["ENCODED_CONTEXT"] = b64encode(f"{context_id}_{control}_{tenant_id}")
+          
+          if summary:
+              item["INTERACTION_SYSTEM_ID"] = str(uuid.uuid4())
+              if event_time:
+                  item["SYSTEM_MESSAGE_TIME"] = event_time
+              else:
+                  item["SYSTEM_MESSAGE_TIME"] = int(time.time()) * 1000
+  
+      return payload
+createdon: 1707315500
+updatedon: 1707315500

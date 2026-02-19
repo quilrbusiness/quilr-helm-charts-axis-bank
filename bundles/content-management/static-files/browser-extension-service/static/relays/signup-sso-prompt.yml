@@ -1,0 +1,208 @@
+# Name of the relay configuration
+# Version of the relay configuration
+# Sequences define the steps to be executed
+# Actions define the specific actions to be taken
+# Persona defines the roles associated with the relay configuration
+# Application defines the settings related to the application being analyzed
+# Event specifies the event triggering the relay
+# Element specifies the element associated with the event
+
+# Name of the relay configuration
+name: signup_sso_prompt
+# Description of relay
+description: "Relay to check for Single Sign-On (SSO) apps during sign-up"
+# Version of the relay configuration
+version: 1.0.0
+# Sequences define the steps to be executed
+sequences:
+  # Sequence to check for Single Sign-On (SSO) apps during sign-up
+  - name: webapp_check
+    # No waiting required for this sequence to start
+    waiton: []
+    # Next sequence to execute after this one
+    next:
+      - name: webapp_check_count
+        waiton:
+          - webapp_check
+        ifnext:
+          name: signup_sso_check
+          # No waiting required for this sequence to start
+          waiton: []
+          # Next sequence to execute after this one
+          next:
+            - name: check_sso_app_count
+              waiton:
+                - signup_sso_check
+              ifnext:
+                name: fetch_app_users
+                waiton: []
+                next:
+                  - name: check_user_is_licensed
+                    waiton:
+                      - fetch_app_users
+                    ifnext:
+                      # Sequence to show the SSO login prompt
+                      name: end      # sso_login_prompt
+                    elsenext:
+                      name: find_alternative_apps
+                      waiton: []
+                      next:
+                        - name: disallowed_user_prompt
+                          waiton:
+                            - find_alternative_apps
+                        - name: log_approved_app_signup
+                          waiton: [ ]
+              elsenext:
+                name: fetch_IT_admin_details
+                waiton: []
+                next:
+                  - name: find_alternative_apps
+                    waiton:
+                      - fetch_IT_admin_details
+                    next:
+                      - name: sso_unapproved_prompt
+                        waiton:
+                          - find_alternative_apps
+                      - name: log_unapproved_app_signup
+                        waiton: [ ]
+        elsenext:
+          name: end
+# Actions define the specific actions to be taken
+actions:
+  - name: webapp_check
+    type: lookup
+    config:
+      lookup_name: list_all_db_apps
+      lookup_condition: "{lookup[*].appDomain} in {basket.appUrl}"
+  - name: webapp_check_count
+    type: condition_eval
+    config:
+      condition: "len({basket.data}) > 0"
+  # Action to check for approved SSO apps using a lookup
+  - name: signup_sso_check
+    type: lookup
+    config:
+      # Name of the lookup to be used
+      lookup_name: approved_sso_apps    # org's used apps
+      # Condition to match for domain
+      lookup_condition: "{lookup[*].appDomain} in {basket.appUrl}"
+#      lookup_condition: "{basket.appUrl} in {lookup[*].appUrl} or ({basket.appName} + {basket.appDomain}) in ({lookup[*].appName} + {lookup[*].appDomain})"
+  - name: check_sso_app_count
+    type: condition_eval
+    config:
+      # Condition to check if the number of SSO apps is greater than 0
+      condition: "len({basket.data}) > 3"
+  - name: fetch_app_users     # user's used apps
+    type: lookup
+    config:
+      lookup_name: approved_app_users
+      lookup_condition: "{lookup[*].appDomain} in {basket.appUrl}"
+  - name: check_user_is_licensed
+    type: condition_eval
+    config:
+      # Condition to check if the number of users after filtering is greater than 0
+      condition: "len({basket.data}) > 0"
+  - name: find_alternative_apps
+    type: lookup
+    config:
+      # Name of the lookup to be used
+      lookup_name: approved_app_users
+      # Condition to match for domain
+      lookup_condition: "{lookup[*].appDomain} not in {basket.appUrl} and {lookup[*].appCategory} == {outcome.outcomes.fetch_app_users.response.data[0].appCategory}"
+  # Action to show the SSO login prompt
+  - name: sso_login_prompt
+    type: format_data
+    config:
+      # Message to display in the popup
+      template: "It seems this site supports Single Sign-On. Please consider using the provided SSO login button with your email '{persona.emailaddress}' instead of creating a custom account."
+  - name: disallowed_user_prompt
+    type: format_data
+    config:
+      template: "Please refrain from logging in/signing up on this application.<br>Request 
+      for approval with your business use case.<br>Approved 
+      alternatives: <a href='#'>{lookup[0].appName}</a> & <a href='#'>{lookup[1].appName}</a>"
+  - name: fetch_IT_admin_details
+    type: lookup
+    config:
+      lookup_name: it_admin_lookup
+  - name: sso_unapproved_prompt
+    type: format_data
+    config:
+      template: "Please refrain from logging in/signing up on this application.<br>The approved 
+      alternatives are <a href='#'>{lookup[0].appName}</a> & <a href='#'>{lookup[1].appName}</a><br>If this is an urgent 
+      scenario, enter business reason and continue.<br>Reach out to 
+      <a href='mailto:{outcome.outcomes.fetch_IT_admin_details.response.data[0].managerEmail}'>IT 
+      Admin's Email Address</a> to raise a request for the license for future use."
+  - name: log_approved_app_signup
+    type: log_event
+    config:
+      check: |
+        {
+            "name": "ApprovedAppSignup",
+            "reasons": [
+                "UserSignup"
+            ],
+            "properties": {
+                "appDomain": "{basket.appUrl}"
+            }
+        }
+      event: onclick
+      element: "#signup"
+  - name: log_unapproved_app_signup
+    type: log_event
+    config:
+      check: |
+        {
+            "name": "UnapprovedAppSignup",
+            "reasons": [
+                "UserSignup"
+            ],
+            "properties": {
+                "appDomain": "{basket.appUrl}"
+            }
+        }
+      event: onclick
+      element: "#signup"
+# Persona defines the roles associated with the relay configuration
+persona:
+  # Roles associated with the persona
+  roles:
+    - PRIVILEGED_ACCESS
+# Application defines the settings related to the application being analyzed
+application:
+  # URL pattern to match for the sign-up page
+  # ^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()!@:%_\+.~#?&\/\/=]*)\/sign[\W_]*up(?:\?.*)?$
+  urlpattern: "\\b(sign[-_]?up)\\b"
+  # Analysis method used for the URL pattern
+  analysismethod: "regex"
+# Specifies that the relay is for the browser
+browser: true
+# Event triggering the relay
+event: "onload"
+# Element associated with the event
+element: "window"
+# property to check if relay is configurable or not
+configurable: true
+# add parts which are configurable by user in the relay
+configurations:
+  - name: "allowed_persona_roles"
+    type: "list"
+    description: "List of persona roles allowed to access the relay"
+    defaultValue: ["PRIVILEGED_ACCESS"]
+  - name: "allowed_persona_permissions"
+    type: "list"
+    description: "List of persona permissions allowed to access the relay"
+    defaultValue: ["VIEW"]
+  - name: "allowed_application_url_pattern"
+    type: "string"
+    description: "URL pattern to match for the sign-up page"
+    defaultValue: "\\b(sign[-_]?up)\\b"
+  - name: "company_password_policy"
+    type: "dict"
+    description: "Company password policy"
+    defaultValue: {"min_length": 8, "max_length": 20, "special_chars": true, "numbers": true,
+                   "uppercase": true, "lowercase": true}
+  - name: "invalid_password_prompt"
+    type: "string"
+    description: "Message to display when the password does not meet the company password policy"
+    defaultValue: "Password does not meet the company password policy. It should be between 8 and 20 characters long and contain at least one special character, number, uppercase letter, and lowercase letter."

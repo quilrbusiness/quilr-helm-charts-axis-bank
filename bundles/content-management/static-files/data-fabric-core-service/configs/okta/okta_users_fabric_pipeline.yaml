@@ -1,0 +1,171 @@
+id: 6e30987f-238f-464a-bb88-ea5f5a7f12dc
+name: okta-api-users-data
+type: fabric
+version: 1.0.0
+trail:
+  block: start
+  dependson: []
+  attempt:
+    - block: list_users
+      attempt:
+        - block: get_user_roles
+          attempt: []
+          otherwise: []
+          start: false
+          end: false
+        - block: get_user_data
+          attempt:
+            - block: get_user_factors
+              attempt:
+                - block: merge_user_data
+                  attempt:
+                    - block: merge_user_factors_data
+                      attempt:
+                        - block: merge_user_roles
+                          attempt:
+                            - block: publish_to_rawOutput
+                              attempt:
+                                - block: end
+                                  attempt: []
+                                  otherwise: []
+                                  start: false
+                                  end: true
+                              otherwise: []
+                              start: false
+                              end: false
+                          otherwise: []
+                          start: false
+                          end: false
+                      otherwise: []
+                      start: false
+                      end: false
+                  otherwise: []
+                  start: false
+                  end: false
+              otherwise: []
+              start: false
+              end: false
+          otherwise: []
+          start: false
+          end: false
+      otherwise: []
+      start: false
+      end: false
+  otherwise:
+    - block: end
+      attempt: []
+      otherwise: []
+      start: false
+      end: true
+  start: true
+  end: false
+blocks:
+  - name: start
+    type: start
+    config: {}
+  - name: end
+    type: end
+    config: {}
+  - name: list_users
+    type: receiver
+    config:
+      type: rest
+      uri: $.credential.config.url/api/v1/users
+      method: GET
+      headers:
+        Authorization: SSWS $.credential.config.key
+      body: {}
+      paginationtype: headers
+      paginationheaderkey: link
+      regex: "<([^>]+)>\\; rel=\"next\""
+      batchsize: 5
+      timeout: 1260000
+  - name: get_user_data
+    type: receiver
+    config:
+      type: rest
+      uri: $.credential.config.url/api/v1/users/$.input.using.id
+      method: GET
+      headers:
+        Authorization: SSWS $.credential.config.key
+      body:
+        userid: $.input.using.id
+      foreach: $.block.list_users.output.response.response[*]
+      paginationtype: headers
+      paginationheaderkey: link
+      regex: "<([^>]+)>\\; rel=\"next\""
+      batchsize: 5
+      timeout: 1260000
+  - name: get_user_factors
+    type: receiver
+    config:
+      type: rest
+      uri: $.credential.config.url/api/v1/users/$.input.using.id/factors
+      method: GET
+      headers:
+        Authorization: SSWS $.credential.config.key
+      body:
+        userid: $.input.using.id
+      foreach: $.block.list_users.output.response.response[*]
+      paginationtype: headers
+      paginationheaderkey: link
+      regex: "<([^>]+)>\\; rel=\"next\""
+      batchsize: 5
+      timeout: 1260000
+  - name: get_user_roles
+    type: receiver
+    config:
+      type: rest
+      method: GET
+      uri: $.credential.config.url/api/v1/users/$.input.using.id/roles
+      headers:
+        Authorization: SSWS $.credential.config.key
+      body:
+        userid: $.input.using.id
+      foreach: $.block.list_users.output.response.response[*]
+      batchsize: 5
+      timeout: 1260000
+  - name: merge_user_data
+    type: util
+    config:
+      type: merge
+      primary: $.block.list_users.output.response.response
+      secondary: $.block.get_user_data.output.response
+      pickfrom: response
+      sinkto: factor
+      condition: "$.primary.id == $.secondary.body.userid && $.secondary.response.error.code == null"
+  - name: merge_user_factors_data
+    type: util
+    config:
+      type: merge
+      primary: $.block.merge_user_data.output.response.response
+      secondary: $.block.get_user_factors.output.response
+      pickfrom: response
+      sinkto: enrolledFactors
+      condition: "$.primary.id == $.secondary.body.userid && $.secondary.response.error.code == null"
+  - name: merge_user_roles
+    type: util
+    config:
+      type: merge
+      primary: $.block.merge_user_factors_data.output.response.response
+      secondary: $.block.get_user_roles.output.response
+      pickfrom: response
+      sinkto: roles
+      condition: "$.primary.id == $.secondary.body.userid && $.secondary.response.error.code == null"
+  - name: publish_to_rawOutput
+    type: sender
+    config:
+      type: kafka
+      topic: rawOutput
+      facade:
+        name: Okta Users Connector
+        description: Okta Connector Configuration
+        type: users
+        vendor: Okta
+        product: Okta Identity Cloud
+        subProduct: /v1/users/
+        data: $.input.using
+        subscriber: $.context.subscriber
+        tenant: $.context.tenant
+        instance_id: $.context.context.instanceid
+      foreach: $.block.merge_user_roles.output.response.response[*]

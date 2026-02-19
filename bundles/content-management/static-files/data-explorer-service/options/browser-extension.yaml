@@ -1,0 +1,10 @@
+version: 1.0.8
+screen_id: browser-extension
+title: Browser Extensions
+tag: Browser Extensions
+description: Monitor your organizations security posture
+active: true
+type: options
+iconUrl: https://staticcontent1.blob.core.windows.net/finding-icons/browser-extension.svg
+path: browser-extension
+order: 2

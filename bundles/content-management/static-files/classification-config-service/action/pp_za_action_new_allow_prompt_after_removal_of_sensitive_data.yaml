@@ -1,0 +1,19 @@
+id: 0ade858e-a873-4c3f-bbea-83088906823c
+version: 10.9
+code: ACT_36
+name: Allow prompt after removal of sensitive data
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: "templatized"
+    message_template: ""
+    browser_action: Allow_Prompt_After_Removal_Of_Sensitive_Data
+tags:
+  - UC012
+  - UC014
+behavior:
+  - BID_03
+createdon: 1710504494000
+updatedon: 1710504494000

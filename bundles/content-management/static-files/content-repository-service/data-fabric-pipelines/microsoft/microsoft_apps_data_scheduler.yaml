@@ -1,0 +1,21 @@
+id: 4b945070-e907-415d-a880-2c22c5fcca4f
+name: Azure AD Apps Data Frabric Pipeline Scheduler
+type: fabric
+version: 2.0
+schedule: "1D"
+historicalrecordduration: "4h"
+istrackable: true
+source:
+  type: api
+  config:
+    uri: http://data-fabric-core-service:9031/fabric/start?fabricid=95dbc667-23eb-4112-970c-7e58f0d98099
+    method: POST
+    headers: {}
+    body: {}
+destination:
+  type: stream
+  topic: pipelineTracking
+config: {}
+lambda: ""
+createdon: 1707315500
+updatedon: 1707315500

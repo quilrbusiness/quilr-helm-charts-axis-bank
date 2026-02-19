@@ -1,0 +1,20 @@
+id: 2e8d3c5f-9a3e-4f09-8b4b-5d2e1c7a8040
+version: 1.0
+code: ACT_240
+name: Prompt user copying sensitive data
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: templatized
+    message_template: prompt-copying-sensitive-data
+    execution_type: tool
+    execution_module: send_templated_user_message
+    browser_action: Ask
+tags:
+  - UC040
+behavior:
+  - BID_200
+createdon: 1755648000000
+updatedon: 1755648000000

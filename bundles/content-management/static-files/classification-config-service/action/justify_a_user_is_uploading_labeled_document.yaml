@@ -1,0 +1,20 @@
+id: 5e6f7081-8283-8495-9a0b-1c2d3e4f9044
+version: 1.0
+code: ACT_255
+name: Justification for uploading labeled document
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: templatized
+    message_template: justify-uploading-labeled-document
+    execution_type: tool
+    execution_module: send_templated_user_message
+    browser_action: Justify
+tags:
+  - UC044
+behavior:
+  - BID_203
+createdon: 1755715200000
+updatedon: 1755715200000

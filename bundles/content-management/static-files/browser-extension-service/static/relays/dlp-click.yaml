@@ -1,0 +1,28 @@
+name: dlp-click
+version: 1.0.0
+sequences:
+  - name: END
+actions:
+  - name: showLoading
+    type: show_loader
+    config:
+      val: true
+
+persona:
+  roles:
+    - PRIVILEGED_ACCESS
+application:
+  urlpattern: "chatgpt.com"
+  analysismethod: "includes"
+browser: true
+args:
+  target: "[data-testid=send-button]"
+  prompt: "[id=prompt-textarea]"
+  mount: "div.min-w-8:has(> [data-testid=send-button]), [data-testid=send-button], [data-testid=stop-button]"
+  api: "https://api.quilr.ai/co-pilot/dlp/v3/stream/sensitive"
+  classify_prefix: "dlp_classify_v3_"
+  extract_prefix: "dlp_extract_v3_"
+event: click
+active: true
+priority: 0
+element: window

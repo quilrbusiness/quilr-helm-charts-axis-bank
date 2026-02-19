@@ -1,0 +1,22 @@
+datatype: DICT
+defaultValue:
+  message: |-
+    Cannot allow you to use a weak password specially as you are an admin.Please use a different password.  
+  mode: Block
+entityDescription: |-
+  A new administrative account was created with a weak password.
+entityId: Q008
+entityMeta:
+  behavior: Weak Password
+  category: ISPM
+  posture: Password Hygiene
+  check_id:
+    form_check_ids:
+      - CH-FORM-SIGNUP
+      - CH-FORM-WEAK-PASSWORD
+      - CH-FORM-ADMIN
+
+entityName: New Admin Account created with Weak Password
+entityType: rule
+isDisabled: false
+isModifiable: true

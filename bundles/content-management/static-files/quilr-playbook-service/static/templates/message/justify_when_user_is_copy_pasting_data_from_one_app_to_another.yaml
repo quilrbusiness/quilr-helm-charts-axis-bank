@@ -1,0 +1,18 @@
+name: justify when user is copy pasting data from one app to another
+type: message
+channel: Browser
+content:
+  header: Data Transfer Blocked!
+  title: |
+    You seem to be transferring data, which may or may not be sensitive, between apps. Your company policy does not allow copying data from this app.
+    <br />Provide a business reason for moving this data:
+  description: ""
+  acknowledgedButtons: []
+  justification_list: 
+    - Analyzing in a different tool (Excel, Notion)
+    - Creating a report or presentation
+    - Testing in approved third-party tool
+    - Sharing with authorized partner
+    - One-time urgent task
+rendered_content_type: application/json
+is_active: true

@@ -1,0 +1,100 @@
+widget_id: 8f8c6c40-49de-4658-8d9e-53a43de29fd3
+template_id: MostCRB
+active: true
+title: Most Common Risky Behaviors
+components:
+  - name: Most Common Risky Behaviors
+    type: table
+    data_source_type: knowledgegraph
+    lambda: |
+      def fn(client):
+        data_result = client.fetch_data(
+            query=
+            """
+        WITH $endtime AS currentTime,
+        $starttime AS targetTime
+
+        MATCH (u:USER{subscriber: $subscriber , tenant: $tenant})-[:HAS_EMAIL]->(e:EMAIL)
+        MATCH (e)-[rel]->(acc:ACCOUNT)
+
+        CALL {
+            WITH acc, currentTime
+            OPTIONAL MATCH (acc)-[:HAS_FINDING]->(f:FINDING)
+            OPTIONAL MATCH (acc)-[:HAS_FINDING]->(fh:FINDING_HISTORY)
+            WHERE (f.generationTime >= currentTime AND fh.generationTime >= currentTime)
+            OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(f)
+            OPTIONAL MATCH (r)-[:EVALUATED_TO]->(fh)
+            OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+            WHERE b.name IS NOT NULL
+            AND (toLower(f.status) IN ['open', 'inprogress'] OR toLower(fh.status) IN ['open', 'inprogress'])
+            RETURN b.name AS currentBehavior, COUNT(DISTINCT f.id) + COUNT(DISTINCT fh.id) AS currentFindingsCount
+        }
+        
+        CALL {
+            WITH acc, currentTime, targetTime
+            OPTIONAL MATCH (acc)-[:HAS_FINDING]->(f_prev:FINDING)
+            OPTIONAL MATCH (acc)-[:HAS_FINDING]->(fh_prev:FINDING_HISTORY)
+            WHERE (f_prev.generationTime < currentTime AND f_prev.generationTime >= targetTime) 
+            OR (fh_prev.generationTime < currentTime AND fh_prev.generationTime >= targetTime)
+            OPTIONAL MATCH (r_prev:RULE)-[:EVALUATED_TO]->(f_prev)
+            OPTIONAL MATCH (r_prev)-[:EVALUATED_TO]->(fh_prev)
+            OPTIONAL MATCH (r_prev)-[:BELONGS_TO]->(b_prev:BEHAVIOUR)
+            WHERE b_prev.name IS NOT NULL
+            AND (toLower(f_prev.status) IN ['open', 'inprogress'] OR toLower(fh_prev.status) IN ['open', 'inprogress'])
+            RETURN b_prev.name AS previousBehavior, COUNT(DISTINCT f_prev.id) + COUNT(DISTINCT fh_prev.id) AS previousFindingsCount
+        }
+
+        WITH 
+            COLLECT({behavior: currentBehavior, currentCount: currentFindingsCount}) AS currentResults,
+            COLLECT({behavior: previousBehavior, previousCount: previousFindingsCount}) AS previousResults
+        UNWIND (currentResults + previousResults) AS result
+        WITH 
+            CASE WHEN result.behavior IS NOT NULL THEN result.behavior ELSE result.behavior END AS behavior,
+            result.currentCount AS currentCount,
+            result.previousCount AS previousCount
+        WITH 
+            behavior,
+            SUM(COALESCE(currentCount, 0)) AS totalCurrentCount,
+            SUM(COALESCE(previousCount, 0)) AS totalPreviousCount
+        WHERE behavior IS NOT NULL
+
+        RETURN 
+            behavior,
+            totalCurrentCount AS currentFindingsCount,
+            totalPreviousCount AS previousFindingsCount
+        ORDER BY behavior
+            """
+        )
+        if data_result and isinstance(data_result, list) and data_result[0]:
+            total_record_count = len(data_result)
+            formatted_data = {"data": []}
+            data_entries = []
+            for item in data_result:
+              key1 = item.get("behavior")
+              key2 = item.get("currentFindingsCount")
+              key3 = item.get("previousFindingsCount")
+              if key3 is not None and key2 is not None:
+                key4 = key2 - key3
+                change = int(key4 * 100 / key3)
+                change = -change
+              if key1:
+                data = {
+                    "behavior": key1,
+                    "change": change,
+                    "count": key2
+                }
+                data_entries.append(data)
+            data_entries.sort(key=lambda x: x['count'], reverse=True)
+            if int(client.limit) < len(data_entries):
+                data_entries = data_entries[:client.limit]
+            formatted_data["data"].extend(data_entries)
+            formatted_data["total_record_count"] = total_record_count
+            return formatted_data
+        else:
+            # Handle case where data_result is empty or doesn't contain expected structure
+            formatted_data = {
+                "data": [],
+                "total_record_count": 0
+            }
+            return formatted_data
+version: 1.0.6

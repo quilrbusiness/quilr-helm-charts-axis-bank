@@ -1,0 +1,85 @@
+datatype: DICT
+defaultValue:
+  name: Financial Performance Data
+  criticality: HIGH
+  description: |2-
+    Description:
+    Financial Performance and Projections data refers to internal reports, analyses, and documents that provide insights into an organization�s financial health, including revenue, profits, expenses, and future financial projections. This data is typically confidential and used for strategic planning, decision-making, and communicating with stakeholders. Unauthorized access to this data could impact the organization's competitive position, investor relations, and market value.
+
+    Mandatory Data:
+
+    1. Revenue and Profit Reports:
+       - Typical Formats:
+         - Quarterly and Annual Reports: Detailed breakdowns of revenue and profit by segment, product line, or region, usually in PDF, DOCX, or spreadsheet formats (e.g., XLSX).
+         - Income Statements: Documents detailing revenues, costs, gross profit, operating income, and net profit.
+       - Variations: May include charts, tables, and narrative explanations.
+       - Exclusions: Publicly disclosed reports, such as those found in annual reports filed with regulatory bodies, should not be classified as sensitive.
+       - Contextual Clues: Often labeled as "Revenue Report", "Profit Analysis", or "Income Statement".
+       - False Positive Examples: High-level summaries or presentations that aggregate public data without revealing confidential insights should not be classified as sensitive.
+
+    2. Expense and Cost Analysis:
+       - Typical Formats:
+         - Expense Reports: Detailed accounts of operational expenses, including personnel costs, marketing, research, and development expenditures.
+         - Cost Analysis: Documents that break down the cost of goods sold (COGS), overhead, and other cost structures.
+       - Variations: May be presented as tables, graphs, or detailed narratives.
+       - Exclusions: General or public summaries of expenses not tied to specific, confidential data should not be classified as sensitive.
+       - Contextual Clues: Often found in sections labeled "Expense Report", "Cost Breakdown", or "Operational Expenses".
+       - False Positive Examples: Budget overviews intended for public or broad internal audiences that do not contain detailed cost information.
+
+    3. Financial Projections and Forecasts:
+       - Typical Formats:
+         - Revenue Projections: Forecasts of future revenues based on historical data, market analysis, and strategic initiatives.
+         - Profit Forecasts: Expected profitability over the next quarter, year, or longer time horizon.
+         - Budget Projections: Anticipated budgets for various departments, projects, or the entire organization.
+       - Variations: Projections may include best-case, worst-case, and most likely scenarios, often presented in XLSX, PDF, or PPTX formats.
+       - Exclusions: Publicly disclosed projections or high-level summaries not containing detailed or sensitive assumptions should not be classified as sensitive.
+       - Contextual Clues: Found in documents labeled "Financial Forecast", "Revenue Projections", or "Budget Planning".
+       - False Positive Examples: Placeholder or hypothetical projections used for scenario planning that do not reflect actual financial expectations.
+
+    4. Internal Financial Analyses:
+       - Typical Formats:
+         - Variance Analysis: Documents analyzing the differences between projected and actual financial performance, often with explanations for variances.
+         - Break-Even Analysis: Reports calculating the break-even point for new products, services, or projects.
+       - Variations: May include charts, spreadsheets, and detailed written explanations.
+       - Exclusions: General analysis frameworks or templates not tied to specific, confidential financial data should not be classified as sensitive.
+       - Contextual Clues: Often labeled as "Variance Analysis", "Break-Even Report", or "Financial Review".
+       - False Positive Examples: Educational materials or examples used for training purposes that are not linked to actual financial performance.
+
+    Supplementary Data:
+
+    1. Strategic Financial Planning Documents:
+       - Formats:
+         - Long-Term Financial Plans: Strategic documents outlining financial goals, capital allocation, and investment strategies over multiple years.
+         - Scenario Planning: Documents exploring various financial scenarios based on different market conditions or business strategies.
+       - Variations: May include detailed financial models, strategic objectives, and narrative explanations.
+       - Exclusions: General strategic overviews or high-level summaries intended for public disclosure should not be classified as sensitive.
+       - Contextual Clues: Often found in sections labeled "Strategic Financial Plan", "Long-Term Planning", or "Scenario Analysis".
+       - False Positive Examples: Generic scenario planning examples not tied to actual financial strategies.
+
+    2. Confidential Financial Communications:
+       - Formats:
+         - Internal Memos and Emails: Communications discussing financial performance, strategic decisions, or upcoming financial disclosures.
+         - Board Meeting Minutes: Detailed minutes from board meetings where financial performance and projections are discussed.
+       - Variations: Communications may include informal emails, formal memos, or detailed meeting notes.
+       - Exclusions: High-level summaries or public communications not containing detailed or sensitive financial information should not be classified as sensitive.
+       - Contextual Clues: Often labeled as "Confidential", "Internal Use Only", or "Board Meeting Minutes".
+       - False Positive Examples: Generic email templates or non-specific communications not tied to confidential financial matters.
+
+    3. Regulatory and Compliance Filings:
+       - Formats:
+         - Draft SEC Filings: Pre-publication drafts of financial filings with the Securities and Exchange Commission (SEC) or similar regulatory bodies.
+         - Internal Compliance Reports: Documents assessing compliance with financial regulations and their impact on financial performance.
+       - Variations: May include detailed financial data, compliance findings, and risk assessments.
+       - Exclusions: Final, publicly disclosed filings or compliance reports that do not contain confidential information should not be classified as sensitive.
+       - Contextual Clues: Often labeled as "Draft Filing", "Internal Report", or "Compliance Assessment".
+       - False Positive Examples: Publicly available final filings or reports that have already been disclosed to the public.
+entityDescription: |-
+  Data Definition to classify and extract Financial Performance and Projections Data from text
+entityId: FINPERF0001
+entityMeta:
+  category: Data Protection Rule
+  source: default
+entityName: Financial Performance and Projections Data
+entityType: dlp_rule_v3
+isDisabled: false
+isModifiable: true

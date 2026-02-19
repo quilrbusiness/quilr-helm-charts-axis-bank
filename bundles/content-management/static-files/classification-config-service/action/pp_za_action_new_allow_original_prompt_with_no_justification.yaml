@@ -1,0 +1,19 @@
+id: 0d8ebfe2-a36b-43e5-9087-d632eb8af59b
+version: 10.9
+code: ACT_35
+name: Allow original prompt with no justification
+type: action
+actiontype: ACTP_02 #ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: "templatized"
+    message_template: ""
+    browser_action: Allow_Original_Prompt_With_No_Justification
+tags:
+  - UC012
+  - UC014
+behavior:
+  - BID_03
+createdon: 1710504494000
+updatedon: 1710504494000

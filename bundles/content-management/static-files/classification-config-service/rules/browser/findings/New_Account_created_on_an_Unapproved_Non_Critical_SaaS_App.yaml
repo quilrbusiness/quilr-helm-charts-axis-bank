@@ -1,0 +1,17 @@
+id: eecfb527-83d7-42b4-9d8a-c952354a0be3
+version: 3.0
+code: Q035
+name: New Account created on an Unapproved Non Critical SaaS App
+description: A new account was created on an unapproved application that does not handle sensitive data.
+type: rule
+view: identity_protection
+impact: moderate
+likelihood: moderate
+createdon: 1720396800000
+updatedon: 1720396800000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_18
+examples: []
+recommendations: []

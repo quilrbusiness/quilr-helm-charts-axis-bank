@@ -1,0 +1,17 @@
+id: 1f438e69-fd28-4472-92cf-643334cdd920
+version: 3.0
+code: Q047
+name: Account level sensitive Permission changes
+description: 
+type: rule
+view: identity_protection
+impact: low
+likelihood: low
+createdon: 1720094794000
+updatedon: 1720094794000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_06
+examples: []
+recommendations: []

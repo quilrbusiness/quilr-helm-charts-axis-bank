@@ -1,0 +1,46 @@
+datatype: DICT
+defaultValue:
+  name: Public Business Information
+  description: Publicly available or non-confidential business data
+  criticality: LOW
+  sensitivity: Non-Sensitive
+  examples:
+    - Company Name and General Contact Information
+    - Published Product Descriptions and Specifications
+    - Press Releases and Public Statements
+    - Annual Reports and Public Financial Disclosures
+    - Job Postings and Career Information
+  indicators:
+    - Presence of information intended for public consumption
+    - Data available on public websites or in public records
+    - Marketing and promotional content
+    - Legally required public disclosures
+  contentMarkers:
+    - Company logos and trademarks
+    - 'Public contact details (e.g., info@company.com)'
+    - Product names and general features
+    - Press release formatting
+    - Stock ticker symbols and public financial figures
+  impactSummary: Minimal risk; information is already public or intended for distribution
+  classificationRules:
+    positive: >-
+      Contains information freely available to the public; data intended for
+      customer or investor consumption
+    negative: Internal memos; unpublished financial data; confidential business strategies
+    resolution: >-
+      Verify if the information is already publicly available or intended for
+      public distribution
+  relatedClasses:
+    - CTX001
+    - GKN001
+    - UGC001
+entityDescription: |-
+  Data Definition to classify and extract Public Business Information from text
+entityId: PBI001
+entityMeta:
+  category: Data Protection Rule
+  source: default
+entityName: Public Business Information
+entityType: dlp_rule
+isDisabled: false
+isModifiable: true

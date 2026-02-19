@@ -1,0 +1,307 @@
+widget_id: 2358855a-6494-4c13-a502-4446b1f2324f
+template_id: QuilrCopilotImpactSummary
+active: true
+title: Quilr Copilot Impact Summary
+components:
+  - name: Findings Mitigation
+    type: numbers
+    data_source_type: knowledgegraph
+    lambda: |
+      def fn(client):
+          data_result =  client.fetch_data(
+              query="OPTIONAL MATCH (n:FINDING_HISTORY)-[r:TRIGGERED]->(a:ACTION)"
+                    " WHERE toLower(a.name) IN ['resolved', 'benign', 'blocked']"
+                    " AND n.subscriber = $subscriber AND n.tenant = $tenant"
+                    " WITH count(distinct a.id) as selfResolved"
+                    " OPTIONAL MATCH (f:FINDING)"
+                    " where f.subscriber = $subscriber and f.tenant = $tenant"
+                    " WITH selfResolved, count(distinct f.id) as findingCount"
+                    " OPTIONAL MATCH (fh:FINDING_HISTORY)"
+                    " where fh.subscriber = $subscriber and fh.tenant = $tenant"
+                    " RETURN findingCount, count(distinct fh.id) as findingHistoryCount, selfResolved"
+          )
+          if data_result and isinstance(data_result, list) and data_result[0]:
+            findingProcessed = data_result[0].get('findingCount', 0) + data_result[0].get('findingHistoryCount', 0)
+            selfResolved = data_result[0].get('selfResolved', 0)
+            total_record_count = 1
+            formatted_data = {
+                "data": [
+                    {
+                        "Findings Processed": 
+                        {
+                            "count": findingProcessed
+                        }
+                        ,
+                        "Self-Resolved Findings" : 
+                        {
+                            "count" : selfResolved
+                        }
+                    }
+                ],
+                "total_record_count": total_record_count
+            }
+          else:
+              # Handle case where data_result is empty or doesn't contain expected structure
+              formatted_data = {
+                  "data": [
+                        {
+                        "Findings Processed": 
+                        {
+                            "count": 0
+                        }
+                        ,
+                        "Self-Resolved Findings" : 
+                        {
+                            "count" : 0
+                        }
+                    }
+                  ],
+                  "total_record_count": 0
+              }
+          return formatted_data
+  - name: Risk Prevention
+    type: numbers
+    data_source_type: knowledgegraph
+    lambda: |
+      def fn(client):
+          data_result =  client.fetch_data(
+              query="OPTIONAL MATCH(finding:FINDING_HISTORY)-[relation:TRIGGERED]->(action:ACTION)"
+                      " WHERE finding.subscriber = $subscriber AND finding.tenant = $tenant AND toLower(action.name)='blocked'"
+                      " WITH COUNT(distinct action.id) as actionsCount"
+                      " OPTIONAL MATCH (issue_history:ISSUE_HISTORY) WHERE issue_history IS NOT NULL"
+                      " AND issue_history.subscriber = $subscriber and issue_history.tenant = $tenant"
+                      " WITH actionsCount,count(distinct issue_history.id) as issueHistoryCount"
+                      " OPTIONAL MATCH(issue:ISSUE) WHERE issue IS NOT NULL"
+                      " AND issue.subscriber = $subscriber and issue.tenant = $tenant"
+                      " RETURN actionsCount , issueHistoryCount , count(distinct issue.id) as issueCount"
+          )
+          if data_result and isinstance(data_result, list) and data_result[0]:
+            breaches_prevented = data_result[0].get('issueHistoryCount', 0) + data_result[0].get('issueCount', 0)
+            risks_blocked = data_result[0].get('actionsCount', 0)
+            total_record_count = 1
+            formatted_data = {
+                "data": [
+                    {
+                        "Breaches Prevented": 
+                        {
+                            "count": breaches_prevented
+                        },
+                        "Risks Blocked" : 
+                        {
+                            "count" : risks_blocked
+                        }
+                    }
+                ],
+                "total_record_count": total_record_count
+            }
+          else:
+              # Handle case where data_result is empty or doesn't contain expected structure
+              formatted_data = {
+                  "data": [
+                        {
+                        "Breaches Prevented": 
+                        {
+                            "count": 0
+                        },
+                        "Risks Blocked" : 
+                        {
+                            "count" : 0
+                        }
+                    }
+                  ],
+                  "total_record_count": 0
+              }
+          return formatted_data
+  - name: Efficiency & Impact
+    type: numbers
+    data_source_type: knowledgegraph
+    lambda: |
+      def fn(client):
+          data_result =  client.fetch_data(
+              query="OPTIONAL MATCH(finding:FINDING_HISTORY)-[relation:TRIGGERED]->(action:ACTION)"
+                      " WHERE finding.subscriber = $subscriber AND finding.tenant = $tenant"
+                      " AND toLower(action.name) IN ['blocked','resolved','benign','escalated as issue']" 
+                      " WITH finding,relation,action"
+                      " OPTIONAL MATCH (finding)-[r:HAS_FINDING]-(account:ACCOUNT)"
+                      " WITH count(distinct account.id) as timeSavedCount"
+                      " MATCH(ac:ACTION) WHERE toLower(ac.name) = 'user_interaction' OR toLower(ac.name) = 'user interaction'"
+                      " RETURN count(distinct ac.id) as userInteractionCount , timeSavedCount"
+          )
+          if data_result and isinstance(data_result, list) and data_result[0]:
+            time_saved = data_result[0].get('timeSavedCount', 0)
+            user_interactions = data_result[0].get('userInteractionCount', 0)
+            time_saved_hours = str(int(round((time_saved * 20) / 60)))
+            total_record_count = 1
+            formatted_data = {
+                "data": [
+                    {
+                        "Time Saved": 
+                        {
+                            "count": time_saved_hours
+                        },
+                        "User Interactions" : 
+                        {
+                            "count" : user_interactions
+                        }
+                    }
+                ],
+                "total_record_count": total_record_count
+            }
+          else:
+              # Handle case where data_result is empty or doesn't contain expected structure
+              formatted_data = {
+                  "data": [
+                      {
+                        "Time Saved": 
+                        {
+                            "count": 0
+                        },
+                        "User Interactions" : 
+                        {
+                            "count" : 0
+                        }
+                    }  
+                  ],
+                  "total_record_count": 0
+              }
+          return formatted_data
+  - name: Behavior & Posture Enhancement
+    type: numbers
+    data_source_type: datalake
+    lambda: |
+      def fn(client):
+        data_result = client.fetch_data(
+            query="WITH initial_behavior_data AS ("
+                  " SELECT"
+                  " agg_type_name,"
+                  " ROUND((alert_percentile * 4) + 1) AS initial_risk_index"
+                  " FROM"
+                  " kafka_connect.snowdata_schema.behaviourprofileaggregated"
+                  " WHERE "
+                  " agg_subtype = 'behaviour'"
+                  " AND agg_type = 'userid'"
+                  " AND DATE_FROM_PARTS(year, monthofyear, dayofmonth) > TO_DATE(TO_TIMESTAMP($starttime / 1000))"
+                  " AND subscriber = $subscriber AND tenant = $tenant"
+                  " ), "
+                  " current_behavior_data AS ("
+                  " SELECT"
+                  " agg_type_name,"
+                  " ROUND((alert_percentile * 4) + 1) AS current_risk_index"
+                  " FROM "
+                  " kafka_connect.snowdata_schema.behaviourprofileaggregated"
+                  " WHERE "
+                  " agg_subtype = 'behaviour'"
+                  " AND agg_type = 'userid'"
+                  " AND DATE_FROM_PARTS(year, monthofyear, dayofmonth) < TO_DATE(TO_TIMESTAMP($endtime / 1000))"
+                  " AND subscriber = $subscriber AND tenant = $tenant"
+                  " ),"
+                  " initial_posture_data AS ("
+                  " SELECT"
+                  " agg_type_name,"
+                  " ROUND((alert_percentile * 4) + 1) AS initial_risk_index"
+                  " FROM"
+                  " kafka_connect.snowdata_schema.postureprofileaggregated"
+                  " WHERE"
+                  " agg_subtype = 'posture'"
+                  " AND agg_type = 'userid'"
+                  " AND DATE_FROM_PARTS(year, monthofyear, dayofmonth) > TO_DATE(TO_TIMESTAMP($starttime / 1000))"
+                  " AND subscriber = $subscriber AND tenant = $tenant"
+                  " ),"
+                  " current_posture_data AS ("
+                  " SELECT "
+                  " agg_type_name,"
+                  " ROUND((alert_percentile * 4) + 1) AS current_risk_index"
+                  " FROM"
+                  " kafka_connect.snowdata_schema.postureprofileaggregated"
+                  " WHERE"
+                  " agg_subtype = 'posture'"
+                  " AND agg_type = 'userid'"
+                  " AND DATE_FROM_PARTS(year, monthofyear, dayofmonth) < TO_DATE(TO_TIMESTAMP($endtime / 1000))"
+                  " AND subscriber = $subscriber AND tenant = $tenant"
+                  " ), "
+                  " comparison_behavior AS ("
+                  " SELECT"
+                  " c.agg_type_name AS user_id,"
+                  " i.initial_risk_index,"
+                  " c.current_risk_index,"
+                  " CASE "
+                  " WHEN c.current_risk_index < i.initial_risk_index THEN 1"
+                  " ELSE 0"
+                  " END AS improved"
+                  " FROM "
+                  " current_behavior_data c"
+                  " LEFT JOIN "
+                  " initial_behavior_data i ON c.agg_type_name = i.agg_type_name"
+                  " ),"
+                  " comparison_posture AS ("
+                  " SELECT"
+                  " c.agg_type_name AS user_id,"
+                  " i.initial_risk_index,"
+                  " c.current_risk_index,"
+                  " CASE"
+                  " WHEN c.current_risk_index < i.initial_risk_index THEN 1"
+                  " ELSE 0"
+                  " END AS improved"
+                  " FROM"
+                  " current_posture_data c"
+                  " LEFT JOIN"
+                  " initial_posture_data i ON c.agg_type_name = i.agg_type_name"
+                  " ),"
+                  " user_counts AS ("
+                  " SELECT"
+                  " COUNT(DISTINCT CASE WHEN initial_risk_index > 0 THEN user_id END) AS total_users,"
+                  " COUNT(DISTINCT CASE WHEN improved = 1 THEN user_id END) AS improved_users,"
+                  " COUNT(DISTINCT CASE WHEN improved = 1 THEN initial_risk_index END) AS improved_behaviour_count"
+                  " FROM"
+                  " comparison_behavior"
+                  " ),"
+                  " posture_counts AS ("
+                  " SELECT"
+                  " COUNT(DISTINCT CASE WHEN initial_risk_index > 0 THEN user_id END) AS total_users,"
+                  " COUNT(DISTINCT CASE WHEN improved = 1 THEN user_id END) AS improved_users,"
+                  " COUNT(DISTINCT CASE WHEN improved = 1 THEN initial_risk_index END) AS improved_posture_count"
+                  " FROM"
+                  " comparison_posture"
+                  " )"
+                  " SELECT"
+                  " uc.improved_behaviour_count AS improved_behaviour_count,"
+                  " (uc.improved_users * 100.0 / NULLIF(uc.total_users, 0)) AS percentage_improved_behaviour,"
+                  " pc.improved_posture_count AS improved_posture_count,"
+                  " (pc.improved_users * 100.0 / NULLIF(pc.total_users, 0)) AS percentage_improved_posture"
+                  " FROM"
+                  " user_counts uc,"
+                  " posture_counts pc;"
+        )
+        if data_result and isinstance(data_result, list) and data_result[0]:
+            total_record_count = len(data_result)
+            formatted_data = {"data": []}
+            for item in data_result:
+              # Extract values
+              key1 = item.get("IMPROVED_BEHAVIOUR_COUNT")
+              key2 = item.get("PERCENTAGE_IMPROVED_BEHAVIOUR")
+              key2 = int(round(key2)) if key2 is not None else 0
+              key3 = item.get("IMPROVED_POSTURE_COUNT")
+              key4 = item.get("PERCENTAGE_IMPROVED_POSTURE")
+              key4 = int(round(key4)) if key4 is not None else 0
+              data = {
+                  "Behaviors Improved" : {
+                    "count": key1,
+                    "change": key2,
+                  },
+                  "Postures Improved" : {
+                    "count" : key3,
+                    "change" : key4
+                  }
+              }
+              formatted_data["data"].append(data)
+              # Add total record count
+            formatted_data["total_record_count"] = total_record_count
+            return formatted_data
+        else:
+            # Handle case where data_result is empty or doesn't contain expected structure
+            formatted_data = {
+                "data": [],
+                "total_record_count": 0
+            }
+            return formatted_data
+version: 1.0.4

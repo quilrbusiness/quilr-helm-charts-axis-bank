@@ -1,0 +1,23 @@
+id: dd4eb12e-2393-458d-9ac3-cabf0886af71
+name: device is not compliant with mobile device management (mdm) policies
+updatedon: 1734314982542
+condition:
+- filter_condition:
+    condition: is not equal to
+    value: compliant
+    attribute_id: DEV-006
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: 
+  editable: false
+createdon: 1734314982542
+version: 1.8
+description: Compliance settings in MDM policies define the rules and conditions devices must meet to be considered compliant, such as requiring encryption, PIN codes, operating system updates, or specific security baselines. When these settings are not adhered to, it can result in devices being flagged as non-compliant or even bypassing the intended security controls altogether.
+posture:
+- PID_05
+code: UC103
+disabled: false
+type: use-case
+behavior:
+- BID_105
+

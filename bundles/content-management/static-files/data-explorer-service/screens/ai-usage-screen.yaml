@@ -1,0 +1,574 @@
+id: ai-usage
+name: AI Usage
+type: screen
+enabled: false
+version: 1.0.21
+icon_url: https://staticcontent1.blob.core.windows.net/finding-icons/apps-svgrepo-com-2.svg
+table_query:
+  # TODO : add a.resolverType IS NOT NULL in this query later.
+  id: 745c143e-0853-4975-9817-c004ec43cf8c
+  name: Display Table Data
+  queryString: "
+      MATCH (u:USER{subscriber: $subscriber, tenant: $tenant})-[:HAS_EMAIL]-(email:EMAIL)
+      MATCH (email)-[AUTH_TYPE]->(account:ACCOUNT)
+      MATCH (account)-[:USING_APP]->(app:APPLICATION)
+      MATCH (app)-[:HAS_APP_CATEGORY]->(category:APP_CATEGORY)
+      OPTIONAL MATCH (app)<-[hs:HAS_APP_SETTINGS]-(tenant:TENANT)
+      WITH app, category, hs, COUNT(DISTINCT account.id) AS accounts, MAX(COALESCE(AUTH_TYPE.last_access_time, 0)) AS lastAccessTime
+
+      OPTIONAL MATCH (account)-[:USING_APP]->(app)
+      OPTIONAL MATCH (account)-[:HAS_FINDING]->(f:FINDING)
+      OPTIONAL MATCH (f)-[:HAS_ARTIFACT]->(dlp:DLP_FINAL_CLASS)
+      OPTIONAL MATCH (f)-[:TRIGGERED]-(a:ACTION)
+
+      OPTIONAL MATCH (account)-[:HAS_FINDING]->(fin:FINDING_HISTORY)
+      OPTIONAL MATCH (fin)-[:TRIGGERED]-(a:ACTION)
+      OPTIONAL MATCH (f)-[:HAS_ARTIFACT]->(dlp:FINDING_HISTORY)
+
+      WITH app, category, hs, accounts, lastAccessTime,
+          COLLECT(DISTINCT {dlpId: dlp.id, state: a.state}) AS dlpDataCombined
+
+      OPTIONAL MATCH (account)-[:USING_APP]->(app)
+      OPTIONAL MATCH (account)-[:HAS_FINDING]->(f:FINDING)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(f)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+
+      WITH app, category, hs, accounts, lastAccessTime,
+          dlpDataCombined,
+          b.name AS behaviour, COUNT(f) AS findingsCount
+
+      WITH app, 
+          COLLECT(DISTINCT {name: category.name, priority: category.priority}) AS categories, 
+          hs, accounts, lastAccessTime, 
+          COLLECT(DISTINCT {behaviour: behaviour, findings: findingsCount}) AS behavioursAggregated,
+          dlpDataCombined
+
+      WITH app, categories, hs, accounts, behavioursAggregated, lastAccessTime,
+          [d IN dlpDataCombined WHERE d.state IN ['open', 'inprogress'] AND d.dlpId IS NOT NULL] AS filteredDlpData
+
+      WITH app, categories, hs, accounts, behavioursAggregated, lastAccessTime, 
+          REDUCE(acc = [], item IN filteredDlpData |
+              CASE
+                  WHEN SIZE([x IN acc WHERE x.dlpId = item.dlpId]) > 0
+                  THEN [x IN acc | CASE WHEN x.dlpId = item.dlpId THEN {dlpId: x.dlpId, count: x.count + 1} ELSE x END]
+                  ELSE acc + {dlpId: item.dlpId, count: 1}
+              END
+          ) AS sensitiveData
+
+      WITH app, categories, hs, accounts, behavioursAggregated, sensitiveData, lastAccessTime
+      WHERE \"generative ai\" IN [cat IN categories | cat.name]
+
+      AND toLower(COALESCE(app.name, app.domain,app.id)) =~ toLower('.*{searchText}.*')
+      {placeholder}
+
+      RETURN
+          COALESCE(app.id_, app.internalId) AS id,
+          COALESCE(app.name, app.domain, app.id) AS app,
+          [cat IN categories WHERE cat.priority = 2 | cat.name] AS categories,
+          COALESCE(hs.logoUrl, app.logoUrl) AS logo,
+          accounts,
+          lastAccessTime,
+          COALESCE(hs.approval_status, 'NEEDS REVIEW') AS status,
+          behavioursAggregated,
+          sensitiveData "
+  type: merge
+  allowed_params: true
+  allowed_body: true
+  input_params:
+    status: AND COALESCE(hs.approval_status, 'NEEDS REVIEW') = $status
+    starttime: AND app.timestamp >= $starttime
+    endtime: AND app.timestamp <= $endtime
+  input_body: null
+  dataSourceType: knowledgegraph
+  sortOrder: desc
+  sortColumn: accounts
+  limit: 10
+  offset: 0
+detailed_widget:
+  - id: c0cc98da-e08c-43b8-a48c-ddd1091810cd
+    name: Findings_drill_down
+    position: main
+    template: findings_detailed_view
+  - id: 02747005-c25f-494a-868f-715da9f0ccef
+    name: user_view
+    position: offset
+    template: users_view
+view_by: []
+table_filters:
+  - id: status
+    name: Status
+    defaultValue: All
+    active: true
+    dataSourceType: knowledgegraph
+    allowed_params: true
+    type: select
+    input_params:
+      starttime: ""
+    query: "MATCH (u:USER)-[:HAS_EMAIL]-(email:EMAIL)
+      MATCH (email)-[]->(account:ACCOUNT)
+      OPTIONAL MATCH (account)-[:HAS_FINDING]->(f:FINDING)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(f)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      MATCH (account)-[:USING_APP]->(app:APPLICATION)
+      OPTIONAL MATCH (app)-[:HAS_APP_CATEGORY]->(category:APP_CATEGORY)
+      OPTIONAL MATCH (email)-[:CREDSBASED_ACCOUNT]->(credsAcc:ACCOUNT)
+      OPTIONAL MATCH (email)-[:SAML_ACCOUNT]->(sso:ACCOUNT)
+      OPTIONAL MATCH (email)-[:OAUTH_ACCOUNT]->(oauth:ACCOUNT)
+      OPTIONAL MATCH (app)-[:HAS_ADMIN]-(adminAccount:ACCOUNT)
+      OPTIONAL MATCH (adminAccount)<-[]-(:EMAIL)<-[:HAS_EMAIL]-(ad:USER)
+      OPTIONAL MATCH (idp:INSTANCE)-[:HAS_IDP]->(idpApp:APPLICATION)
+      OPTIONAL MATCH (app)<-[hs:HAS_APP_SETTINGS]-(tenant:TENANT)
+
+      WITH
+      collect(distinct {id: 'status_' + apoc.util.md5(['All']), label: 'All', value: 'All'}) +
+      collect(distinct {id: 'status_' + apoc.util.md5(['Approved']), label: 'Approved', value: 'APPROVED'}) +
+      collect(distinct {id: 'status_' + apoc.util.md5(['Unapproved']), label: 'Unapproved', value: 'UNAPPROVED'}) +
+      collect(distinct {id: 'status_' + apoc.util.md5(['Tolerated']), label: 'Tolerated', value: 'TOLERATED'}) +
+      collect(distinct {id: 'status_' + apoc.util.md5(['Needs Review']), label: 'Needs Review', value: 'NEEDS REVIEW'}) as filters
+      RETURN filters"
+  - id: category
+    name: Category
+    active: true
+    input_params:
+      starttime: ""
+    defaultValue: All
+    dataSourceType: knowledgegraph
+    allowed_params: true
+    type: select
+    query: "
+          RETURN [
+          {
+              id: 'category_' + apoc.util.md5(['All']),
+              label: 'All',
+              value: 'All'
+          },
+          {
+              id: 'category_' + apoc.util.md5(['Generative AI']),
+              label: 'Generative AI',
+              value: 'generative ai'
+          }
+      ] AS filters"
+  - id: owner
+    name: Findings
+    type: select
+    active: true
+    dataSourceType: knowledgegraph
+    allowed_params: true
+    input_params:
+      starttime: AND finding.timestamp >= $starttime
+      endtime: AND finding.timestamp <= $endtime
+    defaultValue: All
+    query:
+      "
+      MATCH (u:USER { subscriber: $subscriber, tenant: $tenant })-[:HAS_EMAIL]->(email:EMAIL)
+      MATCH (email)-[rel]->(acc:ACCOUNT)
+      MATCH (acc)-[:USING_APP]->(app:APPLICATION)
+      MATCH (app)-[:HAS_APP_CATEGORY]->(ca:APP_CATEGORY)
+      WHERE toLower(ca.name) = 'generative ai'
+      MATCH (acc)-[:HAS_FINDING]->(f:FINDING)
+      OPTIONAL MATCH (acc)-[:HAS_FINDING]->(fh:FINDING_HISTORY)
+      WHERE toLower(f.status) IN ['open', 'inprogress'] and toLower(fh.status) IN ['closed']
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(f)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+
+      WITH COLLECT(DISTINCT b.name) AS behList
+      WITH 
+      [{id: 'behavior_' + apoc.util.md5(['All']), label: 'All', value: 'All'}] +
+      [beh IN behList WHERE beh IS NOT NULL | 
+          {id: 'behavior_' + apoc.util.md5([beh]), label: beh, value: beh}
+      ] AS filters
+      RETURN filters"
+  
+      # 541217bf-6576-497a-ba24-fdc268cf7fb0
+  # - id: cf21f158-0dea-4975-816d-ca3e1a2c5d74
+  #   name: Co-Pilot Status
+  #   type: Drop Down Menu
+  #   active: false
+  #   options:
+  #     query_id: ""
+  #     mergeQueryString: ""
+  #     label: ""
+  #     value: ""
+widgets:
+  - id: appsGraph
+    name: "Ai Usage"
+    label: Widget
+    template: this_template
+    enabled: true
+    type: detailed
+    dataSourceType: knowledgegraph
+    allowed_params: true
+    className: col-span-1
+    query_id: ""
+    input_params:
+      endtime: $endtime
+    queryFilters:
+      - id: 23154174-af03-40c1-ac44-cb8b078c3b0f
+        name: Time Filter
+        type: multiselect
+        options: null
+    query:
+      " WITH $endtime AS endtime, ($endtime - 30 * 24 * 60 * 60 * 1000) AS compareTime
+        MATCH(t:TENANT{id: $tenant})-[:HAS_USER]->(u:USER{subscriber: $subscriber, tenant: $tenant})
+        MATCH (u)-[:HAS_EMAIL]-(e:EMAIL)
+        MATCH (e)-[]->(acc:ACCOUNT)
+        MATCH (acc)-[:USING_APP]->(a:APPLICATION)
+        MATCH (a)-[:HAS_APP_CATEGORY]->(cat:APP_CATEGORY)
+        WITH u, e, acc, a, COLLECT(DISTINCT cat.name) AS categories, compareTime, endtime
+        WHERE \"generative ai\" IN categories
+        OPTIONAL MATCH (t)-[rel:HAS_APP_SETTINGS]->(a)
+        WITH 
+            COLLECT(DISTINCT a) AS allApps,
+            COLLECT(DISTINCT acc) AS allAccounts,
+            compareTime,
+            endtime,
+            COLLECT(DISTINCT rel) AS allRels
+        WITH
+            allApps,
+            allAccounts,
+            compareTime,
+            endtime,
+            allRels,
+            [app IN allApps WHERE 
+                app.timestamp >= compareTime AND 
+                app.timestamp <= endtime 
+            ] AS newApps,
+            [acc IN allAccounts WHERE acc.creationTime >= compareTime AND acc.creationTime <= endtime] AS newAccounts
+        RETURN 
+            SIZE(allApps) AS total_app_count,
+            SIZE(allAccounts) AS total_user_accounts,
+            SIZE(newApps) AS new_apps_count,
+            SIZE(newAccounts) AS new_accounts_count "
+  - id: status
+    name: Distribution by status
+    label: Widget
+    template: status
+    enabled: true
+    dataSourceType: knowledgegraph
+    allowed_params: false
+    type: variable_pie_chart
+    className: col-span-3
+    query_id: ""
+    input_params: null
+    queryFilters: []
+    query: "MATCH (u:USER{subscriber: $subscriber , tenant: $tenant})-[:HAS_EMAIL]-(email:EMAIL)
+      MATCH (email)-[]->(account:ACCOUNT)
+      OPTIONAL MATCH (account)-[:HAS_FINDING]->(f:FINDING)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(f)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      MATCH (account)-[:USING_APP]->(app:APPLICATION)
+      MATCH (app)-[:HAS_APP_CATEGORY]->(category:APP_CATEGORY)
+      WHERE toLower(category.name) = 'generative ai'
+      OPTIONAL MATCH (email)-[:CREDSBASED_ACCOUNT]->(credsAcc:ACCOUNT)
+      OPTIONAL MATCH (email)-[:SAML_ACCOUNT]->(sso:ACCOUNT)
+      OPTIONAL MATCH (email)-[:OAUTH_ACCOUNT]->(oauth:ACCOUNT)
+      OPTIONAL MATCH (app)-[:HAS_ADMIN]-(adminAccount:ACCOUNT)
+      OPTIONAL MATCH (adminAccount)<-[]-(:EMAIL)<-[:HAS_EMAIL]-(ad:USER)
+      OPTIONAL MATCH (idp:INSTANCE)-[:HAS_IDP]->(idpApp:APPLICATION)
+      OPTIONAL MATCH (app)<-[hs:HAS_APP_SETTINGS]-(tenant:TENANT)
+      WITH u, email, account, f, r, b, p, app, category, credsAcc, sso, oauth, adminAccount, ad, idp, idpApp, hs, tenant
+     
+      WITH
+      COUNT(DISTINCT CASE WHEN COALESCE(hs.approval_status, 'NEEDS REVIEW') = 'NEEDS REVIEW' THEN app END) AS needsReviewCount,
+      COUNT(DISTINCT CASE WHEN COALESCE(hs.approval_status, 'NEEDS REVIEW') = 'APPROVED' THEN app END) AS approvedCount,
+      COUNT(DISTINCT CASE WHEN COALESCE(hs.approval_status, 'NEEDS REVIEW') = 'UNAPPROVED' THEN app END) AS unapprovedCount,
+      COUNT(DISTINCT CASE WHEN COALESCE(hs.approval_status, 'NEEDS REVIEW') = 'TOLERATED' THEN app END) AS toleratedCount
+
+      RETURN [
+      { value: needsReviewCount, name: 'Needs Review' },
+      { value: approvedCount, name: 'Approved' },
+      { value: unapprovedCount, name: 'Unapproved' },
+      { value: toleratedCount, name: 'Tolerated' }
+      ] AS results "
+  - id: PiChart
+    name: Sensitive Data
+    label: Widget
+    template: PieChart
+    enabled: true
+    dataSourceType: knowledgegraph
+    allowed_params: true
+    type: bar_chart_2
+    className: col-span-3
+    query_id: ""
+    input_params:
+      starttime: AND app.timestamp >= $starttime
+      endtime: AND app.timestamp <= $endtime
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    # TODO : add a.resolverType IS NOT NULL in this query later.
+    query: 
+      "MATCH (u:USER{subscriber: $subscriber, tenant: $tenant})-[:HAS_EMAIL]->(e:EMAIL)
+      MATCH (e)-[relation]->(acc:ACCOUNT)
+      OPTIONAL MATCH (acc)-[:HAS_FINDING]->(f:FINDING)
+      OPTIONAL MATCH (f)-[:HAS_ARTIFACT]->(dlp_f:DLP_FINAL_CLASS)
+      OPTIONAL MATCH (acc)-[:HAS_FINDING]->(fh:FINDING_HISTORY)
+      OPTIONAL MATCH (fh)-[:HAS_ARTIFACT]->(dlp_fh:DLP_FINAL_CLASS)
+      WITH f, fh, dlp_f, dlp_fh
+      WHERE (dlp_f.id IS NOT NULL OR dlp_fh.id IS NOT NULL) AND (toLower(f.status) <>'benign')
+      WITH COALESCE(dlp_f, dlp_fh) AS dlp, f, fh
+      RETURN
+      DISTINCT dlp.id as dlpData,
+      COUNT(DISTINCT f.name) + COUNT(DISTINCT fh.name) as findingCount"
+  - id: PiChart
+    name: Prompt Categorization
+    label: Widget
+    template: PieChart
+    enabled: true
+    dataSourceType: knowledgegraph
+    allowed_params: true
+    type: bar_chart
+    className: col-span-3
+    query_id: ""
+    input_params:
+      starttime: AND app.timestamp >= $starttime
+      endtime: AND app.timestamp <= $endtime
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    # TODO : add a.resolverType IS NOT NULL in this query later.
+    query: 
+      ""
+table_render:
+  table_additional_data:
+    no_hover: true
+    row_border: true
+    min_row_height: "h-[80px]" 
+    alternate_row_colors: true
+    no_table_padding: true
+    table_heading_bg: "bg-dark-300"
+    table_filters_wrapper_class: "grid grid-cols-10"
+    no_calendar: true
+    no_drilldown: true
+  widgets:
+    status:
+      id: status
+      map:
+        Approved:
+          color: "#8AC926"
+        Tolerated:
+          color: "#1982C4"
+        Unapproved:
+          color: "#FF595E"
+        "Needs Review":
+          color: "#FFCA3A"
+    loginMethods:
+      map:
+        SSO:
+          color: "#6A4C93"
+          logo: https://staticcontent1.blob.core.windows.net/static-images-company-logos/okta.png
+        OAuth:
+          color: "#6A4C93"
+          logo: https://staticcontent1.blob.core.windows.net/static-images-company-logos/microsoft.png
+        Creds:
+          color: "#6A4C93"
+          imageClasses: invert
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/credential-icon-white.svg
+    piechart:
+       id: PieChart
+       map:
+  table:
+    app:
+      id: app
+      type: multi_icon
+      label: App
+      sortable: false
+      valuePath: app
+      groupByKey: app
+      order: 1
+    category:
+      id: category
+      type: categoryCell
+      extraClasses: text-center
+      label: Category
+      # bgColor: "#"
+      valuePath: Category
+      width: w-[8%]
+      sortable: false
+      groupByKey: Category
+      order: 2
+    status:
+      id: appStatus
+      type: coloredDropDown
+      label: Status
+      valuePath: Status
+      sortable: false
+      groupByKey: Status
+      onChange:
+        apiCall: /browser-extension/browser/activity/modify/appSettings
+        method: POST
+        args:
+          query:
+            - name: app_id
+              position: query
+              value: "$id"
+          body:
+            - name: approval_status
+              position: body
+              value: "{val}"
+      order: 3
+      options:
+        - id: status-not-available
+          label: Needs Review
+          value: "NEEDS REVIEW"
+        - id: status-select-approved
+          label: Approved
+          value: APPROVED
+          color: "#75FC72BE"
+        - id: status-select-tolerated
+          label: Tolerated
+          value: TOLERATED
+        - id: status-select-not-approved
+          label: Unapproved
+          value: UNAPPROVED
+          color: "#FC7272BE"
+    accounts:
+      id: accounts
+      type: text
+      extraClasses: text-center
+      label: Accounts
+      sortable: false
+      width: w-[8%]
+      valuePath: Accounts
+      groupByKey: Accounts
+      order: 4
+    login_methods:
+      id: login_method
+      type: loginMethod
+      label: Sensitive Data
+      valuePath: App
+      sortable: false
+      groupByKey: App
+      order: 5
+      map:
+        SSO:
+          logo: https://staticcontent1.blob.core.windows.net/static-images-company-logos/okta.png
+          color: "#383838"
+        OAuth:
+          logo: https://staticcontent1.blob.core.windows.net/static-images-company-logos/microsoft.png
+          color: "#383838"
+        "User & Pass":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/credential-icon-white.svg
+          color: "#D5C0C0"
+    # owners:
+    #   id: admin
+    #   type: userIcon
+    #   width: w-[10%]
+    #   label: Owners
+    #   valuePath: Owners
+    #   sortable: false
+    #   order: 7
+    last_breached:
+      id: last_breached
+      width: w-[10%]
+      type: USFormattedDate
+      emptyValue: Never
+      extraClasses: text-center
+      label: Last Accessed
+      valuePath: last_breached
+      sortable: false
+      order: 6
+    findings:
+      id: findings
+      type: findingsCell
+      label: Findings
+      valuePath: findings
+      sortable: false
+      order: 7
+      map:
+        "Password Hygiene":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-password-hygiene.svg
+          color: "#2B2B2B"
+        "SaaS Usage":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-saas-usage.svg
+          color: "#2B2B2B"
+        "MFA usage":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-mfa-usage.svg
+          color: "#2B2B2B"
+        "Human Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-human-risk.svg
+          color: "#2B2B2B"
+        "Data Handling":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-data-handling.svg
+          color: "#2B2B2B"
+        "AI Usage":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-ai-usage.svg
+          color: "#2B2B2B"
+        "Social Engineering":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-social-engineering.svg
+          color: "#2B2B2B"
+        "Web Browsing":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-web-browsing.svg
+          color: "#2B2B2B"
+        "Workstation Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-workstation-risks.svg
+          color: "#2B2B2B"
+        "Sensitive data leaked on AI apps":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-ai-usage.svg
+          color: "#2B2B2B"
+
+pagination_query:
+  query: "MATCH (u:USER{subscriber: $subscriber, tenant: $tenant})-[:HAS_EMAIL]-(email:EMAIL)
+      MATCH (email)-[AUTH_TYPE]->(account:ACCOUNT)
+      MATCH (account)-[:USING_APP]->(app:APPLICATION)
+      MATCH (app)-[:HAS_APP_CATEGORY]->(category:APP_CATEGORY)
+      OPTIONAL MATCH (app)<-[hs:HAS_APP_SETTINGS]-(tenant:TENANT)
+      WITH app, category, hs, COUNT(DISTINCT account.id) AS accounts, MAX(COALESCE(AUTH_TYPE.last_access_time, 0)) AS lastAccessTime
+
+      
+      OPTIONAL MATCH (account)-[:USING_APP]->(app)
+      OPTIONAL MATCH (account)-[:HAS_FINDING]->(f:FINDING)
+      OPTIONAL MATCH (f)-[:HAS_ARTIFACT]->(dlp:DLP_FINAL_CLASS)
+      OPTIONAL MATCH (f)-[:TRIGGERED]-(a:ACTION)
+
+      OPTIONAL MATCH (account)-[:HAS_FINDING]->(fin:FINDING_HISTORY)
+      OPTIONAL MATCH (fin)-[:TRIGGERED]-(a:ACTION)
+      OPTIONAL MATCH (f)-[:HAS_ARTIFACT]->(dlp:FINDING_HISTORY)
+
+      WITH app, category, hs, accounts, lastAccessTime,
+          COLLECT(DISTINCT {dlpId: dlp.id, state: a.state}) AS dlpDataCombined
+
+      
+      OPTIONAL MATCH (account)-[:USING_APP]->(app)
+      OPTIONAL MATCH (account)-[:HAS_FINDING]->(f:FINDING)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(f)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+
+      WITH app, category, hs, accounts, lastAccessTime,
+          dlpDataCombined,
+          b.name AS behaviour, COUNT(f) AS findingsCount
+
+      WITH app, 
+          COLLECT(DISTINCT category.name) AS categories, 
+          hs, accounts, lastAccessTime, 
+          COLLECT(DISTINCT {behaviour: behaviour, findings: findingsCount}) AS behavioursAggregated,
+          dlpDataCombined
+
+      WITH app, categories, hs, accounts, behavioursAggregated, lastAccessTime,
+          [d IN dlpDataCombined WHERE d.state IN ['open', 'inprogress'] AND d.dlpId IS NOT NULL] AS filteredDlpData
+
+      WITH app, categories, hs, accounts, behavioursAggregated, lastAccessTime, 
+          REDUCE(acc = [], item IN filteredDlpData |
+              CASE
+                  WHEN SIZE([x IN acc WHERE x.dlpId = item.dlpId]) > 0
+                  THEN [x IN acc | CASE WHEN x.dlpId = item.dlpId THEN {dlpId: x.dlpId, count: x.count + 1} ELSE x END]
+                  ELSE acc + {dlpId: item.dlpId, count: 1}
+              END
+          ) AS sensitiveData
+
+      WITH app, categories, hs, accounts, behavioursAggregated, sensitiveData, lastAccessTime
+      WHERE \"generative ai\" IN categories
+      AND toLower(COALESCE(app.name, app.domain,app.id)) =~ toLower('.*{searchText}.*')
+      {placeholder}
+
+      RETURN
+        COUNT(DISTINCT COALESCE(app.id_, app.internalId)) AS totalCount"
+  dataSourceType: knowledgegraph
+
+table_widget: []

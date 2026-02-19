@@ -1,0 +1,411 @@
+id: browser-extension
+name: Browser Extension
+type: screen
+enabled: true
+version: 1.0.36
+icon_url: https://staticcontent1.blob.core.windows.net/finding-icons/browser-extension.svg
+table_query:
+  id: d7df35c8-43f1-4db7-8652-0f9a8f87e746
+  name: Display Table Data
+  queryString: null
+  type: merge
+  allowed_params: true
+  allowed_body: true
+  input_params:
+    sample: value
+  input_body: null
+  dataSourceType: knowledgegraph
+  sortOrder: desc
+  sortColumn: lastseen
+  limit: 10
+  offset: 0
+detailed_widget:
+  - id: BID_18_detailed
+    name: "Browser Extension usage Drilldown Table"
+    input_params:
+      appId: $appId
+      behavior: $behavior
+    dataSourceType: "knowledgegraph"
+    enabled: true
+    allowed_params: true
+    sortOrder: ""
+    sortColumn: ""
+    position: null
+    template: null
+    className: null
+    multi_value_params:
+      - id: appId
+        delimiter: ","
+    query: ""
+view_by:
+  - id: BID_18
+    name: "Browser Extensions"
+    type: widget
+    active: true
+    defaultValue: null
+    queryFilters: []
+    className: ""
+    query: "MATCH (b:BROWSER)-[]-(e:EXTENSION)-[iu:IS_USING]-(p:PERSONA {subscriber:$subscriber, tenant:$tenant})-[]-(u:USER) 
+            WITH b, e, iu, p, u
+            WHERE toLower(COALESCE(e.name, u.displayName)) CONTAINS toLower('{searchText}')
+            {placeholder}
+            OPTIONAL MATCH (e)-[]-(per:PERMISSION)
+            OPTIONAL MATCH (e)-[hes:HAS_EXTENSION_SETTINGS]-(p)
+            return 
+                e.name as extensionName,
+                e.id as extensionId,
+                iu.version as extensionVersion,
+                iu.installType as installSource, 
+                collect(distinct {name:b.id,version: b.version}) as browserName, 
+                {displayName: u.displayName, mail:u.mail, icon:u.profilePicUrl, userid:u.id} as users,
+                count(distinct per.id) as permission,
+                iu.status as Status,
+                collect(distinct {permission:per.id, risklevel:per.risklevel}) as permissionlist,
+                hes.status as settingstatus"
+    allowed_params: true
+    input_params:
+      behavior: $behavior
+      user: AND toLower(u.displayName) IN [ x IN [$user] | toLower(x) ]
+      browser: AND toLower(b.id) IN [ x IN [$browser] | toLower(x) ]
+      permission: AND EXISTS { MATCH (e)-[]-(per_check:PERMISSION) WHERE per_check.id IN [$permission] }
+      extension: AND toLower(e.id) IN [x IN [$extension] | toLower(x) ]
+      status: AND iu.status = $status
+    multi_value_params:
+      - id: behavior
+        delimiter: ","
+      - id: user
+        delimiter: ","
+      - id: browser
+        delimiter: ","
+      - id: permission
+        delimiter: ","
+      - id: extension
+        delimiter: ","
+    dataSourceType: "knowledgegraph"
+    pagination_query: "MATCH (b:BROWSER)-[]-(e:EXTENSION)-[iu:IS_USING]-(p:PERSONA {subscriber:$subscriber, tenant:$tenant})-[]-(u:USER) 
+                       WITH b, e, iu, p, u
+                       WHERE toLower(COALESCE(e.name, u.displayName)) CONTAINS toLower('{searchText}')
+                       {placeholder}
+                       OPTIONAL MATCH (e)-[]-(per:PERMISSION)
+                       OPTIONAL MATCH (e)-[hes:HAS_EXTENSION_SETTINGS]-(p)
+                       
+                       WITH 
+                       e.name as extensionName,
+                       e.id as extensionId,
+                       iu.version as extensionVersion,
+                       iu.installType as installSource, 
+                       collect(distinct {name:b.id,version: b.version}) as browserName, 
+                       {displayName: u.displayName, mail:u.mail, icon:u.profilePicUrl, userid:u.id} as users,
+                       count(distinct per.id) as permission,
+                       iu.status as Status,
+                       collect(distinct {permission:per.id, risklevel:per.risklevel}) as permissionlist,
+                       hes.status as settingstatus
+                           
+                       RETURN COUNT(*) AS totalCount"
+table_filters:
+  - id: user
+    name: User
+    defaultValue:
+    active: true
+    view_by:
+      - BID_18
+    optional: false
+    defaultOptions: []
+    type: multiselect
+    allowed_params: false
+    dataSourceType: knowledgegraph
+    input_params: null
+    query: "match (e:EXTENSION)-[iu:IS_USING]-(p:PERSONA {subscriber:$subscriber, tenant:$tenant})-[]-(u:USER)
+            return DISTINCT u.displayName AS id, u.displayName AS value , u.displayName AS label"
+  - id: browser
+    name: Browser
+    defaultValue:
+    active: true
+    view_by:
+      - BID_18
+    optional: false
+    defaultOptions: []
+    type: multiselect
+    allowed_params: false
+    dataSourceType: knowledgegraph
+    input_params: null
+    query: "MATCH (b:BROWSER) WHERE b.id IS NOT NULL AND trim(b.id) <> '' 
+    RETURN DISTINCT b.id AS id, toLower(b.id) AS value, b.id AS label"
+  - id: permission
+    name: Permission
+    defaultValue:
+    active: true
+    view_by:
+      - BID_18
+    optional: false
+    defaultOptions: []
+    type: multiselect
+    allowed_params: false
+    dataSourceType: knowledgegraph
+    input_params: null
+    query: "match (b:PERSONA {subscriber: $subscriber, tenant: $tenant})-[]-(e:EXTENSION)-[]-(p:PERMISSION) 
+            match (e)-[]-(bro:BROWSER)
+            return DISTINCT p.id AS id,  p.id AS value ,  p.id AS label"
+  - id: extension
+    name: Extension
+    defaultValue:
+    active: true
+    view_by:
+      - BID_18
+    optional: false
+    defaultOptions: []
+    type: multiselect
+    allowed_params: false
+    dataSourceType: knowledgegraph
+    input_params: null
+    query: "match (p:PERSONA {subscriber: $subscriber, tenant: $tenant})-[]-(e:EXTENSION)-[]-(b:BROWSER) return DISTINCT e.id AS id,  e.id AS value, e.name AS label"
+  - id: status
+    name: Status
+    defaultValue:
+    active: true
+    view_by:
+      - BID_18
+    optional: false
+    defaultOptions: []
+    type: single
+    allowed_params: false
+    dataSourceType: knowledgegraph
+    input_params: null
+    query: "match (p:PERSONA {subscriber: $subscriber, tenant: $tenant})-[iu:IS_USING]-(e:EXTENSION)-[]-(b:BROWSER) return DISTINCT iu.status AS id,  iu.status AS value, iu.status AS label"
+widgets:
+  - id: extensionWidget
+    name: "Extension"
+    label: Widget
+    template: this_template
+    enabled: true
+    type: detailed
+    dataSourceType: knowledgegraph
+    allowed_params: true
+    className: col-span-6
+    query_id: ""
+    input_params:
+      behavior: $behavior
+    queryFilters: []
+    limit: 1
+    offset: 0
+    query: |
+      match (b:BROWSER)-[]-(e:EXTENSION)-[iu:IS_USING]-(p:PERSONA {subscriber:$subscriber, tenant:$tenant})-[]-(u:USER)
+      return 
+          size([c in collect(distinct {browser:tolower(b.id), extension:e.id}) where tolower(c.browser)='google chrome']) as googlechrome,
+          size([c in collect(distinct {browser:b.id, extension:e.id}) where tolower(c.browser)='microsoft edge']) as microsoftedge,
+          count(DISTINCT e.id) as total
+  - id: statusWidget
+    name: "Extension Status"
+    label: Widget
+    template: this_template
+    enabled: true
+    type: detailed
+    dataSourceType: knowledgegraph
+    allowed_params: true
+    className: col-span-6
+    query_id: ""
+    input_params:
+      behavior: $behavior
+    queryFilters: []
+    limit: 1
+    offset: 0
+    query: |
+      match (e:EXTENSION)-[iu:IS_USING]-(:PERSONA {subscriber: $subscriber, tenant: $tenant}) 
+      return 
+          size([c in collect(distinct {status:iu.enabled, extension:e.id}) where c.status=true]) as Enabled,
+          size([c in collect(distinct {status:iu.enabled, extension:e.id}) where c.status=false]) as Disabled
+  - id: installWidget
+    name: "Extension Installation Methods"
+    label: Widget
+    template: this_template
+    enabled: true
+    type: detailed
+    dataSourceType: knowledgegraph
+    allowed_params: true
+    className: col-span-6
+    query_id: ""
+    input_params:
+      behavior: $behavior
+    queryFilters: []
+    limit: 1
+    offset: 0
+    query: |
+      match (e:EXTENSION)-[iu:IS_USING]-(p:PERSONA {subscriber: $subscriber, tenant: $tenant})
+      return 
+          size([c in collect({extid:e.id, installType:iu.installType}) where c.installType='normal']) as normal,
+          size([c in collect({extid:e.id, installType:iu.installType}) where c.installType='admin']) as admin,
+          size([c in collect({extid:e.id, installType:iu.installType}) where c.installType='development']) as development,
+          size([c in collect({extid:e.id, installType:iu.installType}) where c.installType='sideload']) as sideload,
+          size([c in collect({extid:e.id, installType:iu.installType}) where c.installType='other']) as other
+  - id: permissionWidget
+    name: "Extension Permissions"
+    label: Widget
+    template: this_template
+    enabled: false
+    type: detailed
+    dataSourceType: knowledgegraph
+    allowed_params: true
+    className: col-span-6
+    query_id: ""
+    input_params:
+      behavior: $behavior
+    queryFilters: []
+    limit: 1
+    offset: 0
+    query: |
+      match (b:BROWSER {subscriber: $subscriber, tenant: $tenant})-[]-(e:EXTENSION)-[]-(p:PERMISSION)
+      with e.id as extid, collect(distinct p.risklevel) as permission
+      return 
+          size([c in collect({id:extid, permission: permission}) where "low" IN c.permission]) as low,
+          size([c in collect({id:extid, permission: permission}) where "medium" IN c.permission]) as medium,
+          size([c in collect({id:extid, permission: permission}) where "hight" IN c.permission]) as high
+table_render:
+  table_additional_data:
+    no_hover: true
+    row_border: true
+    alternate_row_colors: true
+    no_table_padding: true
+    table_heading_bg: bg-dark-300
+    table_filters_wrapper_class: grid grid-cols-12
+    no_calendar: true
+    no_drilldown: true
+  table_filters:
+    risk_level:
+      show_in_view:
+        - id: unapproved_ai_applications
+          is_default: false
+        - id: ai_applications_with_risky_oauth_scopes
+          is_default: false
+        - id: newly_introduced_ai_users
+          is_default: false
+        - id: users_leaking_sensitive_data
+          is_default: false
+    criticality:
+      show_in_view:
+        - id: unapproved_ai_applications
+          is_default: false
+        - id: ai_applications_with_risky_oauth_scopes
+          is_default: false
+        - id: newly_introduced_ai_users
+          is_default: false
+        - id: users_leaking_sensitive_data
+          is_default: false
+    approval_status:
+      show_in_view:
+        - id: unapproved_ai_applications
+          is_default: true
+        - id: ai_applications_with_risky_oauth_scopes
+          is_default: true
+        - id: newly_introduced_ai_users
+          is_default: true
+        - id: users_leaking_sensitive_data
+          is_default: true
+    number_of_accounts:
+      show_in_view:
+        - id: unapproved_ai_applications
+          is_default: true
+        - id: ai_applications_with_risky_oauth_scopes
+          is_default: true
+        - id: newly_introduced_ai_users
+          is_default: true
+        - id: users_leaking_sensitive_data
+          is_default: true
+    technical_owner:
+      show_in_view:
+        - id: unapproved_ai_applications
+          is_default: false
+        - id: ai_applications_with_risky_oauth_scopes
+          is_default: false
+        - id: newly_introduced_ai_users
+          is_default: false
+        - id: users_leaking_sensitive_data
+          is_default: false
+    newly_discovered:
+      show_in_view:
+        - id: unapproved_ai_applications
+          is_default: false
+        - id: ai_applications_with_risky_oauth_scopes
+          is_default: false
+        - id: newly_introduced_ai_users
+          is_default: false
+        - id: users_leaking_sensitive_data
+          is_default: false
+    usage_level:
+      show_in_view:
+        - id: unapproved_ai_applications
+          is_default: false
+        - id: ai_applications_with_risky_oauth_scopes
+          is_default: false
+        - id: newly_introduced_ai_users
+          is_default: false
+        - id: users_leaking_sensitive_data
+          is_default: false
+    finding_status:
+      show_in_view:
+        - id: unapproved_ai_applications
+          is_default: true
+        - id: ai_applications_with_risky_oauth_scopes
+          is_default: true
+        - id: newly_introduced_ai_users
+          is_default: true
+        - id: users_leaking_sensitive_data
+          is_default: true
+    sensitive_data:
+      show_in_view:
+        - id: unapproved_ai_applications
+          is_default: true
+        - id: ai_applications_with_risky_oauth_scopes
+          is_default: true
+        - id: newly_introduced_ai_users
+          is_default: true
+        - id: users_leaking_sensitive_data
+          is_default: true
+    risky_oauth_scopes:
+      show_in_view:
+        - id: unapproved_ai_applications
+          is_default: true
+        - id: ai_applications_with_risky_oauth_scopes
+          is_default: true
+        - id: newly_introduced_ai_users
+          is_default: true
+        - id: users_leaking_sensitive_data
+          is_default: true
+    oauth_scope_risk_level:
+      show_in_view:
+        - id: unapproved_ai_applications
+          is_default: true
+        - id: ai_applications_with_risky_oauth_scopes
+          is_default: true
+        - id: newly_introduced_ai_users
+          is_default: true
+        - id: users_leaking_sensitive_data
+          is_default: true
+    granted_by:
+      show_in_view:
+        - id: unapproved_ai_applications
+          is_default: true
+        - id: ai_applications_with_risky_oauth_scopes
+          is_default: true
+        - id: newly_introduced_ai_users
+          is_default: true
+        - id: users_leaking_sensitive_data
+          is_default: true
+    grant_type:
+      show_in_view:
+        - id: unapproved_ai_applications
+          is_default: true
+        - id: ai_applications_with_risky_oauth_scopes
+          is_default: true
+        - id: newly_introduced_ai_users
+          is_default: true
+        - id: users_leaking_sensitive_data
+          is_default: true
+  table:
+  unapproved_ai_applications:
+  ai_applications_with_risky_oauth_scopes:
+  newly_introduced_ai_users:
+  users_leaking_sensitive_data:
+pagination_query:
+  query: ""
+  dataSourceType: knowledgegraph
+table_widget: []

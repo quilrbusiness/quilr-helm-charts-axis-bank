@@ -1,0 +1,21 @@
+datatype: DICT
+defaultValue:
+  message: |-
+    Cannot allow you to use a weak and easily guessable password on {App name}
+  mode: Block
+entityDescription: |-
+  A new account was created with a weak password for centralized login or authentication services such as IdP or SSO.
+entityId: Q007
+entityMeta:
+  behavior: Weak Password
+  category: ISPM
+  posture: Password Hygiene
+  check_id:
+    form_check_ids:
+      - CH-FORM-SIGNUP
+      - CH-FORM-WEAK-PASSWORD
+      - CH-APP-IDP
+entityName: New Account created with Weak Password on IDP/SSO
+entityType: rule
+isDisabled: false
+isModifiable: true

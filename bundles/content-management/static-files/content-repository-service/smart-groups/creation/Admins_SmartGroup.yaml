@@ -1,0 +1,36 @@
+id: bfdeb68d-e232-431c-bda1-69fba06df63b
+name: Smart Group for Admins
+type: ingestion-to-graph
+version: 1.1
+schedule: 2m
+historicalrecordduration: 2m
+source: 
+  type: query
+  config: 
+    query: "MATCH (user:USER)-[has_email:HAS_EMAIL]-(email:EMAIL:PRIMARY)-[]-(account:ACCOUNT)-[has_role:HAS_ROLE]-(role:ROLE)
+            WHERE role.isroleprivileged = true
+                AND user.timestamp >= $starttime
+                AND user.timestamp <= $endtime
+            RETURN collect(DISTINCT user.id) as userids,
+                user.subscriber as SUBSCRIBER,
+                user.tenant as TENANT"
+    type: "knowledgegraph"
+    limit: 
+    offset: 0
+destination: 
+  type: "api"
+  headers: 
+    Internal: "true"
+  uri: "http://quilr-grouping-service:9071/group/create"
+config: 
+  groupname: "Admins"
+  userids: "$userids"
+  impact: veryhigh
+  groupproperties:
+    mailEnabled: false
+    Description: 'This group consists of users who has privileged role(s) in an organization.'
+lambda: ""
+active: true
+createdon: 1720396800000
+updatedon: 1720396800000
+#TEST

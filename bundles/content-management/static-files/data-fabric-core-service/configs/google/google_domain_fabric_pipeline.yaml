@@ -1,0 +1,129 @@
+id: df313ad6-efac-43e7-a8da-e7d5a6455dee
+name: google-api-organization-domains-data
+type: fabric
+version: 1.0.1
+trail:
+  block: start
+  dependson: []
+  attempt:
+    - block: get_refreshed_token
+      dependson: []
+      attempt:
+        - block: send_token_to_vault
+          dependson: []
+          attempt: []
+          otherwise: []
+          start: false
+          end: false
+        - block: list_org_domains
+          dependson: [ get_refreshed_token ]
+          attempt: []
+          otherwise: []
+          start: false
+          end: false
+        - block: publish_to_rawOutput
+          dependson: [ list_org_domains ]
+          attempt:
+            - block: update_completion_to_100
+              dependson: [ publish_to_rawOutput ]
+              attempt: []
+              otherwise: []
+              start: false
+              end: false
+            - block: end
+              dependson: []
+              attempt: []
+              otherwise: []
+              start: false
+              end: true
+          otherwise: []
+          start: false
+          end: false
+      otherwise: []
+      start: false
+      end: false
+  otherwise:
+    - block: end
+      dependson: []
+      attempt: []
+      otherwise: []
+      start: false
+      end: true
+  start: true
+  end: false
+blocks:
+  - name: start
+    type: start
+    config: {}
+  - name: end
+    type: end
+    config: {}
+  - name: get_refreshed_token
+    type: util
+    config:
+      type: google_auth
+      auth_type: service_account
+      data: $.credential.connection.$
+  - name: send_token_to_vault
+    type: sender
+    config:
+      type: vault
+      credential_type: token
+      subscriber: $.context.subscriber
+      tenant: $.context.tenant
+      userid: $.context.context.userid
+      facade:
+        accessToken: $.block.get_refreshed_token.output.response.accessToken
+  - name: list_org_domains
+    type: receiver
+    config:
+      type: rest
+      uri: https://admin.googleapis.com/admin/directory/v1/customer/$.block.get_refreshed_token.output.response.customer_id/domains
+      method: GET
+      headers:
+        Authorization: Bearer $.block.get_refreshed_token.output.response.accessToken
+      body: {}
+      extract: domains
+  - name: publish_to_rawOutput
+    type: sender
+    config:
+      type: kafka
+      topic: rawOutput
+      facade:
+        relation_type: HAS_IDP
+        instance_id: $.context.context.instanceid
+        name: Google Workspace Domains Connector
+        description: Google Workspace Connector Configuration
+        type: apps
+        vendor: Google
+        product: org-domains
+        subProduct: /v1.0/domains
+        data: $.input.using
+        subscriber: $.context.subscriber
+        tenant: $.context.tenant
+      foreach: $.block.list_org_domains.output.response.response
+  - name: update_completion_to_50
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update
+      method: POST
+      headers:
+        Internal: true
+      body:
+        output :
+          completed_percentage: 50
+          executed_blocks : 1
+  - name: update_completion_to_100
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update
+      method: POST
+      headers:
+        Internal: true
+      body:
+        output :
+          completed_percentage: 100
+          executed_blocks : 4
+          is_completed : true

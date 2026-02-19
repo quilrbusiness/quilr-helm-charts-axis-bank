@@ -1,0 +1,17 @@
+id: 4dddf4bf-bc20-49f3-9465-2e3c8346499c
+version: 3.0
+code: Q053
+name: Not using MFA on non- business critical App
+description: 
+type: rule
+view: identity_protection
+impact: low
+likelihood: low
+createdon: 1720094794000
+updatedon: 1720094794000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_29
+examples: []
+recommendations: []

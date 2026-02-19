@@ -1,0 +1,17 @@
+id: 14a009c5-e9df-45b3-9874-f25988e14533
+version: 3.0
+code: Q044
+name: Login using OAuth Based Account on Breached Non Critical SaaS App
+description: Login using oauth account to a recently breached application that does not handle sensitive data.
+type: rule
+view: identity_protection
+impact: moderate
+likelihood: high
+createdon: 1720396800000
+updatedon: 1720396800000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_45
+examples: []
+recommendations: []

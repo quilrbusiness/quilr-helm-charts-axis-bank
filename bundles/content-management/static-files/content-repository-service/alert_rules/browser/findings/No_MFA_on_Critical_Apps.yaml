@@ -1,0 +1,92 @@
+id: a0164313-3a11-4ff6-8fb2-605af28b035c
+name: No MFA on Critical Apps
+type: rule
+version: 2.1
+active: false
+schedule: 2m 
+historicalrecordduration: 2m
+source:
+  type: query
+  config:
+    query: "MATCH (user:USER)-[has_email:HAS_EMAIL]-(email:EMAIL:PRIMARY)-[credsbased_account:CREDSBASED_ACCOUNT]-(account:ACCOUNT)-[using_app:USING_APP]-(app:APPLICATION)
+            OPTIONAL MATCH (tenant:TENANT)-[app_settings:HAS_APP_SETTINGS]-(app) 
+            WHERE toLower(app_settings.criticality) = 'critical'
+            WITH user,has_email,email,credsbased_account,account,using_app,app,app_settings,tenant
+            WHERE (credsbased_account.be_mfa_enabled = false or credsbased_account.isMfaEnabled = false)
+                AND credsbased_account.timestamp >= $starttime
+                AND credsbased_account.timestamp <= $endtime
+                AND tolower(COALESCE(app_settings.criticality, app.criticality, 'NOT SET')) = 'critical'
+            OPTIONAL MATCH (user)-[has_department:HAS_DEPARTMENT]-(department:DEPARTMENT)
+            OPTIONAL MATCH (app)-[has_app_category:HAS_APP_CATEGORY]-(app_category:APP_CATEGORY)
+            RETURN DISTINCT
+                user.id AS userId,
+                user.displayName AS userName,
+                user.mail AS userMail,
+                user.accountEnabled as userAccountEnabled,
+                department.name as userDepartment,
+                user.tenant as TENANT,               
+                user.subscriber AS SUBSCRIBER,
+                app.id_ as appId,
+                app.name AS appName,
+                app.Url AS appUrl,
+                app.domain AS appDomain,
+                COLLECT(app_category.name) AS appCategory,
+                account.compromised_password_source AS compromisedPasswordSource,
+                COALESCE(app_settings.criticality, app.criticality, 'NOT SET') AS appCriticality,
+                user.mail + '_' + app.id_ AS userAppAccount,
+                credsbased_account.context_id as CONTEXTID, 
+                credsbased_account.last_access_time as EVENTTIME"
+    type: knowledgegraph 
+    limit:
+    offset: 0
+destination:
+  type: stream 
+  topic: ruleEvaluator
+config:
+  expression: "def fn(message): return True if message.get('userName') else False " 
+  type: finding
+  subtype: status
+  code: Q051
+  status: open
+  sla: 2D
+  entity: $userMail
+  entitytype: user
+  tags:
+    - insecure_behaviour
+  sourceofalert: Quilr 
+  template: "Received an alert for the User: ${userName} on Application: ${appName}"
+  artifacts:
+    - type: "ACCOUNT"
+      property: "id"
+      value: "$userAppAccount"
+      artifactproperties: 
+        artifactValue: $userName
+        displayInUI: enabled
+
+    - type: "APPLICATION" 
+      context: "global" 
+      property: id_
+      value: $appId
+      artifactproperties: 
+        artifactValue: $appName
+        displayInUI: enabled
+
+  properties:
+    userId: $userId
+    userName: $userName
+    userMail: $userMail
+    userAccountEnabled: $userAccountEnabled
+    userDepartment: $userDepartment
+    TENANT: $TENANT
+    SUBSCRIBER: $SUBSCRIBER
+    appName: $appName
+    appDomain: $appDomain
+    appUrl: $appUrl
+    appId: $appId
+    appCriticality: $appCriticality
+    appCategory: $appCategory
+    context_id: $CONTEXTID
+    eventTime: $EVENTTIME
+lambda: ""
+createdon: 1720396800000
+updatedon: 1720396800000

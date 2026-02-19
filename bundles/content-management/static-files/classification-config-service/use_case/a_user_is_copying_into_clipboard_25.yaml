@@ -1,0 +1,26 @@
+id: "8b24cd67-8552-4bde-b45e-638fd66c38ef"
+version: 5.18
+code: UC025
+name: a user is copying to clipboard
+type: use-case
+description: Define what should be done when a user is copying to clipboard.
+posture:
+  - PID_06
+behavior:
+  - BID_200
+condition:
+  - operator: null
+    filter_condition:
+      attribute_type: ATTR_Browser_001
+      attribute_id: BROWSER-002
+      condition: is_equal_to
+      value: copy
+    filter_group: null
+    editable: false
+    supported_operators:
+      - is equal to
+disabled: false
+createdon: 1710504494000
+updatedon: 1710504494000
+config:
+  save: false

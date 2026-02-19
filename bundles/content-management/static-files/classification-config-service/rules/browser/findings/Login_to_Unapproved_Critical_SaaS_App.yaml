@@ -1,0 +1,17 @@
+id: f8c094dd-bb12-4cc7-b02d-5c504318296e
+version: 3.0
+code: Q033
+name: Login to Unapproved Critical SaaS App
+description: Login to an unapproved application that does handle sensitive data or is critical to business operations.
+type: rule
+view: identity_protection
+impact: veryhigh
+likelihood: veryhigh
+createdon: 1720396800000
+updatedon: 1720396800000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_18
+examples: []
+recommendations: []

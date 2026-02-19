@@ -1,0 +1,17 @@
+id: b6a95489-2a90-4af7-8194-a2d1c2dcc472
+version: 3.0
+code: Q051
+name:  No MFA on Critical Apps
+description: 
+type: rule
+view: identity_protection
+impact: veryhigh
+likelihood: high
+createdon: 1720094794000
+updatedon: 1720094794000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_29
+examples: []
+recommendations: []

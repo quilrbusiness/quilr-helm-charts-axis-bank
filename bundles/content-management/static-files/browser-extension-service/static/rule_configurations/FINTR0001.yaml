@@ -1,0 +1,79 @@
+datatype: DICT
+defaultValue:
+  name: Financial Trading Sensitive Research Data
+  criticality: HIGH
+  description: |2-
+    Description:
+    Sensitive Research Data refers to any proprietary research, development, and strategic information related to the company’s financial services, trading systems, algorithms, market data analytics, and new product development. 
+  
+    Mandatory Data:
+    
+    1. Proprietary Trading Algorithms and Models:
+      - Typical Formats:
+          - Source Code: Python, C++, or other programming languages used to implement trading algorithms.
+          - Model Documentation: Detailed descriptions of algorithmic models, including mathematical formulas, optimization parameters, and testing methodologies.
+          - Backtesting Data: Historical market data and performance results used to validate the algorithm's effectiveness, often in XLSX, CSV, or proprietary formats.
+      - Variations: May include annotated code, flowcharts, or integrated components within trading platforms.
+      - Exclusions: Publicly disclosed algorithms or generic models published in academic papers should not be classified as sensitive.
+      - Contextual Clues: Found in documents labeled "Algorithm Design", "Model Development", "Proprietary Trading Model", or "Backtesting Results".
+      - False Positive Examples: General algorithm templates, publicly available code, or non-proprietary research papers.
+    
+    2. Market Data Analytics and Insights:
+      - Typical Formats:
+          - Market Data Feeds: High-resolution real-time or historical data feeds, including tick-by-tick price movements, order book data, and trade volumes.
+          - Analytical Reports: Internal reports providing in-depth analysis of market trends, volatility, and liquidity, often in PDF or XLSX formats.
+          - Proprietary Indices Methodology: Detailed methodology for constructing and maintaining proprietary indices.
+      - Variations: Includes raw data sets, processed analytics, and predictive models.
+      - Exclusions: Aggregated, anonymized data available through public market reports should not be classified as sensitive.
+      - Contextual Clues: Found in documents labeled "Confidential Market Data", "Proprietary Analysis", or "Research Data Feed".
+      - False Positive Examples: Public market summaries or analytics that do not reveal proprietary insights.
+    
+    3. New Financial Product Development:
+      - Typical Formats:
+          - Product Design Documents: Specifications, implementation plans, and testing results for new financial products, such as options, futures, or indices.
+          - Prototype Testing Data: Results from testing new products in simulated or controlled environments, including performance metrics and client feedback.
+          - Regulatory Submission Drafts: Drafts of regulatory filings related to the approval of new financial products.
+      - Variations: May include internal white papers, development timelines, and strategic market entry plans.
+      - Exclusions: Publicly announced or launched products, or general market analysis that does not contain proprietary details.
+      - Contextual Clues: Often found in sections labeled "Product Development", "Prototype Testing", or "Regulatory Filing".
+      - False Positive Examples: Publicly disclosed product summaries or regulatory filings without sensitive details.
+    
+    Supplementary Data:
+    
+    1. Confidential Communications:
+      - Formats:
+          - Internal Emails and Memos: Communications discussing research progress, strategic decisions, and confidential updates on new products or trading algorithms.
+          - Meeting Minutes: Records of meetings that discuss sensitive research projects, proprietary methodologies, or strategic initiatives.
+      - Variations: Can include both formal and informal communications, often in email or document format.
+      - Exclusions: General internal updates or communications not containing proprietary information should not be classified as sensitive.
+      - Contextual Clues: Often labeled as "Confidential Communication", "Internal Memo", or "Meeting Minutes".
+      - False Positive Examples: Routine internal communications that lack specific sensitive content.
+    
+    2. Strategic Research Documents:
+      - Formats:
+          - Research Proposals: Detailed documents outlining the objectives, methodologies, and expected outcomes of research projects related to new financial products or market analytics.
+          - Project Plans: Comprehensive plans for developing and launching new products, including timelines, resource allocations, and risk assessments.
+          - Internal White Papers: In-depth reports on research findings, offering strategic recommendations for future development.
+      - Variations: Includes drafts, presentations, and peer review notes.
+      - Exclusions: Publicly available research summaries or conference presentations should not be classified as sensitive.
+      - Contextual Clues: Often found in documents labeled "Research Proposal", "Project Plan", or "Internal White Paper".
+      - False Positive Examples: General research discussions or summaries that do not contain proprietary information.
+    
+    3. Regulatory and Compliance Research:
+      - Formats:
+          - Draft Filings and Compliance Reviews: Documents prepared for submission to regulatory bodies, including draft filings and internal compliance assessments.
+          - Impact Analysis Reports: Evaluations of how upcoming regulatory changes may affect the company's operations, trading strategies, or market products.
+      - Variations: May include legal opinions, compliance documentation, and risk mitigation strategies.
+      - Exclusions: Final, publicly disclosed regulatory filings or compliance reviews should not be classified as sensitive.
+      - Contextual Clues: Found in sections labeled "Regulatory Filing", "Compliance Review", or "Impact Analysis".
+      - False Positive Examples: Publicly available compliance guidelines or regulatory frameworks.
+entityDescription: |-
+  Data Definition to classify and extract Financial Trading Sensitive Research Data from text
+entityId: FINTR0001
+entityMeta:
+  category: Data Protection Rule
+  source: default
+entityName: Financial Trading Sensitive Research Data
+entityType: dlp_rule_v3
+isDisabled: false
+isModifiable: true

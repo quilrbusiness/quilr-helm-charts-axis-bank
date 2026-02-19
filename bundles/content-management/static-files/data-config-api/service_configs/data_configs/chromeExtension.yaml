@@ -1,0 +1,45 @@
+id: 2f20127d-683d-4245-83c3-3660d1391548
+name: Browser Extension
+description: Developed a chrome extension to enhance functionality, improves accessibility, and boosts engagement, all while maintaining a high level of security and performance.
+connection_config_id: d454f7b7-8206-4c33-8d4f-8b2e94a883f4
+icon_url: https://staticcontent1.blob.core.windows.net/quilrstatic/profile/Quilr2.png
+login_enabled: false
+version: 1.0.0
+updated_at: 1718107626000
+parent_org:
+  name: Quilr
+  description: Unlock seamless connectivity with Quir's robust integration ecosystem. Effortlessly link leading identity providers, HR systems, cybersecurity tools, and email services. Enhance security with AI-driven threat detection and intelligent prioritization.
+  icon_url: https://staticcontent1.blob.core.windows.net/static-images-company-logos/quilr.png
+category: Browser Ext
+metadata:
+  type: integrations
+  product: web browser extension
+  subProduct: /v1.0
+  vendor: Quilr
+internal:
+  content_ids:
+    env_var: ""
+    default_value: "d7d74f60-5d7d-47ff-a16e-4f8d9ad6b656"
+inputSchema:
+  - id: scope_selection
+    type: multiselect
+    label: Chrome Extension Scopes
+    description: Select the scopes you want to access
+    options:
+      - id: dummy
+        label: Track Logins
+        description: Track applications used by employees enabling organizations to identify instances of 'Shadow IT' (applications used without explicit permission)
+      - id: dummy
+        label: Credential Sharing
+        description: Track users sharing credentials across multiple sites and shared credentials with other users
+outputSchema: {}
+is_active: false
+supported_browsers: 
+  - name: Google Chrome
+    icon_url: https://staticcontent1.blob.core.windows.net/static-images-company-logos/google_chorme.png
+    webstore_link:
+    version: 126.0.6478.114
+  - name: Microsoft Edge
+    icon_url: https://staticcontent1.blob.core.windows.net/static-images-company-logos/microsoft_edge.png
+    webstore_link:
+    version: 125.0.2535.92

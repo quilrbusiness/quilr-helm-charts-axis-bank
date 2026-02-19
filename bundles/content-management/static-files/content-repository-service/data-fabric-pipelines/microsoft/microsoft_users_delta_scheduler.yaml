@@ -1,0 +1,21 @@
+id: d331cbe2-768e-4534-9cad-4964bb0505b9
+name: Azure AD Users Delta Fabric Pipeline Scheduler
+type: fabric
+version: 1.0
+schedule: "1D"
+historicalrecordduration: "4h"
+istrackable: true
+source:
+  type: api
+  config:
+    uri: http://data-fabric-core-service:9031/fabric/start?fabricid=74837d9f-8093-4689-9305-fb27f857a3e7
+    method: POST
+    headers: {}
+    body: {}
+destination:
+  type: stream
+  topic: pipelineTracking
+config: {}
+lambda: ""
+createdon: 1725356213
+updatedon: 1725356213

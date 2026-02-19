@@ -1,0 +1,35 @@
+id: 04572064-b02e-472a-8b61-d142d567cfce
+name: Microsoft Purview
+description: This connector integrates Microsoft Purview with the Quilr, allowing Quilly to manage data governance and compliance.
+connection_config_id: ec1a7866-cc58-4a19-a887-a78541bd1ee8
+icon_url: https://upload.wikimedia.org/wikipedia/commons/e/e5/Microsoft_Purview_Logo.svg
+login_enabled: false
+parent_org:
+  name: Microsoft
+  description: Effortlessly integrate your Microsoft's Intune MDM for gaining deeper insights in your environment.
+  icon_url: https://upload.wikimedia.org/wikipedia/commons/e/e5/Microsoft_Purview_Logo.svg
+category: Purview
+version: 1.0.0
+updated_at: 1753267332000
+metadata:
+  type: oauth_integration
+  product: Microsoft Purview
+  subProduct: /v1.0
+  vendor: Microsoft
+internal:
+  content_ids:
+    env_var: ""
+    default_value: "4aaf1b2e-6aea-4e93-a3de-f2596c313ad7"
+inputSchema:
+  - id: scope_selection
+    type: multiselect
+    label: Purview Scopes
+    description: Select the scopes you want to give access to.
+    options:
+      - id: openid profile offline_access InformationProtectionPolicy.Read
+        label: Microsoft Purview Access
+        description: Allows Quilr to manage microsoft purview for user.
+    default:
+      - openid profile offline_access InformationProtectionPolicy.Read 
+outputSchema: {}
+is_active: true

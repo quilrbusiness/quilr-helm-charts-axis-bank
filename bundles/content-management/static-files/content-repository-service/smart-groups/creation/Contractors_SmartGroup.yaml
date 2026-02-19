@@ -1,0 +1,38 @@
+id: ad9f8cb7-efc5-4521-bfab-dacfc0faa8c2
+name: Contractors
+type: ingestion-to-graph
+version: 2.1
+schedule: 1D
+historicalrecordduration: 1D
+source: 
+  type: query
+  config: 
+    query: "MATCH(user:USER)
+            WHERE user is not null
+                AND user.employeeType in ['Contractors','contractors']
+                AND user.timestamp >= $starttime
+                AND user.timestamp <= $endtime
+            RETURN collect(DISTINCT user.id) as userids,
+                user.subscriber as SUBSCRIBER,
+                user.tenant as TENANT"
+    type: "knowledgegraph"
+    limit: 
+    offset: 0
+destination: 
+  type: "api"
+  headers: 
+    Internal: "true"
+  uri: "http://quilr-grouping-service:9071/group/create"
+config: 
+  groupname: "Contractors"
+  userids: "$userids"
+  impact: moderate
+  likelihood: moderate
+  groupproperties:
+    mailEnabled: false
+    Description: 'This group includes users who are working as contractors.'
+lambda: ""
+active: true
+createdon: 1720396800000
+updatedon: 1720396800000
+

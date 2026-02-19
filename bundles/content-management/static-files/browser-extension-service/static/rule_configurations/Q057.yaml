@@ -1,0 +1,14 @@
+datatype: DICT
+defaultValue:
+  message: ''
+  mode: Ask
+entityDescription: ''
+entityId: Q057
+entityMeta:
+  behavior: Weak MFA
+  category: ISPM
+  posture: MFA Usage
+entityName: Using Phone Based MFA on  admin account
+entityType: rule
+isDisabled: false
+isModifiable: true

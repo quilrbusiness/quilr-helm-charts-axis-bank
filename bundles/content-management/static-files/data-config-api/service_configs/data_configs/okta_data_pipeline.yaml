@@ -1,0 +1,31 @@
+id: 918b5623-5718-406f-b99b-b5df5e9f74b7
+name: Okta
+description: Integrate Okta with Quilr to quickly gain comprehensive visibility into organization's identity security posture, ensuring robust protection.
+connection_config_id: bf8a2c0e-c04c-491e-bc44-ce2c50298d25
+icon_url: https://staticcontent1.blob.core.windows.net/static-images-company-logos/okta.png
+login_enabled: false
+version: 2024.06.1
+updated_at: 1718107018000
+parent_org:
+  name: Okta
+  description: Enable secure access and identity management with Okta integration, ensuring seamless integration and gain complete organization wide visibility.
+  icon_url: https://staticcontent1.blob.core.windows.net/static-images-company-logos/okta.png
+category: Identity
+metadata:
+  type: oauth_integration
+  product: okta
+  subProduct: /v1.0
+  vendor: Okta
+internal:
+  content_ids:
+    env_var: ""
+    default_value: "f8c33b60-1a9f-4d3d-a4b5-68bb693bfba6, 89ff17d5-9664-4f18-a816-c8a41bd8e956, bea70893-5a7f-449b-812f-882955d32d76, d1a0875f-0ada-4f8d-bd39-b9c54f9a4acc"
+inputSchema: 
+  - id: name
+    type: string
+    label: Instance Name
+    description: A custom name given by the user to identify the instance.
+    options: []
+    default: []
+outputSchema: {}
+is_active: true

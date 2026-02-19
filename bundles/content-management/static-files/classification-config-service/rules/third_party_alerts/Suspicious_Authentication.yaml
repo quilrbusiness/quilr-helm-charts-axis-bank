@@ -1,0 +1,21 @@
+id: 2a201bb1-8552-4920-a389-401e7638c3a9
+version: 2.0
+code: Q062
+name: Suspicious Authentication of an Account
+description: This rule identifies suspicious authentication for an account.
+type: rule
+view: identity_protection
+impact: moderate
+likelihood: moderate
+createdon: 1718911069000
+updatedon: 1718911069000
+tags:
+  - Suspicious Authentication
+  - Authentication Anomaly
+humanfactor: HFID_02
+behavior:
+  - BID_03
+examples:
+  - User authenticating from suspicious browser, malicious IP.
+recommendations:
+  - template: "Investigate user for suspicious activities"

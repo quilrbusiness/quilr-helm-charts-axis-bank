@@ -1,0 +1,45 @@
+type: message
+content:
+  acknowledgedButtons:
+  - id: 28a6a4cf-3a8f-4961-834f-4a78e5536e3e
+    account: true
+    isPrimary: true
+    name: App is company-approved
+    whitelist: false
+  - id: bc15c2ee-01c8-4633-8fdd-c1fde405cd8e
+    account: true
+    isPrimary: false
+    name: Acknowledge warning
+    whitelist: false
+  - id: d01b77a7-9614-4937-99d1-fdccf1585e20
+    account: true
+    isPrimary: false
+    name: Have Prior Approval
+    whitelist: false
+  - id: f7a71b01-f27d-42f9-9853-b0bb936d88f8
+    account: true
+    isPrimary: false
+    name: Urgent for critical task
+    whitelist: false
+  justification_list:
+  - It’s blocking my productivity.
+  - I can’t do my job without this.
+  - This is an industry-standard app, why is it blocked?
+  - I have approval from my manager to use this app.
+  - The official app doesn't support what I need.
+  - I didn't know it wasn't allowed.
+  - It is just a one-time thing.
+  - We are racing against a deadline.
+  - Everyone else in the team is using it.
+  - Something else.
+  header: Heads up!
+  description: ""
+  title: |
+    It looks like you're using an unapproved SaaS app. For your security and privacy, we recommend switching to an approved tool.
+
+    <br />Your actions matter — help keep your organization safe!
+channel: Browser
+rendered_content_type: application/json
+name: Block using an unapproved SaaS app
+is_active: true
+

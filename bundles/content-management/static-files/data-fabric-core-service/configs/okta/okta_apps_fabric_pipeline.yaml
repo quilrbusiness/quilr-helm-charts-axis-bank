@@ -1,0 +1,165 @@
+id: ab5e2f18-fd67-4fa7-89bd-726ff6aaabe9
+name: okta-api-apps-data
+type: fabric
+version: 1.0.0
+trail:
+  block: start
+  attempt:
+    - block: list_apps
+      attempt:
+        - block: get_app_grants
+          attempt: []
+          otherwise: []
+          start: false
+          end: false
+        - block: get_app_users
+          attempt:
+            - block: merge_app_users
+              dependson: []
+              attempt:
+                - block: merge_app_grants
+                  dependson:
+                    - get_app_grants
+                  attempt:
+                    - block: publish_to_rawOutput
+                      attempt:
+                        - block: current_timestamp_in_utc
+                          attempt:
+                            - block: persist_last_sync_time
+                              attempt:
+                                - block: end
+                                  start: false
+                                  end: true
+                              otherwise:
+                                - block: end
+                                  start: false
+                                  end: true
+                              start: false
+                              end: false
+                          otherwise: []
+                          start: false
+                          end: false
+                      otherwise: []
+                      start: false
+                      end: false
+                  otherwise: []
+                  start: false
+                  end: false
+              otherwise: []
+              start: false
+              end: false
+          otherwise: []
+          start: false
+          end: false
+      otherwise: []
+      start: false
+      end: false
+  otherwise: []
+  start: true
+  end: false
+blocks:
+  - name: build_filter_string
+    type: util
+    config:
+      type: script
+      expression: "$_.store.last_sync_time.output.response.response != null ? '?filter=filter=lastUpdated%20gt%20%22$_.store.last_sync_time.output.response.response%22' : ''"
+  - name: list_apps
+    type: receiver
+    config:
+      type: rest
+      uri: $.credential.config.url/api/v1/apps?limi=100
+      method: GET
+      headers:
+        Authorization: SSWS $.credential.config.key
+      body: {}
+      paginationtype: headers
+      pagination: link
+      regex: "<([^>]+)>\\; rel=\"next\""
+      batchsize: 50
+      timeout: 40000
+      retryOnFailure: true
+      retryCount: 3
+  - name: get_app_users
+    type: receiver
+    config:
+      type: rest
+      uri: $.credential.config.url/api/v1/apps/$.input.using.id/users?limit=100
+      method: GET
+      headers:
+        Authorization: SSWS $.credential.config.key
+      body:
+        appid: $.input.using.id
+      foreach: $.block.list_apps.output.response.response[*]
+      paginationtype: headers
+      pagination: link
+      regex: "<([^>]+)>\\; rel=\"next\""
+      batchsize: 50
+      timeout: 40000
+      retryOnFailure: true
+      retryCount: 3
+  - name: get_app_grants
+    type: receiver
+    config:
+      type: rest
+      method: GET
+      uri: $.credential.config.url/api/v1/apps/$.input.using.id/grants
+      headers:
+        Authorization: SSWS $.credential.config.key
+      body:
+        appid: $.input.using.id
+      foreach: $.block.list_apps.output.response.response[*]
+      batchsize: 50
+      timeout: 40000
+      retryOnFailure: true
+      retryCount: 3
+  - name: merge_app_users
+    type: util
+    config:
+      type: merge
+      primary: $.block.list_apps.output.response.response
+      secondary: $.block.get_app_users.output.response
+      pickfrom: response
+      sinkto: appUsers
+      condition: "$.primary.id == $.secondary.body.appid && $.secondary.response.error.code == null"
+  - name: merge_app_grants
+    type: util
+    config:
+      type: merge
+      primary: $.block.merge_app_users.output.response.response[*]
+      secondary: $.block.get_app_grants.output.response
+      pickfrom: response
+      sinkto: appGrants
+      condition: "$.primary.id == $.secondary.body.appid && $.secondary.response.error.code == null"
+  - name: publish_to_rawOutput
+    type: sender
+    config:
+      type: kafka
+      topic: rawOutput
+      facade:
+        name: Okta Apps Connector
+        description: Okta Connector Configuration
+        type: apps
+        vendor: Okta
+        product: Okta Identity Cloud
+        subProduct: /v1/apps/
+        data: $.input.using
+        subscriber: $.context.subscriber
+        tenant: $.context.tenant
+      foreach: $.block.merge_app_grants.output.response.response[*]
+  - name: current_timestamp_in_utc
+    type: util
+    config:
+      type: script
+      expression: "var date = new Date(); var dateInUTC = new Date(date.getTime() + date.getTimezoneOffset() * 60000); var formattedDate = dateInUTC.toISOString(); formattedDate;"
+  - name: persist_last_sync_time
+    type: persist
+    config:
+      type: database
+      key: last_sync_time
+      value: $.block.current_timestamp_in_utc.output.response.response
+  - name: start
+    type: start
+    config: {}
+  - name: end
+    type: end
+    config: {}

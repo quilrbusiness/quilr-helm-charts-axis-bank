@@ -1,0 +1,301 @@
+id: a142db48-6dfc-4478-b01e-a3bf0a0f281a
+name: google-api-users-data
+type: fabric
+version: 1.0.0
+trail:
+  block: start
+  dependson: []
+  attempt:
+    - block: get_refreshed_token
+      dependson: []
+      attempt:
+        - block: send_token_to_vault
+          dependson: []
+          attempt:
+            - block: update_completion_to_25
+              dependson: []
+              attempt: []
+              otherwise: []
+              start: false
+              end: false
+          otherwise: []
+          start: false
+          end: false
+        - block: list_users
+          dependson:
+            - get_mfa_data
+          attempt:
+            - block: get_manager_data
+              dependson:
+                - list_users
+              attempt:
+                - block: get_user_groups_data
+                  dependson:
+                    - list_users
+                  attempt:
+                    - block: update_completion_to_50
+                      dependson: []
+                      attempt: []
+                      otherwise: []
+                      start: false
+                      end: false
+                    - block: merge_manager_data
+                      dependson:
+                        - get_manager_data
+                        - get_user_groups_data
+                      attempt:
+                        - block: merge_groups_data
+                          dependson:
+                            - merge_manager_data
+                          attempt:
+                            - block: merge_mfa_data
+                              dependson:
+                                - merge_groups_data
+                              attempt:
+                                - block: update_completion_to_75
+                                  dependson: []
+                                  attempt: []
+                                  otherwise: []
+                                  start: false
+                                  end: false
+                                - block: publish_to_rawOutput
+                                  dependson:
+                                    - merge_groups_data
+                                  attempt:
+                                    - block: update_completion_to_100
+                                      dependson: []
+                                      attempt: []
+                                      otherwise: []
+                                      start: false
+                                      end: false
+                                    - block: end
+                                      dependson: []
+                                      attempt: []
+                                      otherwise: []
+                                      start: false
+                                      end: true
+                                  otherwise:
+                                    - block: end
+                                      dependson: []
+                                      attempt: []
+                                      otherwise: []
+                                      start: false
+                                      end: true
+                                  start: false
+                                  end: false
+                              otherwise: []
+                              start: false
+                              end: false
+                          otherwise: []
+                          start: false
+                          end: false
+                      otherwise: []
+                      start: false
+                      end: false
+                  otherwise: []
+                  start: false
+                  end: false
+              otherwise: []
+              start: false
+              end: false
+          otherwise: []
+          start: false
+          end: false
+        - block: get_mfa_data
+          dependson: []
+          attempt: []
+          otherwise: []
+          start: false
+          end: false
+      otherwise: []
+      start: false
+      end: false
+  otherwise:
+    - block: end
+      dependson: []
+      attempt: []
+      otherwise: []
+      start: false
+      end: true
+  start: true
+  end: false
+blocks:
+  - name: start
+    type: start
+    config: {}
+  - name: end
+    type: end
+    config: {}
+  - name: get_refreshed_token
+    type: receiver
+    config:
+      type: rest
+      uri: https://www.googleapis.com/oauth2/v4/token
+      method: POST
+      headers: {}
+      body:
+        grant_type: refresh_token
+        client_id: 71731625049-877e7ci6uk304578c9bj6i3j1jp25obg.apps.googleusercontent.com
+        client_secret: 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
+        refresh_token: $.credential.token.refreshToken
+      extract: access_token
+      pagination: null
+      paginationplacement: null
+  - name: send_token_to_vault
+    type: sender
+    config:
+      type: vault
+      credential_type: token
+      subscriber: $.context.subscriber
+      tenant: $.context.tenant
+      userid: $.context.context.userid
+      facade:
+        accessToken: $.block.get_refreshed_token.output.response.response.access_token
+        refreshToken: $.credential.token.refreshToken
+  - name: list_users
+    type: receiver
+    config:
+      type: rest
+      uri: https://www.googleapis.com/admin/directory/v1/users?customer=my_customer&fields=users(id,name,primaryEmail,agreedToTerms,suspended,changePasswordAtNextLogin,ipWhitelisted,name,kind,emails,aliases,isMailboxSetup,addresses,isAdmin,isDelegatedAdmin,organizations,lastLoginTime,phones,suspensionReason,thumbnailPhotoUrl,languages,creationTime,nonEditableAliases,locations,includeInGlobalAddressList,deletionTime,ims,isEnrolledIn2Sv,isEnforcedIn2Sv,archived,recoveryEmail,recoveryPhone)
+      method: GET
+      headers:
+        Authorization: Bearer $.block.get_refreshed_token.output.response.response.access_token
+      body: {}
+      extract: users
+      pagination: null
+      paginationplacement: null
+  # - name: get_mfa_data
+  #   type: receiver
+  #   config:
+  #     type: rest
+  #     uri: https://admin.googleapis.com/admin/reports/v1/activity/users/all/applications/login
+  #     method: GET
+  #     headers:
+  #       Authorization: Bearer $.block.get_refreshed_token.output.response.response.access_token
+  #     body: {}
+  #     extract: items
+  #     pagination: null
+  #     paginationplacement: null
+  - name: get_manager_data
+    type: receiver
+    config:
+      type: rest
+      uri: https://www.googleapis.com/admin/directory/v1/users/$input.using.id?fields=relations
+      method: GET
+      headers:
+        Authorization: Bearer $.block.get_refreshed_token.output.response.response.access_token
+      body:
+        userid: $.input.using.id
+      foreach: $.block.list_users.output.response.response.users[*]
+      extract: relations
+      pagination: null
+      paginationplacement: null
+  - name: get_user_groups_data
+    type: receiver
+    config:
+      type: rest
+      uri: https://www.googleapis.com/admin/directory/v1/groups?userKey=$input.using.id
+      method: GET
+      headers:
+        Authorization: Bearer $.block.get_refreshed_token.output.response.response.access_token
+      body:
+        userid: $.input.using.id
+      foreach: $.block.list_users.output.response.response.users[*]
+      extract: groups
+      pagination: null
+      paginationplacement: null
+  - name: merge_manager_data
+    type: util
+    config:
+      type: merge
+      primary: $.block.list_users.output.response.response.users
+      secondary: $.block.get_manager_data.output.response
+      pickfrom: response
+      sinkto: manager
+      condition: "$.primary.id == $.secondary.body.userid && $.secondary.response.error.code == null"
+  - name: merge_groups_data
+    type: util
+    config:
+      type: merge
+      primary: $.block.merge_manager_data.output.response.response
+      secondary: $.block.get_user_groups_data.output.response
+      pickfrom: response
+      sinkto: groups
+      condition: "$.primary.id == $.secondary.body.userid"
+  - name: merge_mfa_data
+    type: util
+    config:
+      type: merge
+      primary: $.block.merge_groups_data.output.response.response
+      secondary: $.block.get_mfa_data.output.response.response
+      pickfrom: null
+      sinkto: loginActivity
+      condition: "$.primary.primaryEmail == $.secondary.actor.email"
+  - name: publish_to_rawOutput
+    type: sender
+    config:
+      type: kafka
+      topic: rawOutput
+      facade:
+        name: Google Workspace Users Connector
+        description: Google Workspace Connector Configuration
+        type: users
+        vendor: Google
+        product: googleapis.com
+        subProduct: /admin/directory/v1/users
+        data: $.input.using
+        subscriber: $.context.subscriber
+        tenant: $.context.tenant
+      foreach: $.block.merge_mfa_data.output.response.response[*]
+  - name: update_completion_to_25
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update/output
+      method: POST
+      headers:
+        Internal: true
+      body:
+        completed_percentage: 25
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: update_completion_to_50
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update/output
+      method: POST
+      headers:
+        Internal: true
+      body:
+        completed_percentage: 50
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: update_completion_to_75
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update/output
+      method: POST
+      headers:
+        Internal: true
+      body:
+        completed_percentage: 75
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: update_completion_to_100
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update/output
+      method: POST
+      headers:
+        Internal: true
+      body:
+        completed_percentage: 100
+      extract: null
+      pagination: null
+      paginationplacement: null

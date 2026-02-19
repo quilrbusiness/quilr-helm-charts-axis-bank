@@ -1,0 +1,13 @@
+type: message
+content:
+  header: Data Transfer Blocked!
+  justification_list: []
+  title: |
+    Pasting data to this app is not allowed by company policy.<br />
+    If you believe this is an error, contact your Security Team for assistance.
+  description: '*Specify business justification?*'
+channel: Browser
+rendered_content_type: application/json
+name: Block pasting data
+is_active: true
+

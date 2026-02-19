@@ -1,0 +1,22 @@
+datatype: DICT
+defaultValue:
+  message: |-
+    Please do not use this password -  it was found in one of the breaches recently
+  mode: Ask
+entityDescription: |-
+  A new account was created with a compromised password on an application that does not handle sensitive data.
+entityId: Q013
+entityMeta:
+  behavior: Compromised Password
+  category: ISPM
+  posture: Password Hygiene
+  check_id:
+    form_check_ids:
+      - CH-FORM-SIGNUP
+      - CH-FORM-COMPROMISED-PASSWORD
+      - CH-FORM-WEAK-PASSWORD
+entityName: |-
+  New Account created with Compromised Password on Non Critical Apps
+entityType: rule
+isDisabled: false
+isModifiable: true

@@ -1,0 +1,24 @@
+id: 71d2dcd8-6ac1-4fd1-94dc-ac8b63bee79d
+type: REST
+description: Database lookup to fetch records
+version: 1.0
+endpoint: http://search-service:8002/api/v1/search/
+request_type: POST
+required_headers:
+  Content-Type: application/json
+  internal : "true"
+required_query_params: {}
+required_body_params: 
+  query : "select BREACHINFO from KAFKA_CONNECT.SNOWDATA_SCHEMA.BREACHDATA where DOMAIN like $domain_name" 
+  inputs : {}
+  limit : 1
+  offset : 0
+  dataSourceType : datalake
+required_user_params:
+  - id: domain_name
+    type: string
+    description: Company email to search for in the database
+    example: abcd.com
+    required: true
+    location: body
+response_status_code: 200

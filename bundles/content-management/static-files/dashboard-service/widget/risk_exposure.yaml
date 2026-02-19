@@ -1,0 +1,104 @@
+widget_id: 5c073f05-a0bb-4516-88da-59084b92123f
+template_id: RiskExposure
+active: true
+title: Risk Exposure
+components:
+  - name: Vendor Email Compromise\u200b
+    type: text
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          data = {"text": "IT help desk breached via social engineering attack.",
+                  "button1": {
+                      "text": "privileged user impersonations",
+                      "onClick": {
+                          "url": "",
+                          "body": {},
+                          "header": {}
+                      }
+                  },
+                  "button2": {
+                      "text": "IT Help Desk",
+                      "onClick": {
+                          "url": "",
+                          "body": {},
+                          "header": {}
+                      }
+                  },
+                  "riskPercentage": 44,
+                  "circleColor": "danger"
+              }
+          return data
+  - name: Breached SaaS Applications\u200b
+    type: text
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          data = {"text": "Secure collaborative workspace emphasizing privacy.",
+                  "button1": {
+                      "text": "sim swapping",
+                      "onClick": {}
+                  },
+                  "button2": {
+                      "text": "Personal Email address",
+                      "onClick": {}
+                  },
+                  "riskPercentage": 39,
+                  "circleColor": "warning"
+              }
+          return data
+  - name: Sim Swapping\u200b
+    type: text
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          data = {"text": "IT help desk breached via social engineering attack.",
+                  "button1": {
+                      "text": "privileged user impersonations",
+                      "onClick": {}
+                  },
+                  "button2": {
+                      "text": "IT Help Desk",
+                      "onClick": {}
+                  },
+                  "riskPercentage": 32,
+                  "circleColor": "warning"
+              }
+          return data
+  - name: Privilege Escalation Paths\u200b
+    type: text
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          data = {"text": "Secure collaborative workspace emphasizing privacy.",
+                  "button1": {
+                      "text": "sim swapping",
+                      "onClick": {}
+                  },
+                  "button2": {
+                      "text": "Personal Email address",
+                      "onClick": {}
+                  },
+                  "riskPercentage": 22,
+                  "circleColor": "green"
+              }
+          return data
+  - name: Mint Sandstorm
+    type: text
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          data = {"text": "Secure collaborative workspace emphasizing privacy.",
+                  "button1": {
+                      "text": "sim swapping",
+                      "onClick": {}
+                  },
+                  "button2": {
+                      "text": "Personal Email address",
+                      "onClick": {}
+                  },
+                  "riskPercentage": 14,
+                  "circleColor": "green"
+              }
+          return data
+version: 6.0

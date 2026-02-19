@@ -1,0 +1,48 @@
+datatype: DICT
+defaultValue:
+  name: Sensitive Operational Data
+  description: Critical operational information across various high-security sectors
+  criticality: CRITICAL
+  sensitivity: Sensitive
+  examples:
+    - Detailed Strategic Plans + Timelines
+    - Confidential Project Codenames + Specifications
+    - Security Vulnerability Assessments
+    - Emergency Response Protocols
+    - Undisclosed Merger or Acquisition Details
+  indicators:
+    - Presence of confidentiality classifications
+    - Detailed operational or strategic information
+    - Time-sensitive business or organizational plans
+    - Information on critical infrastructure or processes
+  contentMarkers:
+    - Confidentiality labels or watermarks
+    - Coded project names or identifiers
+    - Detailed technical specifications
+    - Time-stamped strategic information
+  impactSummary: >-
+    Operational security risks; competitive disadvantage; potential for targeted
+    attacks or exploitation
+  classificationRules:
+    positive: >-
+      Contains detailed internal operations data; strategic plans;
+      security-critical information
+    negative: General operational procedures; publicly known organizational information
+    resolution: >-
+      Evaluate the strategic importance and potential impact of information
+      disclosure
+  relatedClasses:
+    - SRC001
+    - BCI001
+    - IPR001
+    - SYS001
+entityDescription: |-
+  Data Definition to classify and extract Sensitive Operational Data from text
+entityId: OPS001
+entityMeta:
+  category: Data Protection Rule
+  source: default
+entityName: Sensitive Operational Data
+entityType: dlp_rule
+isDisabled: false
+isModifiable: true

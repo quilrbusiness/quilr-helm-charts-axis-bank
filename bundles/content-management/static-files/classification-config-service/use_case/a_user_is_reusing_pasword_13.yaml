@@ -1,0 +1,38 @@
+id: b8bdc456-b653-4303-8ded-04ae37aace33
+version: 5.18
+code: UC013
+name: when user is reusing a critical app password
+type: use-case
+description: Define what should be done when a user uses same password over multiple ciritical apps.
+posture:
+  - PID_03
+behavior:
+  - BID_10
+condition:
+  - operator: null
+    filter_condition:
+      attribute_type: ATTR_Browser_001
+      attribute_id: BROWSER-001
+      condition: is equal to
+      value: "false"
+    editable: true
+    supported_operators:
+      - is equal to
+      - is in
+    filter_group: null
+  - operator: AND
+    filter_group: null
+    filter_condition:
+      value: Critical
+      condition: is_equal_to
+      attribute_id: RPA-003
+      attribute_type: ATTR_RPA_001
+    editable: false
+    supported_operators:
+      - is equal to
+      - is in
+disabled: false
+createdon: 1710504494000
+updatedon: 1710504494000
+config:
+  save: false

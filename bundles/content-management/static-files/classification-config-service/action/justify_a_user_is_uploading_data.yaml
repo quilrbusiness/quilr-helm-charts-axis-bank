@@ -1,0 +1,21 @@
+code: ACT_220
+createdon: 1710504494000
+id: ca7db48d-1d6f-4047-8882-2e9502784ab3
+version: 1.1
+actiontype: ACTP_02
+behavior:
+- BID_203
+updatedon: 1710504494000
+name: Justify user uploading data
+type: action
+tags:
+- UC033
+config:
+  meta:
+    execution_type: tool
+    browser_action: Justify
+    engagement_type: templatized
+    execution_module: send_templated_user_message
+    message_template: justify-user-uploading-data
+    channel: 
+

@@ -1,0 +1,17 @@
+id: c91b8dc9-4d04-49e3-95d9-6edfbeee9899
+version: 3.0
+code: Q037
+name: Using a Recently Breached Non Critical SaaS App
+description: Login to a recently breached application that does not handle sensitive data.
+type: rule
+view: identity_protection
+impact: moderate
+likelihood: moderate
+createdon: 1720396800000
+updatedon: 1720396800000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_02
+examples: []
+recommendations: []

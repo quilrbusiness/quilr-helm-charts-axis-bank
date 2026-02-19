@@ -1,0 +1,33 @@
+datatype: DICT
+defaultValue:
+  message: |-
+    Please redact the prompt - Sensitive data detected. Will only take 2 mins.
+  mode: Do Nothing
+  resolution_channel: browser
+  business_justification: mandatory
+  channels:
+    - category: generative ai
+      apps:
+        - app_logo: https://staticcontent1.blob.core.windows.net/static-images-company-logos/quilr-logobard.google.com.png
+          app_domain: bard.google.com
+          app_name: Google Gemini
+          isChecked: true
+          value: Google Gemini
+          name: Google Gemini
+          iconUrl: https://staticcontent1.blob.core.windows.net/static-images-company-logos/quilr-logobard.google.com.png
+        - app_logo: https://staticcontent1.blob.core.windows.net/static-images-company-logos/openai.png
+          app_domain: chat.openai.com
+          app_name: OpenAI ChatGPT
+          isChecked: true
+          value: OpenAI ChatGPT
+          name: OpenAI ChatGPT
+          iconUrl: https://staticcontent1.blob.core.windows.net/static-images-company-logos/openai.png
+entityDescription: |-
+  Provides default settings for Data Protection rules
+entityId: DP001
+entityMeta:
+  category: Data Protection
+entityName: Data Protection Configuration
+entityType: data_protection_config
+isDisabled: false
+isModifiable: true

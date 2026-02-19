@@ -1,0 +1,8 @@
+name: list_all_db_apps
+query: "MATCH (app:APPLICATION)-[has:HAS_APP_CATEGORY]-(cat) WHERE cat.id is not null AND cat.id <> $unknown and app.appName is not null RETURN app.appName as appName, cat.id as appCategory, app.domain as appDomain"
+parameters:
+  unknown: "UNKNOWN"
+datasource: "knowledgegraph"
+enablecache: false
+expireinmillis: 604800000
+browser: true

@@ -1,0 +1,17 @@
+id: 635a4cad-65c4-44a7-9807-15c36a1b62a0
+version: 3.0
+code: Q098
+name: Phone Number Exposed on Social Media
+description: 
+type: rule
+view: identity_protection
+impact: high
+likelihood: high
+createdon: 1720094794000
+updatedon: 1720094794000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_61
+examples: []
+recommendations: []

@@ -1,0 +1,48 @@
+datatype: DICT
+defaultValue:
+  name: Commercial Transactions
+  description: Business transaction details with moderate sensitivity
+  criticality: MEDIUM
+  sensitivity: Sensitive
+  examples:
+    - Purchase Order Numbers
+    - Invoice Details without Full Customer Information
+    - Shipping Tracking Numbers
+    - General Pricing Information
+    - Customer Loyalty Program Data
+  indicators:
+    - Presence of transaction-specific identifiers
+    - Partial order or customer information
+    - Non-public pricing or discount data
+    - Information on business relationships or transactions
+  contentMarkers:
+    - Order or invoice numbers
+    - Product codes or SKUs
+    - Currency symbols with amounts
+    - Shipping or logistics terminology
+  impactSummary: Potential for minor competitive insights; slight customer privacy concerns
+  classificationRules:
+    positive: >-
+      Contains transaction-specific data; partial customer or order information;
+      non-public pricing details
+    negative: >-
+      Publicly listed prices; general product information; anonymous sales
+      statistics
+    resolution: >-
+      Assess the specificity of the transaction information and its potential
+      business value
+  relatedClasses:
+    - BCI001
+    - FIN001
+    - PPI001
+    - SYS001
+entityDescription: |-
+  Data Definition to classify and extract Commercial Transactions from text
+entityId: CTX001
+entityMeta:
+  category: Data Protection Rule
+  source: default
+entityName: Commercial Transactions
+entityType: dlp_rule
+isDisabled: false
+isModifiable: true

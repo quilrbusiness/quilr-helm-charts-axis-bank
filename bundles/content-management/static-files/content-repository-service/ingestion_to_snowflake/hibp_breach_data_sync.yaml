@@ -1,0 +1,32 @@
+id: 56w9a280-69cc-458a-926c-21f6293981t7
+name: Hibp Breach Data Sync
+type: ingestion-to-snowflake
+version: 2.1
+active: false
+schedule: "7D"
+historicalrecordduration: "3D"
+source:
+  type: api
+  config:
+    uri: https://haveibeenpwned.com/api/v3/breaches
+    method: GET
+    headers: {}
+    body: {}
+destination:
+  type: stream
+  topic: breachData
+config:
+  publishindividual: true
+lambda: |
+  def fn(payload):
+      import uuid
+      breaches = []
+      for breach in payload:
+          breaches.append({
+              'id': str(uuid.uuid4()),
+              'domain': breach['Domain'],
+              'breachinfo': breach
+          })
+      return breaches
+createdon: 1707315500
+updatedon: 1707315500

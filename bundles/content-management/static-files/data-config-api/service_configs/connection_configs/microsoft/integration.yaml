@@ -1,0 +1,83 @@
+id: ec1a7866-cc58-4a19-a887-a78541bd1ee8
+vendor: Microsoft
+product: Graph API
+slug: Entra ID Give Consent
+description: Execute Integration Flow
+redirect_uri: https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=$.env.ms_client_id&response_type=code&prompt=select_account&response_mode=query&redirect_uri=$.env.quilr_bff_url/auth/auth/integration-admin-landing/microsoft
+tests: []
+inputSchema:
+  - id: state
+    type: text
+    title: State
+    description: Random state which can be used to prevent CSRF attacks
+    location: query
+    required: false
+    url_substitution_rank: 1
+  - id: scope
+    type: text
+    title: Permission Scopes
+    description: Permissions to request from the user
+    location: query
+    required: false
+    url_substitution_rank: 2
+filtersSchema:
+  - id: department
+    type: multiselect
+    title: Department
+    description: Restrict ingestion to specific departments
+    operators: [include, exclude]
+    allowCustomValues: true
+  - id: officeLocation
+    type: multiselect
+    title: Office Location
+    description: Filter users by office location metadata
+    operators: [include, exclude]
+    allowCustomValues: true
+  - id: city
+    type: multiselect
+    title: City
+    description: Include or exclude users based on city
+    operators: [include, exclude]
+    allowCustomValues: true
+  - id: state
+    type: multiselect
+    title: State / Province
+    description: Control ingestion per state or province
+    operators: [include, exclude]
+    allowCustomValues: true
+  - id: country
+    type: multiselect
+    title: Country
+    description: Filter users by country or region
+    operators: [include, exclude]
+    allowCustomValues: true
+  - id: employeeType
+    type: multiselect
+    title: Employee Type
+    description: Include or exclude specific employee types
+    operators: [include, exclude]
+    allowCustomValues: true
+  - id: userType
+    type: dropdown
+    title: User Type
+    description: Limit users by directory user type
+    operators: [include, exclude]
+    options: [Member, Guest]
+  - id: accountEnabled
+    type: dropdown
+    title: Account Enabled
+    description: Choose whether to ingest enabled or disabled accounts
+    operators: [include, exclude]
+    options: ['true', 'false']
+  - id: mail
+    type: multiselect
+    title: Email / UPN
+    description: Match users by email address or UPN fragments
+    operators: [include, exclude]
+    allowCustomValues: true
+  - id: groups
+    type: multiselect
+    title: Groups
+    description: Restrict ingestion to members of selected Azure AD groups
+    operators: [include, exclude]
+    allowCustomValues: true

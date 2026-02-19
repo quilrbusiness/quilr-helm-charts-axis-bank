@@ -1,0 +1,144 @@
+id: f356e0b6-c39f-45d4-9f41-329a168c1703
+name: Alert Classification Content To Graph
+type: rule-content-ingestion-to-graph
+version: 1.1.1
+schedule: "r"
+context: global
+source:
+  type: stream
+  topic : contentConfigOut
+destination:
+  type: stream
+  topic: knowledgeGraph
+config:
+  nodes:
+    $type:
+      id: code
+      type: $type
+      properties:
+        name: name
+        description: description
+        version: version
+        tags: tags
+        factor: factor
+        examples: examples
+        recommendations: recommendations
+        remediations: remediations
+        severity: criticality
+      context: $context
+    impact:
+      id: impact
+      type: IMPACT
+      context: global
+    likelihood:
+      id: likelihood
+      type: LIKELIHOOD
+      context: global
+    humanfactor:
+      id: $.humanfactor
+      type: HUMANFACTOR
+      context: global
+    rule_use_case:
+      id: $.tags
+      type: USE_CASE
+      when: is_rule_ingestion == true
+      context: global
+    behavior:
+      id: $.behavior
+      type: BEHAVIOR
+      context: global
+    posture:
+      id: $.posture
+      type: POSTURE
+      context: global
+    prev_impact:
+      id: $.prevConfig.impact
+      type: IMPACT
+      context: global
+    prev_likelihood:
+      id: $.prevConfig.likelihood
+      type: LIKELIHOOD
+      context: global
+    prev_humanfactor:
+      id: $.prevConfig.humanfactor
+      type: HUMANFACTOR
+      context: global
+    prev_behavior:
+      id: $.prevConfig.behavior
+      type: BEHAVIOR
+      context: global
+    prev_posture:
+      id: $.prevConfig.posture
+      type: POSTURE
+      context: global
+  edges:
+    - source: $type
+      destination: impact
+      direction: out
+      relation: HAS_IMPACT
+    - source: $type
+      destination: likelihood
+      direction: out
+      relation: HAS_LIKELIHOOD
+    - source: $type
+      destination: humanfactor
+      direction: out
+      relation: BELONGS_TO
+    - source: $type
+      destination: behavior
+      direction: out
+      relation: BELONGS_TO
+    - source: $type
+      destination: rule_use_case
+      direction: out
+      relation: CREATED_USING
+      when: is_rule_ingestion == true
+    - source: $type
+      destination: posture
+      direction: out
+      relation: BELONGS_TO
+    - source: $type
+      destination: prev_impact
+      direction: out
+      relation: HAS_IMPACT
+      ttl: 1m
+    - source: $type
+      destination: prev_likelihood
+      direction: out
+      relation: HAS_LIKELIHOOD
+      ttl: 1m
+    - source: $type
+      destination: prev_humanfactor
+      direction: out
+      relation: BELONGS_TO
+      ttl: 1m
+    - source: $type
+      destination: prev_behavior
+      direction: out
+      relation: BELONGS_TO
+      ttl: 1m
+    - source: $type
+      destination: prev_posture
+      direction: out
+      relation: BELONGS_TO
+      ttl: 1m
+lambda: |
+  def fn(payload):
+      type = payload.get("type")
+      payload["is_rule_ingestion"] = False
+      if "-" in type:
+          type = type.replace("-", "_")
+          payload["type"] = type
+      if type == "rule":
+          payload["context"] = "user"
+          payload["is_rule_ingestion"] = True
+      else:
+          payload["context"] = "global"
+      subscriber = payload.get("subscriber")
+      tenant = payload.get("tenant")
+      if subscriber and tenant:
+          payload["QUILR_SUBSCRIBERID"] = subscriber
+          payload["QUILR_TENANTID"] = tenant
+      return payload
+createdon: 1708684699070
+updatedon: 1708684699070

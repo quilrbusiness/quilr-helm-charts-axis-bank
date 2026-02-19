@@ -1,0 +1,72 @@
+id: 6e696465-95da-422b-ab9e-eaf99c2794cf
+version: 2.3
+code: BID_13
+name: Terminated User with enabled account
+type: behavior
+createdon: 1710504494000
+updatedon: 1710504494000
+posture:
+  - PID_04
+browser_enabled: false
+query: ""
+config:
+  expression: "def fn(message): return True if message.get('userName') else False "
+  type: finding
+  subtype: status
+  status: open
+  sla: 1W
+  entity: userName
+  entitytype: user
+  tags:
+    - insecure_behavior
+  sourceofalert: Quilr
+  template: "Received an alert for the User: ${userName} on Application: ${appName}"
+  artifacts: 
+    - type: "ACCOUNT"
+      property: "id"
+      value: "$userAppAccount"
+      artifactproperties: 
+        artifactValue: $userName
+        displayInUI: enabled
+        artifactKey: "User"
+    - type: "APPLICATION" 
+      context: "global" 
+      property: id_
+      value: "$appId"
+      artifactproperties: 
+        artifactValue: $appName
+        displayInUI: enabled
+        artifactKey: "Application"
+#    - type: "App Criticality"
+#      property: "criticality"
+#      value: "$appCriticality"
+#      artifactproperties:
+#        artifactValue: $appCriticality
+#        displayInUI: enabled
+#        artifactKey: "Critical"
+#    - type: "First Seen"
+#      property: ""                                 #is this correct for matching ?
+#      value: "$"                                # need to add first seen and last seen in the artifact
+#      artifactproperties:
+#        artifactValue: $
+#        displayInUI: enabled
+#        artifactKey: ""
+#    - type: "Last Seen"
+#      property: ""                                 #is this correct for matching ?
+#      value: "$"                                # need to add first seen and last seen in the artifact
+#      artifactproperties:
+#        artifactValue: $
+#        displayInUI: enabled
+#        artifactKey: ""
+  properties:
+    userName: $userName
+    userAccountEnabled: $userAccountEnabled
+    TENANT: $TENANT
+    SUBSCRIBER: $SUBSCRIBER
+    appName: $appName
+    appUrl: $appUrl
+    appId: $appId
+    appCategory: $appCategory
+    appDomain: $appDomain
+    context_id: $CONTEXTID
+    eventtime: $EVENTTIME

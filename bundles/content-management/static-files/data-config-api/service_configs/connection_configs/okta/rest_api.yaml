@@ -1,0 +1,36 @@
+id: bf8a2c0e-c04c-491e-bc44-ce2c50298d25
+vendor: Okta
+product: Rest API
+slug: okta_rest_api
+description: Set of parameters which are essential to authenticate API client
+tests:
+  - id: 430c29d3-cbe1-4e5b-af86-e87ba2fba802
+    type: token_authentication
+    description: Authentication test to retrieve users
+    priority: high
+    version: 1.0
+    endpoint: https://{}/api/v1/users/
+    request_type: GET
+    required_headers: {}
+    required_query_params: {}
+    required_body_params: {}
+    response_status_code: 200
+    response_attribute: null
+    exception_details:
+      message: invalid credentials
+inputSchema:
+  - id: key
+    type: text
+    title: API Key
+    description: API key to access Okta endpoints (including scheme, ex., SSWS <key>)
+    location: header
+    required: true
+    obscure: yes
+  - id: url
+    type: text
+    title: Okta Organization Domain
+    description: Organization specific Okta domain
+    location: path
+    required: true
+    obscure: yes
+    url_substitution_rank: 1

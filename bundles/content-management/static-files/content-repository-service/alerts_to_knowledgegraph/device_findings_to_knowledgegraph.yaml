@@ -1,0 +1,202 @@
+id: fc555a6b-a5ca-4de7-b338-6d7d4312069e
+name: Device Findings Data To Knowledge Graph
+type: ingestion-to-graph
+version: 1.0.11
+schedule: 2m
+historicalrecordduration: 2m
+source:
+  type: query
+  config:
+    query: "SELECT AC.RECORD_METADATA['CreateTime']::bigint AS datetime, AC.LEVELNAME, AC.LEVELCODE, AC.ENTITY, AC.ENTITYTYPE,
+                  AC.ALERTID, AC.CONTEXT_ID, AC.LEVEL, AC.ALERTTYPE, AC.ALERTSUBTYPE, AC.SEVERITY, AC.IMPACTCODE,
+                  AC.LIKELIHOODCODE, AC.GENERATIONTIME, AC.EVENTTIME, AC.SCORE, AM.ARTIFACTS, AM.MESSAGE,
+                  AM.PROPERTIES, AC.STATUS, AC.ISRESOLVED, AC.SLA, AC.CREATEDBY, AC.ASSIGNEDTOTYPE,
+                  AC.SOURCE, AC.COPILOTSTATUS, AC.TAGS, AC.ACTIONSTATUS,
+                  AC.ACTIONTAKEN, AC.SUBSCRIBER AS QUILR_SUBSCRIBERID, AC.TENANT AS QUILR_TENANTID
+            FROM kafka_connect.snowdata_schema.alertclassify AS AC 
+            JOIN kafka_connect.snowdata_schema.alertmeta AS AM 
+              ON AC.ALERTID = AM.ALERTID AND AC.SUBSCRIBER = AM.SUBSCRIBER AND AC.TENANT = AM.TENANT
+                 AND AC.ENTITYTYPE = 'device' 
+                 AND AC.LEVEL = 'rule'
+                 AND AC.ALERTTYPE = 'finding' 
+                 AND AC.RECORD_METADATA['CreateTime']::bigint >= $starttime
+                 AND AC.RECORD_METADATA['CreateTime']::bigint <= $endtime"
+    type: datalake
+    limit: 
+    offset: 0
+destination:
+  type: stream
+  topic: knowledgeGraph
+config:
+  nodes:
+    artifacts: ARTIFACTS
+    device:
+      id: $.PROPERTIES.deviceId
+      type: DEVICE
+    rule:
+      id: LEVELCODE
+      type: RULE
+      properties:
+        severity: SEVERITY
+    finding:
+      type: $FINDING_NODE_LABEL
+      merge:
+        attribute: ALERT_HASH
+        property: alerthash
+      properties:
+        id: ALERTID
+        sla: SLA
+        tags: TAGS
+        mode: MODE
+        score: SCORE
+        status: STATUS
+        source: SOURCE
+        name: LEVELNAME
+        severity: SEVERITY
+        eventTime: EVENTTIME
+        createdBy: CREATEDBY
+        subType: ALERTSUBTYPE
+        context_id: CONTEXT_ID
+        assignedto: ASSIGNEDTO
+        actionStatus: ACTIONSTATUS
+        copilotStatus: COPILOTSTATUS
+        assignedtotype: ASSIGNEDTOTYPE
+        generationTime: GENERATIONTIME
+        findingMessage: FINDING_MESSAGE
+        alert_properties: PROPERTIES
+        resolutionChannel: RESOLUTIONCHANNEL
+        resolutionMessage: RESOLUTION_MESSAGE
+        businessJustificationSetting: BUSINESSJUSTIFICATION
+      immutableproperties:
+        startTime: CURRENT_TIMESTAMP
+        ingestionTime: CURRENT_TIMESTAMP
+    action:
+      type: ACTION
+      match:
+        property: encoded_finding_context
+        attribute: ENCODED_CONTEXT
+    impact:
+      id: IMPACTCODE
+      type: IMPACT
+      context: global
+    likelihood:
+      id: LIKELIHOODCODE
+      type: LIKELIHOOD
+      context: global
+  edges:
+  - destination: finding
+    direction: out
+    relation: HAS_FINDING
+    source: device
+    immutableproperties:
+      startTime: CURRENT_TIMESTAMP
+  - destination: artifacts
+    direction: out
+    relation: $ARTIFACT_RELATION_NAME
+    source: finding
+  - destination: finding
+    direction: out
+    relation: EVALUATED_TO
+    source: rule
+  - destination: action
+    direction: out
+    relation: TRIGGERED
+    source: finding
+  - destination: impact
+    direction: out
+    relation: HAS_IMPACT
+    source: rule
+  - destination: likelihood
+    direction: out
+    relation: HAS_LIKELIHOOD
+    source: rule
+lambda: |
+  def fn(payload):
+      import time
+      import uuid
+      import base64
+      import hashlib
+      import os
+      SEARCH_API_ENDPOINT = os.environ.get("SEARCH_API_ENDPOINT", None)
+      newpayload = []
+      def check_finding_exists(deviceid, name):
+          headers = {
+              "Content-Type": "application/json",
+              "Internal": "true",
+          }
+          url = f"{SEARCH_API_ENDPOINT}/api/v1/search/"
+          body = {
+                  "query": "match (f:FINDING {deviceId: $deviceid, name: $name, status: 'open'}) return true as status",
+                  "inputs": {
+                      "deviceid":deviceid,
+                      "name":name
+                  },
+                  "dataSourceType": "knowledgegraph",
+                  "limit": 1
+          }
+          response = requests.post(url, headers=headers, json=body)
+          if response.status_code == 200:
+              data = response.json()
+              if len(data) > 0:
+                  return True
+              else:
+                  return False
+          else:
+              raise Exception(f"Error: {response.status_code}, {response.text}")
+      def alerthash(synctime,deviceid,alertname,tenant,subscriber):
+        concat = str(synctime)+deviceid+alertname
+        return hashlib.md5(concat.encode()).hexdigest()
+      def b64encode(message):
+        message_bytes = message.encode('ascii')
+        base64_bytes = base64.b64encode(message_bytes)
+        return base64_bytes.decode('ascii')
+      for item in payload:
+          if check_finding_exists(item['PROPERTIES']['deviceId'], item['LEVELNAME']) == False:
+            item['ALERT_HASH']=alerthash( 
+                item['PROPERTIES']['time']
+                ,item['PROPERTIES']['deviceId']
+                ,item['LEVELNAME']
+                ,item['QUILR_TENANTID']
+                ,item['QUILR_SUBSCRIBERID'])
+            item["CURRENT_TIMESTAMP"] = int(time.time()) * 1000
+            if not item.get("STATUS"):
+                item["STATUS"] = "open"
+            resolution_channel = item.get("RESOLUTIONCHANNEL")
+            mode = item.get("MODE")
+            if not resolution_channel:
+                item["RESOLUTIONCHANNEL"] = "Not Set"
+            item["BROWSER_INTERACTION"] = False
+            if resolution_channel == "browser" and mode in ["Block", "Ask", "Justify"]:
+                item["BROWSER_INTERACTION"] = True
+            if item["BROWSER_INTERACTION"]:
+                item["STATUS"] = "inprogress"
+            artifacts = item.get("ARTIFACTS", [])
+            indexes_to_remove = set()
+            for index, artifact in enumerate(artifacts):
+                artifact_id = artifact.get("id", "")
+                if artifact.get("type") == "DEVICE":
+                    if artifact_id.startswith("@"):
+                        artifact_id = artifact_id[1:]
+                    item["DEVICE_ID"] = artifact_id
+            for index in sorted(indexes_to_remove, reverse=True):
+                del artifacts[index]
+            item["ARTIFACTS"] = artifacts
+            item["FINDING_MESSAGE"] = ""
+            item["RESOLUTION_MESSAGE"] = ""
+            item["FINDING_NODE_LABEL"] = "FINDING"
+            item["ARTIFACT_RELATION_NAME"] = "HAS_ARTIFACT"
+            item["ENCODED_CONTEXT"] = b64encode(f"{item.get('CONTEXT_ID', '')}_{item.get('LEVELCODE', '')}")
+            if item.get("ISRESOLVED"):
+                item["ACTION_ID"] = str(uuid.uuid4())
+                item["FINDING_NODE_LABEL"] = "FINDING_HISTORY"
+                if item["MODE"] == "Block" or item["ACTIONTAKEN"] == "Blocked":
+                    item["ACTION_NAME"] = "block_human_action"
+                else:
+                    item["ACTION_NAME"] = "resolve_incident"
+                item["RESOLUTION_MESSAGE"] = item.get("MESSAGE")
+            else:
+                item["FINDING_MESSAGE"] = item.get("MESSAGE")
+            newpayload.append(item)
+      return newpayload 
+createdon: 1738988714
+updatedon: 1738988714

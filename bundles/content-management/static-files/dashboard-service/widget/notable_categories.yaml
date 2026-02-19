@@ -1,0 +1,27 @@
+widget_id: a4443e61-b87f-4180-9812-14496aace8bf
+template_id: NotableCategories
+active: true
+title: Notable Categories
+components:
+  - name: column
+    type: chart
+    data_source_type: knowledgegraph
+    lambda: |
+      def fn(client):
+          # Combine redundant queries and use descriptive variable name:
+          # query_result = client.fetch_data(
+          #     query="MATCH (u:USER)-[r:HAS_BEHAVIOURCATEGORY]-(rc:behaviourCategory) WHERE rc.generationtime >= $starttime AND rc.generationtime <= $endtime RETURN COUNT(u) as count, rc.name AS behaviour_category, rc.severity as severity"
+          # )
+          # print(f"query_result: {query_result}")
+    
+          data = {
+              "series": [
+                  {"name": "BPL", "type": "column", "data": [10, 10, 10, 20, 3, 20, 20, 20]},
+                  {"name": "FA Cup", "type": "column", "data": [40, 10, 20, 12, 14, 10, 20, 12]},
+                  {"name": "CL", "type": "column", "data": [10, 14, 23, 14, 10, 4, 13, 34]}
+              ],
+              "xAxisCategories": ['SaaS Use', 'Data Handling', 'Misconfiguration', 'Social Engineering', 'Device Risk', 'Personal Security', 'Authentication & Access', 'Sentiments & Awareness']
+          }
+
+          return data
+version: 2.0

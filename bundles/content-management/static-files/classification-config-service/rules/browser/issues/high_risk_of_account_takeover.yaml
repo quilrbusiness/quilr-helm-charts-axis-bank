@@ -1,0 +1,18 @@
+id: 2f229a10-a2af-4294-96ea-ea76eb22ab6d
+version: 2.0
+code: I002
+name: High Risk of Account Takeover
+type: rule
+view: identity_protection
+impact: veryhigh
+likelihood: veryhigh
+createdon: 1718911069000
+updatedon: 1718911069000
+humanfactor: HFID_02
+behavior:
+  - BID_03
+  - BID_04
+  - BID_05
+  - BID_13
+recommendations: []
+remediations: []

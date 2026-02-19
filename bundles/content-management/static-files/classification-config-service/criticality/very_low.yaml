@@ -1,0 +1,9 @@
+id: a3f2fdae-d525-415e-a8f1-ba14e52360d3
+version: 3.0
+code: very_low
+name: Very Low
+type: criticality
+factor: 0.2
+priority: 5
+createdon: 1710504494000
+updatedon: 1710504494000

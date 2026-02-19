@@ -1,0 +1,62 @@
+id: ce762052-80b6-4290-bceb-6bce75c8c0d2
+version: 1.0.25
+category: Source Application
+code: ATTR_RPA_001
+tags:
+  - UC010
+  - UC013
+  - UC014
+type: attributes
+attributes:
+  - name: IdP status
+    description: IF application is IdP or not
+    duplicate_allowed: false
+    tags:
+      - UC010
+      - UC013
+    graph_property: isSourceAppIdp
+    extension_property: check.reusedPassword.$.isIdp
+    expected_datatype: string
+    supported_operators:
+      - is equal to
+    possible_values:
+      - label: true
+        value: true
+        tags: null
+      - label: false
+        value: false
+        tags: null
+    id: RPA-001
+  - name: is recently breached
+    description: Specify if application is recently breached or not
+    duplicate_allowed: false
+    tags: [ ]
+    graph_property: isSourceAppRecentlyBreached
+    extension_property: check.reusedPassword.$.isBreached
+    expected_datatype: string
+    possible_values:
+      - label: last 1 month
+        value: timestamp() - 1000*60*60*24*30
+        tags: null
+    supported_operators:
+      - is less than equal to
+    id: RPA-002
+  - name: criticality
+    description: Specify if application is critical or not
+    duplicate_allowed: false
+    tags:
+      - UC010
+      - UC014
+    graph_property: COALESCE(source_app_settings.criticality, source_app.criticality, 'NOT SET')
+    extension_property: check.reusedPassword.$.isCritical
+    expected_datatype: string
+    possible_values:
+      - label: Critical
+        value: Critical
+        tags: null
+      - label: Not Critical
+        value: Not Critical
+        tags: null
+    supported_operators:
+      - is equal to
+    id: RPA-003

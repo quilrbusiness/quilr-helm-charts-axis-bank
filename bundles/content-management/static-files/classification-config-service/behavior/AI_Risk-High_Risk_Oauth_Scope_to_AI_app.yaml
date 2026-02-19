@@ -1,0 +1,103 @@
+id: 83c736bb-150e-4afb-aabc-29c2d6726f09
+version: 3.8
+code: BID_01
+name: AI Applications with Risky Scopes
+type: behavior
+createdon: 1710504494000
+updatedon: 1710504494000
+posture:
+  - PID_01
+browser_enabled: false
+description: Applications that have been provided risky oauth scopes in your organization.
+query: "MATCH (user:USER) - [has_email:HAS_EMAIL] - (email:EMAIL:PRIMARY) - [credsbased_account:OAUTH_ACCOUNT] - (account:ACCOUNT),
+              (account) - [using_app:USING_APP] - (app:APPLICATION) - [has_grant:HAS_GRANT] - (grant:GRANT) - [has_scope:HAS_SCOPE] - (scope:SCOPE {severity: 'High'})
+        OPTIONAL MATCH (user)-[:HAS_DEPARTMENT]->(department:DEPARTMENT)
+        OPTIONAL MATCH (app) - [has_app_category:HAS_APP_CATEGORY] - (app_category:APP_CATEGORY)
+        OPTIONAL MATCH (user)-[:BELONGS_TO]->(group:GROUP {userDefined: true})
+        OPTIONAL MATCH (tenant:TENANT {id: $tenant})-[has_app_settings:HAS_APP_SETTINGS]-(app)
+        OPTIONAL MATCH (tenant:TENANT {id: $tenant})-[:HAS_INSTANCE]-(instance:INSTANCE)-[has_idp:HAS_IDP]-(app:APPLICATION)
+        WITH user, email, credsbased_account, account, app, grant, scope, department, app_category, group, has_app_settings,instance,has_idp
+        WHERE app_category.name = 'generative ai'
+            AND scope.severity = 'High'
+            AND credsbased_account.timestamp >= $starttime
+            AND credsbased_account.timestamp <= $endtime
+        WITH user, email, credsbased_account, account, app, grant, scope, department, app_category, group, has_app_settings,instance,has_idp
+            RETURN DISTINCT
+            user.id AS userId,
+            user.displayName AS userName,
+            user.mail AS userMail,
+            user.accountEnabled AS userAccountEnabled,
+            department.name AS userDepartment,
+            user.tenant AS TENANT,
+            user.subscriber AS SUBSCRIBER,
+            app.id_ AS appId,
+            COALESCE(CASE WHEN NOT app.name IN ['', '-'] THEN app.name ELSE NULL END, app.domain) AS appName,
+            app.Url AS appUrl,
+            app.domain AS appDomain,
+            COLLECT(DISTINCT app_category.name) AS appCategory,
+            COLLECT(DISTINCT scope.id) AS scope,
+            COALESCE(has_app_settings.criticality, app.criticality, 'NOT SET') AS appCriticality,
+            scope.severity AS scopeSeverity,
+            grant.consentBy AS consentBy,
+            account.id AS userAppAccount"
+config:
+  expression: "def fn(message): return True if message.get('userName') else False "
+  type: finding
+  subtype: status
+  status: open
+  sla: 1W
+  entity: userName
+  entitytype: user
+  tags:
+    - insecure_behavior
+  sourceofalert: Quilr
+  template: "Received an alert for the User: ${userName} on Application: ${appName}"                
+  artifacts: 
+    - type: "ACCOUNT"
+      property: "id"
+      value: "$userAppAccount"
+      artifactproperties: 
+        artifactValue: $userName
+        displayInUI: enabled
+        artifactKey: "User"
+    - type: "APPLICATION" 
+      context: "global" 
+      property: id_
+      value: "$appId"
+      artifactproperties: 
+        artifactValue: $appName
+        displayInUI: enabled
+        artifactKey: "Application"
+#    - type: "App Criticality"
+#      property: "criticality"
+#      value: "$appCriticality"
+#      artifactproperties:
+#        artifactValue: $appCriticality
+#        displayInUI: enabled
+#        artifactKey: "Critical"
+    - type: "SCOPE"
+      property: "id"
+      value: "$scope"
+      artifactproperties: 
+        artifactValue: $scope
+        displayInUI: enabled
+        artifactKey: "Scope Used"
+  properties:
+    userId: $userId  #FORMAT - findingattribute: variable from the top of this YAML
+    userName: $userName
+    userMail: $userMail
+    userAccountEnabled: $userAccountEnabled
+    TENANT: $TENANT
+    SUBSCRIBER: $SUBSCRIBER
+    appName: $appName
+    appUrl: $appUrl
+    appId: $appId
+    accountId: $userAppAccount
+    appCategory: $appCategory 
+    scope: $scope
+    consentBy: $consentBy
+    appDomain: $appDomain
+#    context_id: $CONTEXTID
+#    time: $EVENTTIME
+lambda: ""
+disabled: true

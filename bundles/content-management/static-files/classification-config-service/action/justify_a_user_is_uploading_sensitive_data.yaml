@@ -1,0 +1,20 @@
+id: 3c4d5e6f-7081-8293-9a0b-1c2d3e4f9043
+version: 1.0
+code: ACT_253
+name: Justification for uploading sensitive data
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: templatized
+    message_template: justify-uploading-sensitive-data
+    execution_type: tool
+    execution_module: send_templated_user_message
+    browser_action: Justify
+tags:
+  - UC043
+behavior:
+  - BID_203
+createdon: 1755715200000
+updatedon: 1755715200000

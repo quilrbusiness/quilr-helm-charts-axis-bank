@@ -1,0 +1,22 @@
+code: ACT_236
+createdon: 1710504494000
+id: c70bb8d9-a200-4987-8bd0-66c1bf856fa1
+version: 1.2
+actiontype: ACTP_02
+behavior:
+- BID_21
+updatedon: 1758018676721
+name: Block AI application by organisation
+type: action
+tags:
+- UC038
+config:
+  meta:
+    execution_type: tool
+    browser_action: Block
+    blocked: true
+    engagement_type: templatized
+    execution_module: send_templated_user_message
+    message_template: block-application-by-organisation
+    channel: 
+

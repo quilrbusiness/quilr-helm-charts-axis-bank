@@ -1,0 +1,12 @@
+type: message
+content:
+  header: Heads up!
+  description: ""
+  title: |
+    It looks like you're visiting an unapproved AI app. For your security and privacy, we recommend switching to an approved tool.
+
+    <br />Your actions matter — help keep your organization safe!
+channel: Browser
+rendered_content_type: application/json
+name: Block visiting an unapproved AI app
+is_active: true

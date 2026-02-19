@@ -1,0 +1,29 @@
+type: message
+content:
+  acknowledgedButtons:
+  - name: Allowed to use shared credentials
+    id: 15de6739-bf12-4833-b81b-9a996a601fcf
+    isPrimary: true
+    whitelist: false
+  justification_list:
+  - It’s blocking my productivity.
+  - I can’t do my job without this.
+  - This is an industry-standard app, why is it blocked?
+  - I have approval from my manager to use this app.
+  - The official app doesn't support what I need.
+  - I didn't know it wasn't allowed.
+  - It is just a one-time thing.
+  - We are racing against a deadline.
+  - Everyone else in the team is using it.
+  - Something else.
+  header: Oops, Credential Sharing Detected!
+  description: '*Specify business justification?*'
+  title: |
+    Looks like you're using someone else's account. Please avoid it unless needed for work. Reusing login info isn't the safest!
+    <br />
+    <br />Your actions matter — help keep your organization safe!    
+channel: Browser
+rendered_content_type: application/json
+name: Justify login for use of shared non-administrator credentials
+is_active: true
+

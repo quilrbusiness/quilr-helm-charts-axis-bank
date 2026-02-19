@@ -1,0 +1,285 @@
+id: 74837d9f-8093-4689-9305-fb27f857a3e7
+name: graph-api-user-delta-data
+type: fabric
+version: 1.0.2
+trail:
+  block: start
+  dependson: []
+  attempt:
+    - block: get_refresh_token
+      dependson: []
+      attempt:
+        # - block: send_token_to_vault
+        #   dependson: []
+        #   attempt:
+        #   otherwise: []
+        #   start: false
+        #   end: false
+        - block: update_completion_to_25
+          dependson: []
+          attempt: []
+          otherwise: []
+          start: false
+          end: false
+        - block: list_users_delta
+          dependson:
+            - get_refresh_token
+          attempt: []
+          otherwise: []
+          start: false
+          end: false
+        - block: get_user_groups_delta
+          dependson: []
+          attempt: []
+          otherwise: []
+          start: false
+          end: false
+        - block: get_role_delta
+          dependson: []
+          attempt: []
+          otherwise: []
+          start: false
+          end: false
+        - block: update_completion_to_50
+          dependson: []
+          attempt: []
+          otherwise: []
+          start: false
+          end: false
+        - block: merge_groups_delta
+          dependson: 
+            - get_user_groups_delta
+            - list_users_delta
+          attempt: []
+          otherwise: []
+          start: false
+          end: false
+        - block: update_completion_to_75
+          dependson: []
+          attempt: []
+          otherwise: []
+          start: false
+          end: false
+        - block: merge_role_data_delta
+          dependson: 
+            - merge_groups_delta
+            - get_role_delta
+          attempt: []
+          otherwise: []
+          start: false
+          end: false
+        - block: publish_to_rawOutput
+          dependson: [merge_role_data_delta, merge_groups_delta]
+          attempt:
+            - block: update_completion_to_100
+              dependson: []
+              attempt: []
+              otherwise: []
+              start: false
+              end: false
+            - block: end
+              dependson: [publish_to_rawOutput]
+              attempt: []
+              otherwise: []
+              start: false
+              end: true
+          otherwise: []
+          start: false
+          end: false
+      otherwise: []
+      start: false
+      end: false
+  otherwise:
+    - block: end
+      dependson: []
+      attempt: []
+      otherwise: []
+      start: false
+      end: true
+  start: true
+  end: false
+blocks:
+  - name: start
+    type: start
+    config: {}
+  - name: end
+    type: end
+    config: {}
+  - name: get_refresh_token
+    type: receiver
+    config:
+      type: rest
+      uri: https://login.microsoftonline.com/common/oauth2/v2.0/token
+      method: GET
+      headers: {}
+      body:
+        grant_type: refresh_token
+        client_id: $.env.client_id
+        client_secret: $.env.client_secret
+        scope: https://graph.microsoft.com/.default
+        refresh_token: $.credential.token.refreshToken
+      extract: access_token
+  # - name: send_token_to_vault
+  #   type: sender
+  #   config:
+  #     type: vault
+  #     credential_type: token
+  #     subscriber: $.context.subscriber
+  #     tenant: $.context.tenant
+  #     userid: $.context.context.userid
+  #     facade:
+  #       accessToken: $.block.get_refresh_token.output.response.response.access_token
+  #       refreshToken: $.block.get_refresh_token.output.response.response.refresh_token
+  - name: list_users_delta
+    type: receiver
+    config:
+      type: rest
+      uri: https://graph.microsoft.com/v1.0/users/delta?$select=id,otherMails,employeeId,employeeType,displayName,mail,accountEnabled,city,companyName,employeeHireDate,country,createdDateTime,deletedDateTime,businessPhones,department,employeeLeaveDateTime,givenName,identities,jobTitle,lastPasswordChangeDateTime,mobilePhone,mailNickname,officeLocation,passwordPolicies,passwordProfile,preferredLanguage,proxyAddresses,securityIdentifier,state,streetAddress,surname,userPrincipalName,userType,manager
+      method: GET
+      headers:
+        Authorization: Bearer $.block.get_refresh_token.output.response.response
+      body: {}
+      extract: value
+      paginationasuri: true
+      pagination: "@odata.nextLink"
+  - name: upload_profile_pic_to_blob
+    type: sender
+    config:
+      type: blob
+      foreach: $.block.list_users_delta.output.response.response[*]
+      method: GET
+      fileurl: https://graph.microsoft.com/v1.0/users/$.input.using.id/photo/$value
+      token: Bearer $.block.get_refresh_token.output.response.response.access_token
+      blobname: profile/pic/$.context.tenant/$.input.using.id
+      blobfileextension: ".png"
+  - name: get_user_groups_delta
+    type: receiver
+    config:
+      type: rest
+      uri: https://graph.microsoft.com/v1.0/groups/delta?$select=id,deletedDateTime,createdDateTime,creationOptions,description,displayName,expirationDateTime,groupTypes,isAssignableToRole,mail,mailEnabled,mailNickname,renewedDateTime,securityEnabled,securityIdentifier,visibility,members
+      method: GET
+      headers:
+        Authorization: Bearer $.block.get_refresh_token.output.response.response
+      body: {}
+      extract: value
+      paginationasuri: true
+      pagination: "@odata.nextLink"
+  # - name: get_user_device_delta
+  #   type: receiver
+  #   config:
+  #     type: rest
+  #     uri: https://graph.microsoft.com/v1.0/devices/delta
+  #     method: GET 
+  #     headers:
+  #       Authorization: Bearer $.block.get_refresh_token.output.response.response
+  #     body: {}
+  #     extract: value
+  #     paginationasuri: true
+  #     pagination: "@odata.nextLink"
+  - name: get_role_delta
+    type: receiver
+    config:
+      type: rest
+      uri: https://graph.microsoft.com/v1.0/directoryRoles/delta
+      method: GET
+      headers:
+        Authorization: Bearer $.block.get_refresh_token.output.response.response
+      body: {}
+      extract: value
+      paginationasuri: true
+      pagination: "@odata.nextLink"
+  - name: merge_groups_delta
+    type: util
+    config:
+      type: merge
+      primary: $.block.list_users_delta.output.response.response
+      secondary: $.block.get_user_groups_delta.output.response.response
+      pickfrom: null
+      sinkto: groups
+      condition: "( $.secondary.['members@delta'][*].id ).indexOf($.primary.id) >= 0"
+  - name: merge_role_data_delta
+    type: util
+    config:
+      type: merge
+      primary: $.block.merge_groups_delta.output.response.response
+      secondary: $.block.get_role_delta.output.response.response
+      pickfrom: null
+      sinkto: roles
+      condition: "( $.secondary.['members@delta'][*].id ).indexOf($.primary.id) >= 0"
+  # - name: merge_user_device_delta
+  #   type: util
+  #   config:
+  #     type: merge
+  #     primary: $.block.merge_role_data.output.response.response
+  #     secondary: $.block.get_user_device.output.response.response
+  #     pickfrom: null
+  #     sinkto: user_device
+  #     condition: "$.primary.id == $.secondary.userId"
+  - name: publish_to_rawOutput
+    type: sender
+    config:
+      type: kafka
+      topic: rawOutput
+      facade:
+        relation_type: HAS_IDP
+        domain: login.microsoftonline.com
+        instance_id: $.context.context.instanceid
+        name: Active Directory Users Connector
+        description: Azure AD Connector Configuration
+        type: users
+        vendor: Microsoft
+        product: microsoft.graph.delta
+        subProduct: /v1.0/users
+        data: $.input.using
+        subscriber: $.context.subscriber
+        tenant: $.context.tenant
+      foreach: $.block.merge_role_data_delta.output.response.response
+  - name: update_completion_to_25
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update
+      method: POST
+      headers:
+        Internal: true
+      body:
+        output :
+          completed_percentage: 25
+          executed_blocks : 4
+  - name: update_completion_to_50
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update
+      method: POST
+      headers:
+        Internal: true
+      body:
+        output :
+          completed_percentage: 50
+          executed_blocks : 6
+  - name: update_completion_to_75
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update
+      method: POST
+      headers:
+        Internal: true
+      body:
+        output :
+          completed_percentage: 75
+          executed_blocks : 8
+  - name: update_completion_to_100
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update
+      method: POST
+      headers:
+        Internal: true
+      body:
+        output :
+          completed_percentage: 100
+          executed_blocks : 12
+          is_completed : true

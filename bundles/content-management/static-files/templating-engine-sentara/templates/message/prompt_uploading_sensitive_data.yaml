@@ -1,0 +1,16 @@
+name: Prompt uploading sensitive data
+type: message
+channel: Browser
+content:
+  header: Proceed With Caution!
+  title: |
+    It looks like you are uploading sensitive data to an unsafe app.
+    Follow your organizational policies and keep your company's data safe!
+  description: '*Why are you uploading this data?*'
+  acknowledgedButtons:
+    - id: a1c2d3e4-0000-0000-0000-000000000001
+      isPrimary: true
+      name: Acknowledge
+      whitelist: false
+rendered_content_type: application/json
+is_active: true

@@ -1,0 +1,86 @@
+name: app-criticality-checker
+version: 1.0.0
+sequences:
+  - name: generate-context-id
+    waiton: []
+    next: []
+  - name: get-app-details
+    waiton: [generate-context-id]
+    next:
+      - name: app-name
+        waiton: [get-app-details]
+        next: []
+      - name: is-idp-sso
+        waiton: [get-app-details]
+        next: []
+      - name: is-app-unapproved
+        waiton: [get-app-details]
+        next: []
+      - name: is-app-unapproved
+        waiton: [get-app-details]
+        next: []
+      - name: is-app-critical
+        waiton: [get-app-details]
+        ifnext:
+          name: app-critical
+          waiton: [is-app-critical, is-idp-sso]
+          next:
+            - name: END
+        elsenext:
+          name: app-not-critical
+          waiton: [is-app-critical, is-idp-sso]
+          next:
+            - name: END
+actions:
+  - name: app-name
+    type: effect
+    config:
+      command: "data.outcome.outcomes['get-app-details'].response.data ? data.outcome.outcomes['get-app-details'].response.data.appName : stripUrl(data.basket.hostname)"
+  - name: is-app-unapproved
+    type: effect
+    config:
+      command: "data.outcome.outcomes['get-app-details'].response.data ? data.outcome.outcomes['get-app-details'].response.data.appStatus.toLowerCase() === 'unapproved': false"
+  - name: get-app-details
+    type: fetch_data
+    config:
+      body: "JSON.parse(JSON.stringify({domain: stripUrl(data.basket.appUrl)}))"
+      method: POST
+      url: /browser-extension/browser/extension/fetch-app-details
+      headers: {}
+
+  - name: generate-context-id
+    type: effect
+    config:
+      command: crypto.randomUUID()
+  - name: is-app-critical
+    type: condition_eval
+    config:
+      condition: "data.outcome.outcomes['get-app-details'].response.data ? data.outcome.outcomes['get-app-details'].response.data.appCriticality.toLowerCase() === 'critical': false"
+  - name: app-critical
+    type: effect
+    config:
+      checkId: CH-APP-CRITICAL
+      command: true
+  - name: app-not-critical
+    type: effect
+    config:
+      checkId: CH-APP-NOT-CRITICAL
+      command: false
+  - name: is-idp-sso
+    type: effect
+    config:
+      command: "data.outcome.outcomes['get-app-details'].response.data ? data.outcome.outcomes['get-app-details'].response.data.isIdp === true : false"
+
+persona:
+  roles:
+    - PRIVILEGED_ACCESS
+application:
+  urlpattern: "<all_urls>"
+  analysismethod: ""
+browser: true
+args: {}
+event: load
+active: true
+element: window
+chain: true
+configurable: false

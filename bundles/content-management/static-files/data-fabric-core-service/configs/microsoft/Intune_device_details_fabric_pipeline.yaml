@@ -1,0 +1,144 @@
+id: a163b434-483d-40e1-9bc6-103dbca351b1
+name: microsoft-intune-device-fabric
+type: fabric
+version: 1.0.16
+trail:
+  block: start
+  dependson: []
+  attempt:
+    - block: get_refresh_token
+      dependson: []
+      attempt:
+        - block: send_token_to_vault
+          dependson: []
+          attempt:
+            - block: list_device
+              dependson: []
+              attempt:
+                - block: fetch_windows_protection_state
+                  dependson: []
+                  attempt:
+                    - block: merge_device_data
+                      dependson: []
+                      attempt:
+                        - block: publish_to_rawOutput
+                          dependson: []
+                          attempt: []
+                            # - block: end
+                            #   dependson: []
+                            #   attempt: []
+                            #   otherwise: []
+                            #   start: false
+                            #   end: true
+                          otherwise: []
+                          start: false
+                          end: false
+                      otherwise: []
+                      start: false
+                      end: false
+                  otherwise: []
+                  start: false
+                  end: false
+              otherwise: []
+              start: false
+              end: false
+          otherwise: []
+          start: false
+          end: false
+      otherwise: []
+      start: false
+      end: false
+  otherwise:
+    - block: end
+      dependson: []
+      attempt: []
+      otherwise: []
+      start: false
+      end: true
+  start: true
+  end: false
+blocks:
+  - name: start
+    type: start
+    config: {}
+  - name: end
+    type: end
+    config: {}
+  - name: get_refresh_token
+    type: receiver
+    config:
+      type: rest
+      uri: https://login.microsoftonline.com/common/oauth2/v2.0/token
+      method: GET
+      headers: {}
+      body:
+        grant_type: refresh_token
+        client_id: $.env.client_id
+        client_secret: $.env.client_secret
+        scope: https://graph.microsoft.com/.default
+        refresh_token: $.credential.token.refreshToken
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: send_token_to_vault
+    type: sender
+    config:
+      type: vault
+      credential_type: token
+      subscriber: $.context.subscriber
+      tenant: $.context.tenant
+      userid: $.context.context.instanceid
+      facade:
+        access_token: $.block.get_refresh_token.output.response.response.access_token
+        refresh_token: $.block.get_refresh_token.output.response.response.refresh_token
+  - name: list_device
+    type: receiver
+    config:
+      type: rest
+      uri: https://graph.microsoft.com/v1.0/deviceManagement/managedDevices
+      method: GET
+      headers:
+        Authorization: Bearer $.block.get_refresh_token.output.response.response.access_token
+      body: {}
+      extract: value
+      paginationasuri: true
+      pagination: "@odata.nextLink"
+  - name: fetch_windows_protection_state
+    type: receiver
+    config:
+      type: rest
+      uri: https://graph.microsoft.com/v1.0/deviceManagement/managedDevices/$.input.using.id/windowsProtectionState
+      method: GET
+      headers:
+        Authorization: Bearer $.block.get_refresh_token.output.response.response.access_token
+      body:
+        deviceid: $.input.using.id
+      foreach: $.block.list_device.output.response.response[?(@.operatingSystem == 'Windows')]
+      pagination: null
+      paginationplacement: null
+  - name: merge_device_data
+    type: util
+    config:
+      type: merge
+      primary: $.block.list_device.output.response.response
+      secondary: $.block.fetch_windows_protection_state.output.response
+      pickfrom: response
+      sinkto: workstationprotectionstate
+      condition: "$.primary.id == $.secondary.response.id"
+  - name: publish_to_rawOutput
+    type: sender
+    config:
+      type: kafka
+      topic: rawOutput
+      facade:
+        instance_id: $.context.context.instanceid
+        name: Microsoft Azure Intune Device Fabric
+        description: Microsoft Azure Intune Device Fabric
+        type: device
+        vendor: Microsoft
+        product: Microsoft Intune
+        subProduct: /v1.0/deviceManagement/managedDevices
+        data: $.input.using
+        subscriber: $.context.subscriber
+        tenant: $.context.tenant
+      foreach: $.block.merge_device_data.output.response.response[*]

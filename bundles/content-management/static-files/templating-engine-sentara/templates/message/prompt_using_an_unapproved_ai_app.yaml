@@ -1,0 +1,33 @@
+name: Warn on using an unapproved AI app
+type: message
+channel: Browser
+content:
+  header: "Heads up!!"
+  title: |
+    Looks like you're using an unapproved AI app. Refer to your orgnaization's AI usage policy for more guidance.
+    <br />For your security and privacy, we recommend switching to an approved one.   
+    <br />Your actions matter — help keep your organization safe!
+  description: ""
+  acknowledgedButtons:
+    - id: 34cd4483-4bd3-491d-a0cc-fe04bdd24ee7
+      isPrimary: true
+      name: "App is company-approved"
+      whitelist: false
+      account: true
+    - id: 1d097e37-d90b-4917-ad7b-288bef4fc715
+      isPrimary: false
+      name: "Acknowledge warning"
+      whitelist: false
+      account: true
+    - id: d33433f6-87fa-4180-8c51-50e70727f02a
+      isPrimary: false
+      name: "Have Prior Approval"
+      whitelist: false
+      account: true
+    - id: 1fde5235-2718-4efe-8b92-8132128422c5
+      isPrimary: false
+      name: "Urgent for critical task"
+      whitelist: false
+      account: true
+rendered_content_type: application/json
+is_active: true

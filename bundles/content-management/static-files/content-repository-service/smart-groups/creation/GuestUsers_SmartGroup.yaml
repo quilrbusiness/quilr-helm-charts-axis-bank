@@ -1,0 +1,36 @@
+id: a78f144e-ba00-47a5-97d3-e1117f9ba04c
+name: Guest Users
+type: ingestion-to-graph
+version: 2.1
+schedule: 1D
+historicalrecordduration: 1D
+source: 
+  type: query
+  config: 
+    query: "MATCH(user:USER)
+            WHERE user.userType in ['Guest','guest']
+                AND user.timestamp >= $starttime
+                AND user.timestamp <= $endtime
+            RETURN collect(DISTINCT user.id) as userids,
+                user.subscriber as SUBSCRIBER,
+                user.tenant as TENANT"
+    type: "knowledgegraph"
+    limit: 
+    offset: 0
+destination: 
+  type: "api"
+  headers: 
+    Internal: "true"
+  uri: "http://quilr-grouping-service:9071/group/create"
+config: 
+  groupname: "Guest Users"
+  userids: "$userids"
+  impact: moderate
+  likelihood: low
+  groupproperties:
+    mailEnabled: false
+    Description: 'This group includes users with limited system access, typically working as contractors or vendors.'
+lambda: ""
+active: true
+createdon: 1720396800000
+updatedon: 1720396800000

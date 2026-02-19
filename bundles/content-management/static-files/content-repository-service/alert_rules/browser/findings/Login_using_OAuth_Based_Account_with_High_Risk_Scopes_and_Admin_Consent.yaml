@@ -1,0 +1,100 @@
+id: 4b0fa7d0-8818-4947-bcbf-287d973f59e6
+name: Login using OAuth Based Account with High Risk Scopes and Admin Consent 
+type: rule
+version: 2.1
+active: false
+schedule: 10m 
+historicalrecordduration: 10m
+source:
+  type: query
+  config:
+    query: "WITH date(datetime({epochSeconds:  timestamp()/1000})) AS current_date
+            MATCH (user:USER) - [has_email:HAS_EMAIL] - (email:EMAIL:PRIMARY)-[oauth_acc:OAUTH_ACCOUNT]-(account:ACCOUNT),
+                  (account:ACCOUNT)-[using_app:USING_APP]-(app:APPLICATION)-[has_grant:HAS_GRANT]-(grant:GRANT)-[has_scope:HAS_SCOPE]-(scope:SCOPE)
+            WHERE oauth_acc.timestamp >= $starttime
+                AND oauth_acc.timestamp <= $endtime
+                AND toupper(scope.severity) = 'HIGH'
+                AND tolower(grant.consentBy) = 'admin'
+            OPTIONAL MATCH (user) - [has_department:HAS_DEPARTMENT] - (department:DEPARTMENT)
+            OPTIONAL MATCH (app) - [has_app_category:HAS_APP_CATEGORY] - (app_category:APP_CATEGORY)
+            RETURN DISTINCT
+                user.id AS userId,
+                user.displayName AS userName,
+                user.mail AS userMail,
+                user.accountEnabled as userAccountEnabled,
+                department.name as userDepartment,
+                user.tenant as TENANT,               
+                user.subscriber AS SUBSCRIBER,
+                app.id_ as appId,
+                app.name AS appName,
+                app.Url AS appUrl,
+                app.domain AS appDomain,
+                COLLECT(app_category.name) AS appCategory,
+                scope.severity AS scopeSeverity,
+                COLLECT(scope.id) AS scope,
+                grant.consentBy AS consentBy,
+                user.mail+'_'+app.id_ AS userAppAccount"
+    type: knowledgegraph 
+    limit:
+    offset: 0
+destination:
+  type: stream 
+  topic: ruleEvaluator
+config:
+  expression: "def fn(message): return True if message.get('userName') else False " 
+  type: finding
+  subtype: status
+  code: Q048
+  status: open
+  sla: 1W
+  entity: userName
+  entitytype: user
+  tags:
+    - insecure_behaviour
+  sourceofalert: Quilr 
+  template: "Received an alert for the User: ${userName} on Application: ${appName}"
+  artifacts: 
+     - type: "ACCOUNT"
+       property: "id"
+       value: "$userAppAccount"
+       artifactproperties: 
+        artifactValue: $userName
+        displayInUI: enabled
+        artifactKey: "Account"
+
+     - type: "APPLICATION" 
+       context: "global" 
+       property: id_
+       value: $appId
+       artifactproperties: 
+        artifactValue: $appName
+        displayInUI: enabled
+        artifactKey: "Application"
+        
+     - type: "SCOPE"
+       property: "id"
+       value: "$scope"
+       artifactproperties: 
+        artifactValue: $scope
+        displayInUI: enabled
+        artifactKey: "Scope Used"
+
+  properties:
+    userId: $userId
+    userName: $userName
+    userMail: $userMail
+    userAccountEnabled: $userAccountEnabled
+    userDepartment: $userDepartment
+    TENANT: $TENANT
+    SUBSCRIBER: $SUBSCRIBER
+    appName: $appName
+    appUrl: $appUrl
+    appId: $appId
+    appCategory: $appCategory 
+    scopeSeverity: $scopeSeverity
+    scope: $scope
+    consentBy: $consentBy
+    appDomain: $appDomain
+lambda: ""
+createdon: 1720396800000
+updatedon: 1720396800000

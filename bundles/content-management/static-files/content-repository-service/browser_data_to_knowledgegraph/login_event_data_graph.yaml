@@ -1,0 +1,354 @@
+id: f1a89d1f-7393-46e3-87f3-7c04e0b32ef5
+name: Browser Extension Login Event Data To Knowledge Graph
+type: ingestion-to-graph
+version: 1.1.27
+schedule: 2m
+historicalrecordduration: 2m
+source:
+  type: query
+  config:
+    query: "SELECT RECORD_METADATA['CreateTime']::bigint AS datetime, USER_PRINCIPALNAME, USER_HOSTNAME, USER_IPADDRESS, 
+                  USER_BROWSER_NAME, USER_BROWSER_VERSION, QUILR_MATCHED_APP_ID, APPLICATION_LOGINURL, APPLICATION_ROOT_DOMAIN, 
+                  APPLICATION_DOMAIN, APPLICATION_DISPLAYNAME, IS_NEWLY_INTRODUCED_APP, USER_AI_APP_ACCOUNTS_EXIST,
+                  APPLICATION_AUTHENTICATION_TYPE AS AUTHTYPE, USER_BROWSER_EVENTPROPERTIES, USER_BROWSER_EVENT_DATA,
+                  QUILR_SUBSCRIBERID, QUILR_TENANTID, USER_EMAIL_LABEL, USER_BROWSER_RELATED_EVENT, EVENT_TIME, USER_BROWSER_EVENTNAME
+            FROM KAFKA_CONNECT.SNOWDATA_SCHEMA.TRANSFORMEDDATA 
+            WHERE QUILR_INTEGRATION_TYPE = 'extensionBrowser'
+                  AND USER_BROWSER_EVENTNAME IN ('login','copy','paste','visit')
+                  AND RECORD_METADATA['CreateTime']::bigint >= $starttime 
+                  AND RECORD_METADATA['CreateTime']::bigint <= $endtime"
+    type: datalake
+    limit:
+    offset: 0
+destination:
+  type: stream
+  topic: knowledgeGraph
+config:
+  nodes:
+    user:
+      type: USER
+      expression: 'EXISTS(($alias)-[:HAS_PERSONA]->(:PERSONA {emailaddress: $USER_PRINCIPALNAME})) OR EXISTS(($alias)-[:HAS_PERSONA]->(:PERSONA {associatedemail: $USER_PRINCIPALNAME}))'
+      fallback:
+        property: mail
+        attribute: USER_PRINCIPALNAME
+    same_user:
+      type: USER
+      ignore_case: true
+      when: ALT_COMPANY_EMAIL_USED == true
+      merge:
+        property: mail
+        attribute: CREDENTIALS_EMAIL
+      immutableproperties:
+        id: SAME_USER_ID
+    email:
+      id: USER_PRINCIPALNAME
+      type: EMAIL
+      ignore_case: true
+      # when CREDENTIAL_SHARED_STATUS == false, credentialsemail NODE will be used always
+      when: CREDENTIAL_SHARED_STATUS == true
+      tags:
+        - $USER_EMAIL_LABEL
+    credentialsemail:
+      id: CREDENTIALS_EMAIL
+      type: EMAIL
+      ignore_case: true
+      tags:
+        - $USER_EMAIL_LABEL
+    account:
+      id: ACCOUNT_APPLICATION_ID
+      type: ACCOUNT
+      ignore_case: true
+#      counters:
+#        - property: copy_event_occurrences
+#          expression: USER_BROWSER_EVENTNAME == 'copy'
+#        - property: paste_event_occurrences
+#          expression: USER_BROWSER_EVENTNAME == 'paste'
+#        - property: site_visit_event_occurrences
+#          expression: USER_BROWSER_EVENTNAME == 'visit'
+      properties:
+        email: ACCOUNT_EMAIL
+        appId: QUILR_MATCHED_APP_ID
+      immutableproperties:
+        creationTime: CURRENT_TIMESTAMP
+    browserevent:
+       id: BROWSER_EVENT_ID
+       type: BROWSER_EVENT
+       ignore_case: true
+       counters:
+         - property: occurrences
+           expression: 1 == 1
+       properties:
+         context_id: $.USER_BROWSER_EVENTPROPERTIES.context_id
+         event_name: USER_BROWSER_EVENTNAME
+         event_data: USER_BROWSER_EVENT_DATA
+       immutableproperties:
+         creationTime: CURRENT_TIMESTAMP
+       when: USER_BROWSER_EVENTNAME != 'login'
+    sharedaccount:
+      id: SHARED_ACCOUNT_APPLICATION_ID
+      type: ACCOUNT
+      ignore_case: true
+      properties:
+        email: CREDENTIALS_EMAIL
+        appId: QUILR_MATCHED_APP_ID
+      immutableproperties:
+        creationTime: CURRENT_TIMESTAMP
+    credfingerprint:
+      id: $.USER_BROWSER_EVENTPROPERTIES.cred_fingerprint_id
+      type: CRED_FINGERPRINT
+      properties:
+        password_strength: $.USER_BROWSER_EVENTPROPERTIES.password_strength
+        compromised_password_status: $.USER_BROWSER_EVENTPROPERTIES.compromised_password_status
+        compromised_password_source: $.USER_BROWSER_EVENTPROPERTIES.compromised_password_source
+    browser:
+      context: global
+      id: USER_BROWSER_NAME
+      type: BROWSER
+#      when: USER_EMAIL_LABEL == 'PRIMARY'
+    application:
+      type: APPLICATION
+      merge:
+        property: id_
+        attribute: QUILR_MATCHED_APP_ID
+      context: global
+      immutableproperties:
+        globalSyncAllowed: globalSyncAllowed
+        domain: APPLICATION_DOMAIN
+        name: APPLICATION_DISPLAYNAME
+        aliases: ALIASES
+        newApp: newApp
+#      when: USER_EMAIL_LABEL == 'PRIMARY'
+  edges:
+    - destination: credentialsemail
+      direction: out
+      relation: HAS_EMAIL
+      source: user
+      when: CREDENTIAL_SHARED_STATUS == false && ALT_COMPANY_EMAIL_USED == false
+    - destination: credentialsemail
+      direction: out
+      relation: HAS_EMAIL
+      source: same_user
+    - destination: same_user
+      direction: out
+      relation: SAME_USER
+      source: user
+    - destination: browser
+      direction: out
+      relation: HAS_BROWSER
+      source: account
+      properties:
+        machineName: USER_HOSTNAME
+        client_ip: USER_IPADDRESS
+        version: USER_BROWSER_VERSION
+    - destination: browserevent
+      direction: out
+      relation: INITIATED
+      source: account
+      properties:
+        machineName: USER_HOSTNAME
+        client_ip: USER_IPADDRESS
+        version: USER_BROWSER_VERSION
+    - destination: account
+      direction: out
+      relation: $AUTHTYPE_RELATION_NAME
+      source: email
+      when: USER_BROWSER_RELATED_EVENT == false && AUTHTYPE_RELATION_NAME != 'GUEST_ACCOUNT'
+      immutableproperties:
+        creationTime: EVENT_TIME
+      properties:
+        signup: $.USER_BROWSER_EVENTPROPERTIES.signup
+        context_id: $.USER_BROWSER_EVENTPROPERTIES.context_id
+        be_mfa_enabled: $.USER_BROWSER_EVENTPROPERTIES.be_mfa_enabled
+        using_password_manager_status: $.USER_BROWSER_EVENTPROPERTIES.using_password_manager_status
+        last_access_time: EVENT_TIME
+    - destination: account
+      direction: out
+      relation: $AUTHTYPE_RELATION_NAME
+      source: email
+      when: USER_BROWSER_RELATED_EVENT == false && AUTHTYPE_RELATION_NAME == 'GUEST_ACCOUNT'
+      immutableproperties:
+        creationTime: EVENT_TIME
+        associated_event: USER_BROWSER_EVENTNAME
+      properties:
+        context_id: $.USER_BROWSER_EVENTPROPERTIES.context_id
+        last_access_time: EVENT_TIME
+    - destination: account
+      direction: out
+      relation: $AUTHTYPE_RELATION_NAME
+      source: email
+      when: USER_BROWSER_RELATED_EVENT == true
+      immutableproperties:
+        creationTime: EVENT_TIME
+        last_access_time: EVENT_TIME
+      properties:
+        signup: $.USER_BROWSER_EVENTPROPERTIES.signup
+        context_id: $.USER_BROWSER_EVENTPROPERTIES.context_id
+        be_mfa_enabled: $.USER_BROWSER_EVENTPROPERTIES.be_mfa_enabled
+        using_password_manager_status: $.USER_BROWSER_EVENTPROPERTIES.using_password_manager_status
+    - destination: account
+      direction: out
+      relation: $AUTHTYPE_RELATION_NAME
+      source: credentialsemail
+      when: CREDENTIAL_SHARED_STATUS == false && USER_BROWSER_RELATED_EVENT == false && AUTHTYPE_RELATION_NAME != 'GUEST_ACCOUNT'
+      immutableproperties:
+        creationTime: EVENT_TIME
+      properties:
+        signup: $.USER_BROWSER_EVENTPROPERTIES.signup
+        context_id: $.USER_BROWSER_EVENTPROPERTIES.context_id
+        be_mfa_enabled: $.USER_BROWSER_EVENTPROPERTIES.be_mfa_enabled
+        using_password_manager_status: $.USER_BROWSER_EVENTPROPERTIES.using_password_manager_status
+        last_access_time: EVENT_TIME
+    - destination: account
+      direction: out
+      relation: $AUTHTYPE_RELATION_NAME
+      source: credentialsemail
+      when: CREDENTIAL_SHARED_STATUS == false && USER_BROWSER_RELATED_EVENT == false && AUTHTYPE_RELATION_NAME == 'GUEST_ACCOUNT'
+      immutableproperties:
+        creationTime: EVENT_TIME
+        associated_event: USER_BROWSER_EVENTNAME
+      properties:
+        context_id: $.USER_BROWSER_EVENTPROPERTIES.context_id
+        last_access_time: EVENT_TIME
+    - destination: account
+      direction: out
+      relation: $AUTHTYPE_RELATION_NAME
+      source: credentialsemail
+      when: CREDENTIAL_SHARED_STATUS == false && USER_BROWSER_RELATED_EVENT == true
+      immutableproperties:
+        creationTime: EVENT_TIME
+        last_access_time: EVENT_TIME
+      properties:
+        signup: $.USER_BROWSER_EVENTPROPERTIES.signup
+        context_id: $.USER_BROWSER_EVENTPROPERTIES.context_id
+        be_mfa_enabled: $.USER_BROWSER_EVENTPROPERTIES.be_mfa_enabled
+        using_password_manager_status: $.USER_BROWSER_EVENTPROPERTIES.using_password_manager_status
+    - destination: sharedaccount
+      direction: out
+      relation: $AUTHTYPE_RELATION_NAME
+      source: credentialsemail
+      properties:
+        context_id: $.USER_BROWSER_EVENTPROPERTIES.context_id
+        last_access_time: EVENT_TIME
+    - destination: credfingerprint
+      direction: out
+      relation: HAS_CRED_FINGERPRINT
+      source: account
+      timetravel: false
+      deleteexistingedge: true
+      properties:
+        last_access_time: EVENT_TIME
+        context_id: $.USER_BROWSER_EVENTPROPERTIES.context_id
+        credential_reused_apps: $.USER_BROWSER_EVENTPROPERTIES.credential_reused_apps
+        credential_reused_emails: $.USER_BROWSER_EVENTPROPERTIES.credential_reused_emails
+    - destination: application
+      direction: out
+      relation: USING_APP
+      source: account
+      properties:
+        last_access_time: EVENT_TIME
+      immutableproperties:
+        creationTime: EVENT_TIME
+        is_newly_introduced: IS_NEWLY_INTRODUCED_APP
+        has_other_ai_app_accounts: USER_AI_APP_ACCOUNTS_EXIST
+    - destination: application
+      direction: out
+      relation: USING_APP
+      source: sharedaccount
+    - destination: sharedaccount
+      direction: out
+      relation: CREDENTIAL_SHARED
+      source: account
+      timetravel: false
+      onlyupdateexisting: $ONLY_UPDATED_EXISTING_CREDENTIAL_SHARED
+      when: CREDENTIAL_SHARED_STATUS == true && ACCOUNT_APPLICATION_ID != SHARED_ACCOUNT_APPLICATION_ID
+      properties:
+        last_access_time: EVENT_TIME
+        context_id: $.USER_BROWSER_EVENTPROPERTIES.context_id
+lambda: |
+  def fn(payload):
+      for item in payload:
+          import time
+          import uuid
+          item["CURRENT_TIMESTAMP"] = int(time.time()) * 1000
+
+          item["ALIASES"] = [item.get("APPLICATION_ROOT_DOMAIN")]
+  
+          if item.get("APPLICATION_DISPLAYNAME") and item.get("APPLICATION_DISPLAYNAME") not in item["ALIASES"]:
+              item["ALIASES"] += [item.get("APPLICATION_DISPLAYNAME")]
+
+          user_mail = item.get("USER_PRINCIPALNAME")
+          item["ALT_COMPANY_EMAIL_USED"] = False
+          item["ACCOUNT_EMAIL"] = item.get("USER_PRINCIPALNAME")
+          org_domain = (user_mail.split("@")[1]).split(".")[0]
+          app_id = item.get("QUILR_MATCHED_APP_ID")
+          user_email_label = item.get("USER_EMAIL_LABEL")
+          if not user_email_label:
+              item["USER_EMAIL_LABEL"] = "Not Set"
+          if user_mail and app_id:
+              item["ACCOUNT_APPLICATION_ID"] = user_mail + "_" + app_id
+  
+          if item.get("AUTHTYPE"):
+              item["AUTHTYPE_RELATION_NAME"] = item.get("AUTHTYPE").upper() + "_" + "ACCOUNT"
+
+          item["globalSyncAllowed"] = True
+          item["newApp"] = True
+          if item.get("USER_BROWSER_EVENTPROPERTIES"):
+              properties = item["USER_BROWSER_EVENTPROPERTIES"]
+              formatted_properties = {}
+
+              for key, value in properties.items():
+                  if isinstance(value, dict):
+                      for sub_key, sub_value in value.items():
+                          new_key = f"{key}_{sub_key}"
+                          formatted_properties[new_key] = sub_value
+                  else:
+                      formatted_properties[key] = value
+  
+              credentials_email = formatted_properties.get("credentials_email")
+              item["CREDENTIALS_EMAIL"] = credentials_email
+              item["CREDENTIAL_SHARED_STATUS"] = formatted_properties.get("credential_shared_status") != None and formatted_properties.get("credential_shared_status")
+  
+              if not item["CREDENTIAL_SHARED_STATUS"]:
+                  if not credentials_email:
+                      item["CREDENTIALS_EMAIL"] = item.get("USER_PRINCIPALNAME")
+  
+              if credentials_email and user_mail.lower() != credentials_email.lower() and formatted_properties.get("credential_shared_status") != True:
+                  item["ACCOUNT_EMAIL"] = credentials_email
+  
+                  if '@'+org_domain.lower() in credentials_email.lower():
+                      item["USER_EMAIL_LABEL"] = "PRIMARY"
+                  else:
+                      item["USER_EMAIL_LABEL"] = "SECONDARY"
+                  if app_id:
+                      item["ACCOUNT_APPLICATION_ID"] = credentials_email + "_" + app_id
+                  credentials_email = None
+
+              if credentials_email and app_id and user_email_label == "PRIMARY" and formatted_properties.get("credential_shared_status") == True:
+                  item["SHARED_ACCOUNT_APPLICATION_ID"] = credentials_email + "_" + app_id
+                  item["ONLY_UPDATED_EXISTING_CREDENTIAL_SHARED"] = False
+              
+              if not item["CREDENTIAL_SHARED_STATUS"]:
+                  item["ONLY_UPDATED_EXISTING_CREDENTIAL_SHARED"] = True
+                  
+                  if item["CREDENTIALS_EMAIL"].lower() != user_mail.lower() and '@'+org_domain.lower() in item["CREDENTIALS_EMAIL"].lower():
+                      item["ALT_COMPANY_EMAIL_USED"] = True
+                      item["SAME_USER_ID"] = str(uuid.uuid4())
+                      item["USER_EMAIL_LABEL"] = "PRIMARY"
+                  
+              if formatted_properties.get("credential_reused_details"):
+                  formatted_properties["credential_reused_apps"] = []
+                  formatted_properties["credential_reused_emails"] = []
+  
+                  for detail in formatted_properties["credential_reused_details"]:
+                      if detail.get("domain") not in formatted_properties["credential_reused_apps"]:
+                          _app_domain = executor_instance.extract_domain(detail.get("domain"))
+                          formatted_properties["credential_reused_apps"].append(_app_domain)
+                      if detail.get("email") not in formatted_properties["credential_reused_emails"]:
+                          formatted_properties["credential_reused_emails"].append(detail.get("email"))
+                  del formatted_properties["credential_reused_details"]
+              item["USER_BROWSER_EVENTPROPERTIES"] = formatted_properties
+              item["BROWSER_EVENT_ID"] = item["ACCOUNT_APPLICATION_ID"] + "_" + item["USER_BROWSER_EVENTNAME"]
+
+      return payload
+createdon: 1707315500
+updatedon: 1707315500

@@ -1,0 +1,20 @@
+id: e9dcb0f5-abce-4b7f-adeb-ed7645578f95
+version: 4.7
+code: ACT_30
+name: Prompt user to enable MFA for a non critical app
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: "templatized"
+    message_template: "prompt-user-to-enable-mfa-on-a-non-critical-app"
+    execution_type: "tool"
+    execution_module: "send_templated_user_message"
+    browser_action: Ask
+tags:
+  - UC005
+behavior:
+  - BID_06
+createdon: 1710504494000
+updatedon: 1710504494000

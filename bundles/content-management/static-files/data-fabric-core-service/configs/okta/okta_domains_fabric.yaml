@@ -1,0 +1,66 @@
+id: 8fd92402-e954-4ccb-aede-7b7cec92d804
+name: okta-domains-data
+type: fabric
+version: 1.0.0
+trail:
+  block: start
+  attempt:
+    - block: list_okta_domains
+      attempt:
+        - block: publish_to_rawOutput
+          attempt:
+            - block: end
+              attempt: []
+              otherwise: []
+              start: false
+              end: true
+          otherwise: []
+          start: false
+          end: false
+      otherwise: []
+      start: false
+      end: false
+  otherwise:
+    - block: end
+      attempt: []
+      otherwise: []
+      start: false
+      end: true
+  start: true
+  end: false
+blocks:
+  - name: start
+    type: start
+    config: {}
+  - name: end
+    type: end
+    config: {}
+  - name: list_okta_domains
+    type: receiver
+    config:
+      type: rest
+      uri: $.credential.config.url/api/v1/domains
+      method: GET
+      headers:
+        Authorization: SSWS $.credential.config.key
+      body: {}
+      extract: domains
+      paginationtype: headers
+      paginationheaderkey: link
+      regex: "<([^>]+)>\\; rel=\"next\""
+  - name: publish_to_rawOutput
+    type: sender
+    config:
+      type: kafka
+      foreach: $.block.list_okta_domains.output.response.response[*]
+      topic: rawOutput
+      facade:
+        name: Okta Domains Connector
+        description: Okta Domains Data Fetch
+        type: domains
+        vendor: Okta
+        product: Okta Identity Cloud
+        subProduct: /v1/domains
+        data: $.input.using
+        subscriber: $.context.subscriber
+        tenant: $.context.tenant

@@ -1,0 +1,17 @@
+id: 936b7138-019d-46db-adf1-68b0ff622111
+version: 3.0
+code: Q057
+name: Using Weak MFA on non-business critical App
+description: 
+type: rule
+view: identity_protection
+impact: high
+likelihood: high
+createdon: 1720094794000
+updatedon: 1720094794000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_30
+examples: []
+recommendations: []

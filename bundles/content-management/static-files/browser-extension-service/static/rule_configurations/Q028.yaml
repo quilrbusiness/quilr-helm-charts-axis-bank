@@ -1,0 +1,22 @@
+datatype: DICT
+defaultValue:
+  message:
+    "Looks like this is a different employee's acccount. Please avoid using\
+    \ it and if you have to, please provide a business justification. "
+  mode: Justify
+entityDescription: |-
+  Accessing an account using another user's non-admin credentials.
+entityId: Q028
+entityMeta:
+  behavior: Credential Sharing
+  category: ISPM
+  posture: Password Hygiene
+  check_id:
+    form_check_ids:
+      - CH-FORM-SHARED-CREDENTIAL
+      - CH-FORM-LOGIN
+entityName: |-
+  Login with the Non Admin Credentials of Another User
+entityType: rule
+isDisabled: false
+isModifiable: true

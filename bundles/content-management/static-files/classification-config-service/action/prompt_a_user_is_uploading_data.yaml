@@ -1,0 +1,21 @@
+code: ACT_229
+createdon: 1710504494000
+id: deffc001-fcda-4747-9e9b-cb9655bc4349
+version: 1.2
+actiontype: ACTP_02
+behavior:
+- BID_203
+updatedon: 1710504494000
+name: Prompt User about Uploading Data
+type: action
+tags:
+- UC033
+config:
+  meta:
+    execution_type: tool
+    browser_action: Ask
+    engagement_type: templatized
+    execution_module: send_templated_user_message
+    message_template: prompt-user-about-uploading-data
+    channel: 
+

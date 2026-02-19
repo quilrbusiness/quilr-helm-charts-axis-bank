@@ -1,0 +1,36 @@
+id: 26e64ceb-e39b-49c2-99a9-69da230460ab
+name: Remote Workers
+type: ingestion-to-graph
+version: 2.1
+schedule: 1D
+historicalrecordduration: 1D
+source: 
+  type: query
+  config: 
+    query: "MATCH(user:USER)
+            WHERE tolower(user.workFrom) = 'remote'
+                AND user.timestamp >= $starttime
+                AND user.timestamp <= $endtime
+            RETURN collect(DISTINCT user.id) as userids,
+                user.subscriber as SUBSCRIBER,
+                user.tenant as TENANT"
+    type: "knowledgegraph"
+    limit: 
+    offset: 0
+destination: 
+  type: "api"
+  headers: 
+    Internal: "true"
+  uri: "http://quilr-grouping-service:9071/group/create"
+config: 
+  groupname: "Remote Workers"
+  userids: "$userids"
+  impact: moderate
+  likelihood: moderate
+  groupproperties:
+    mailEnabled: false
+    Description: 'This group consists of users who work remotely from locations outside the office.'
+lambda: ""
+active: true
+createdon: 1720396800000
+updatedon: 1720396800000

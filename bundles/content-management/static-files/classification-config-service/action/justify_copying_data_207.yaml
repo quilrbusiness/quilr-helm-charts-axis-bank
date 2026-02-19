@@ -1,0 +1,21 @@
+id: 59dc8c2e-962a-4003-8944-15d22c7bb925
+version: 1.1
+code: ACT_207
+name: Justification for copying data
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: templatized
+    message_template: justify-copying-data
+    execution_type: tool
+    execution_module: send_templated_user_message
+    browser_action: Justify
+tags:
+  - UC025
+  - UC027
+behavior:
+  - BID_200
+createdon: 1744387030254
+updatedon: 1744387030254

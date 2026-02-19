@@ -1,0 +1,12 @@
+name: Block pasting business data
+type: message
+channel: Browser
+content:
+  header: "Business Data Pasted"
+  title: |
+    Looks like you pasted business critical information. Please avoid it and if you have to, please provide a business justification.
+    <br />
+    <br /> Pasting business critical information is not a recommended security best practice.
+  description: "*Specify business justification?*"
+rendered_content_type: application/json
+is_active: true

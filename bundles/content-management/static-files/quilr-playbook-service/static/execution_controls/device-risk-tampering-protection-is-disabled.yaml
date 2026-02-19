@@ -1,0 +1,29 @@
+version: 1.0.0
+criticality: 3
+mode: monitor
+control_name: Enabling tamper protection for a device
+control_description: Detects when tamper protection is disabled on a device, which may indicate an attempt to bypass security controls.
+posture:
+  id: PID_05
+behavior:
+  id: BID_102
+use_case:
+  id: UC108
+trigger_conditions:
+- operator: 
+  filter_condition:
+    attribute_type: ATTR_DEV_001
+    attribute_id: DEV-012
+    extension_property: device.tamperProtectionEnabled
+    condition: is_equal_to
+    value: "False"
+  filter_group: 
+actions:
+- type:
+    id: ACTP_01
+  name:
+    id: ACT_102
+  description: 
+  meta:
+    prompt_frequency: 
+    

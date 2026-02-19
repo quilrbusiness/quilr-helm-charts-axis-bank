@@ -1,0 +1,22 @@
+id: 455df5c6-429f-4067-bd9d-c5827949daa7
+vendor: Microsoft
+product: Graph API
+slug: microsoft_team
+description: Execute Integration Flow
+redirect_uri: https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=$.env.ms_client_id&response_type=code&prompt=select_account&response_mode=query&redirect_uri=$.env.quilr_bff_url/auth/auth/integration-admin-landing/microsoft
+tests: []
+inputSchema:
+  - id: state
+    type: text
+    title: State
+    description: Random state which can be used to prevent CSRF attacks
+    location: query
+    required: false
+    url_substitution_rank: 1
+  - id: scope
+    type: text
+    title: Permission Scopes
+    description: Permissions to request from the user
+    location: query
+    required: false
+    url_substitution_rank: 2

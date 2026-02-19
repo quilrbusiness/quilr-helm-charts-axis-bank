@@ -1,0 +1,39 @@
+id: 61a945c6-fffe-474b-9a51-05e088318e3c
+name: Scope Data To Knowledgegraph
+type: ingestion-to-graph
+version: 1.0.1
+schedule: 5m
+context: global
+historicalrecordduration: 3D
+source: 
+  type: query
+  config: 
+    query: "SELECT SCOPE,'global' AS CONTEXT,SCOPE_SERVICE,SCOPE_PERMISSIONTYPE,SCOPE_COVERAGE,SCOPE_SEVERITY,SCOPE_SOURCE,
+            SCOPE_APPLICATION_ADMINREQUIRED,SCOPE_DELEGATED_ADMINREQUIRED,SCOPE_DESCRIPTION,SCOPE_ID FROM 
+            KAFKA_CONNECT.SNOWDATA_SCHEMA.TRANSFORMEDDATA WHERE QUILR_INTEGRATION_TYPE = 'scope'
+            AND RECORD_METADATA['CreateTime']::bigint > $starttime AND RECORD_METADATA['CreateTime']::bigint < $endtime"
+    type: datalake
+    limit: 
+    offset: 0
+destination: 
+  type: stream
+  topic: knowledgeGraph
+config: 
+  nodes:
+    scope:
+      id: SCOPE
+      type: SCOPE
+      properties:
+        scopeCategory: SCOPE_SERVICE
+        scopePermissionType: SCOPE_PERMISSIONTYPE
+        scopeCoverage: SCOPE_COVERAGE
+        severity: SCOPE_SEVERITY
+        scopeSource: SCOPE_SOURCE
+        scopeApplicationAdminRequired: SCOPE_APPLICATION_ADMINREQUIRED
+        scopeDelegatedAdminRequired: SCOPE_DELEGATED_ADMINREQUIRED
+        scopeDescription: SCOPE_DESCRIPTION
+        scopeID: SCOPE_ID
+  edges: []
+lambda:
+createdon: 1721217856
+updatedon: 1721217856

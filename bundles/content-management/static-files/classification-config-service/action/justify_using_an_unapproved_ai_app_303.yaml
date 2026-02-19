@@ -1,0 +1,21 @@
+id: 051089a8-ebc9-4310-9245-6c3afbb78452
+version: 1.3
+code: ACT_303
+name: Justify using an unapproved AI app
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: templatized
+    message_template: justify-using-an-unapproved-ai-app
+    execution_type: tool
+    execution_module: send_templated_user_message
+    browser_action: Justify
+tags:
+  - UC303
+  - UC304
+behavior:
+  - BID_04
+createdon: 1710504494000
+updatedon: 1710504494000

@@ -1,0 +1,31 @@
+id: 329dd217-e563-4828-8f29-8be2d2d35bc8
+name: Remove users From Executives Group who do not satisfy the condition.
+type: remove-user-from-smart-group
+version: 1.0
+schedule: 1D
+historicalrecordduration: 1D
+source: 
+  type: query
+  config: 
+    query: "MATCH(user:USER)-[belongs_to:BELONGS_TO]-(group:GROUP{displayName: 'Executives'}),
+                (user:USER)-[]-(department:DEPARTMENT)
+            WHERE NOT department.name IN  ['Executive Team','Executive','Executives']
+            RETURN collect(DISTINCT user.id) as userids,
+                group.displayName as groupname,
+                user.subscriber as SUBSCRIBER,
+                user.tenant as TENANT"
+    type: "knowledgegraph"
+    limit: 
+    offset: 0
+destination: 
+  type: "api"
+  headers: 
+    Internal: "true"
+  uri: "http://quilr-grouping-service:9071/group/remove-users"
+config: 
+  groupname: "Executives"
+  userids: "$userids"
+lambda: ""
+active: false
+createdon: 1725270383000
+updatedon: 1725270383000

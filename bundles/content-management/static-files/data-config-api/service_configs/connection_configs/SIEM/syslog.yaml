@@ -1,0 +1,28 @@
+id: 54f35d70-f568-4ca2-9005-236bdd41917f
+vendor: SIEM
+product: syslog
+slug: syslog_config
+description: set the parameters for syslog server.
+tests: []
+inputSchema:
+  - id: server
+    type: text
+    title: Syslog Server IP / Domain
+    description: Provide Syslog server IP address or Domain
+    required: true
+    obscure: no
+  - id: port
+    type: integer
+    title: Syslog Server Port
+    description: Provide Syslog Server Port
+    required: true
+    obscure: no
+  - id: protocol
+    type: dropdown
+    title: protocol
+    description: Choose the syslog protocol
+    value:
+      - "TCP"
+      - "UDP"
+    required: true
+    obscure: no

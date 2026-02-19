@@ -1,0 +1,18 @@
+datatype: DICT
+defaultValue:
+  message: "You are an admin, please enable MFA right away. Only using passwords is the easiest way for someone to get into your account."
+  mode: Ask
+entityDescription: ''
+entityId: Q053
+entityMeta:
+  behavior: No MFA
+  category: ISPM
+  posture: MFA Usage
+  check_id:
+    form_check_ids:
+      - CH-MFA
+      - CH-FORM-ADMIN
+entityName: Not using MFA on admin account
+entityType: rule
+isDisabled: false
+isModifiable: true

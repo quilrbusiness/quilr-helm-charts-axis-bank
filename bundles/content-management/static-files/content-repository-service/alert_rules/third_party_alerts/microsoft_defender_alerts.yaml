@@ -1,0 +1,44 @@
+id: 1cc7ad4a-b3f9-456b-b5a1-5735d1d32d47
+name: Create Fidings/Issues from Microsoft Defender Party Alerts
+type: rule
+version: 1.0.0
+schedule: 10m 
+historicalrecordduration: 10m
+active: false
+source: 
+  type: query 
+  config:
+    query: "SELECT RECORD_METADATA['CreateTime']::bigint AS datetime, ALERT_NAME, RULE_CODE, ALERT_SOURCE,
+                  ALERT_PROPERTIES, ALERT_ARTIFACTS, ALERT_USERPRINCIPALNAME, ALERT_SEVERITY,
+                  QUILR_SUBSCRIBERID AS SUBSCRIBER, QUILR_TENANTID AS TENANT
+            FROM KAFKA_CONNECT.SNOWDATA_SCHEMA.TRANSFORMEDDATA
+            WHERE ALERT_NAME IS NOT NULL
+                AND RULE_CODE IS NOT NULL
+                AND ALERT_ARTIFACTS IS NOT NULL
+                AND ALERT_PROPERTIES IS NOT NULL
+                AND QUILR_INTEGRATION_TYPE = 'alerts'
+                AND QUILR_INTEGRATION_VENDOR_NAME = 'Microsoft'
+                AND RECORD_METADATA['CreateTime']::bigint > $starttime
+                AND RECORD_METADATA['CreateTime']::bigint < $endtime"
+    type: datalake
+    limit:
+    offset: 0
+destination:
+  type: stream
+  topic: ruleEvaluator
+config:
+  expression: "def fn(message): return True"
+  type: finding
+  subtype: event
+  code: $RULE_CODE
+  sla: 3D
+  entity: $ALERT_USERPRINCIPALNAME
+  entitytype: user
+  tags:
+  sourceofalert: $ALERT_SOURCE
+  template: ${ALERT_NAME}
+  artifacts:  $ALERT_ARTIFACTS
+  properties: $ALERT_PROPERTIES
+lambda: ""
+createdon: 1709547181
+updatedon: 1709547181

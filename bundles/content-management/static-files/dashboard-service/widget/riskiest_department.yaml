@@ -1,0 +1,32 @@
+widget_id: 790774aa-172d-4efc-a214-6aabe2fb69d2
+template_id: RiskiestDepartments
+active: true
+title: Riskiest Departments
+components:
+  - name: Riskiest Departments
+    type: table
+    data_source_type: knowledgegraph
+    lambda: |
+      def fn(client):
+        data_result = client.fetch_data(
+            query="MATCH (user:USER)-[r:HAS_DEPARTMENT]-(dep:DEPARTMENT)"
+                  " WHERE dep.score IS NOT NULL AND user.subscriber = $subscriber AND user.tenant = $tenant"
+                  " WITH user,dep"
+                  " MATCH (user)-[:HAS_EMAIL]-(e:EMAIL:PRIMARY)"
+                  " MATCH (e)-[:CREDSBASED_ACCOUNT]->(acc:ACCOUNT)"
+                  " RETURN dep.name AS department,"
+                  " count(distinct acc.id) as totalUsers,"
+                  " toInteger(dep.score) as riskScore"
+        )
+        if data_result and isinstance(data_result, list) and data_result[0]:
+            total_record_count = 1
+            formatted_data = {"data": data_result,"total_record_count":total_record_count}
+            return formatted_data
+        else:
+            # Handle case where data_result is empty or doesn't contain expected structure
+            formatted_data = {
+                "data": [],
+                "total_record_count": 0
+            }
+            return formatted_data
+version: 1.0.10

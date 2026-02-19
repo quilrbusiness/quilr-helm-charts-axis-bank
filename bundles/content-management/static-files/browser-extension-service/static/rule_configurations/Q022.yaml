@@ -1,0 +1,21 @@
+datatype: DICT
+defaultValue:
+  message: "Cannot allow you to reuse a password from critical App(s) - {Appname}. Please use a different password."
+  mode: Block
+entityDescription: |-
+  A new account was created with reused password on an application that does handle sensitive data or is critical to business operations.
+entityId: Q022
+entityMeta:
+  behavior: Password Reuse
+  category: ISPM
+  posture: Password Hygiene
+  check_id:
+    form_check_ids:
+      - CH-FORM-SIGNUP
+      - CH-FORM-REUSED-PASSWORD
+      - CH-APP-CRITICAL
+entityName: |-
+  New Account created with Reused Password on Critical Apps
+entityType: rule
+isDisabled: false
+isModifiable: true

@@ -1,0 +1,22 @@
+name: prompt user to enable mfa on a critical app
+type: message
+channel: Browser
+content:
+  header: "Warning: MFA Not Enabled"
+  title: |
+    This app is business-critical. Please activate multi-factor authentication (MFA) now for extra security.
+    <br /> MFA keeps your account safe from unauthorized access!
+    <br />
+    <br />Your actions matter — help keep your organization safe!
+  description: "*Specify business justification?*"
+  acknowledgedButtons:
+    - id: 72b2b270b-32dc-4d84-a3bb-7f3b829c1f8b
+      isPrimary: true
+      name: "I'm using MFA"
+      whitelist: true
+    - id: d0fb4db8-d0c2-4492-ae96-68d95a006e7d
+      isPrimary: false
+      name: "App doesn't support MFA"
+      whitelist: true
+rendered_content_type: application/json
+is_active: true

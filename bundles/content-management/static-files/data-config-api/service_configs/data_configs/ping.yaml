@@ -1,0 +1,31 @@
+id: d78c567d-884c-4268-a16b-9fe11881b092
+name: Ping Identity
+description: Integrate Ping Identity with Quilr to enhance visibility into your organization's identity and access management security posture, ensuring comprehensive protection and streamlined authentication workflows.
+connection_config_id: 54e94126-0573-4dab-a009-b76f259162c3
+icon_url: https://staticcontent1.blob.core.windows.net/static-images-company-logos/ping_identity.png
+login_enabled: false
+version: 2025.05.1
+updated_at: 1726462800000
+parent_org:
+  name: Ping Identity
+  description: Simplify secure access and identity management with Ping Identity, enabling seamless authentication, enhanced security measures, and streamlined workflows for user identification and authorization management.
+  icon_url: https://staticcontent1.blob.core.windows.net/static-images-company-logos/ping_identity.png
+category: Identity
+metadata:
+  type: oauth_integration
+  product: PingFederate
+  subProduct: /v1.0
+  vendor: Ping Identity
+internal:
+  content_ids:
+    env_var: ""
+    default_value: "c83e74a1-5d92-48fe-b731-9c2e8af46d15"
+inputSchema:
+  - id: name
+    type: string
+    label: Instance Name
+    description: A custom name given by the user to identify the instance.
+    options: []
+    default: []
+outputSchema: {}
+is_active: true

@@ -1,0 +1,26 @@
+id: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+version: 5.15
+code: UC026
+name: a user is pasting from clipboard
+type: use-case
+description: Define what should be done when a user is pasting from clipboard.
+posture:
+  - PID_06
+behavior:
+  - BID_201
+condition:
+  - operator: null
+    filter_condition:
+      attribute_type: ATTR_Browser_001
+      attribute_id: BROWSER-002
+      condition: is_equal_to
+      value: paste
+    filter_group: null
+    editable: false
+    supported_operators:
+      - is equal to
+disabled: false
+createdon: 1710504494000
+updatedon: 1710504494000
+config:
+  save: false

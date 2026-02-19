@@ -1,0 +1,21 @@
+datatype: DICT
+defaultValue:
+  message: |-
+    Please change this password - you are reusing the same password on critical app(s) - {Appname} Will only take 2 mins. 
+  mode: Ask
+entityDescription: |-
+  Reusing the password on applications that handle sensitive data or are critical to business operations
+entityId: Q020
+entityMeta:
+  behavior: Password Reuse
+  category: ISPM
+  posture: Password Hygiene
+  check_id:
+    form_check_ids:
+      - CH-FORM-LOGIN
+      - CH-FORM-REUSED-PASSWORD
+      - CH-APP-CRITICAL
+entityName: Reusing Password on Critical Apps
+entityType: rule
+isDisabled: false
+isModifiable: true

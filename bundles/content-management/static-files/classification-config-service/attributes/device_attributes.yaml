@@ -1,0 +1,329 @@
+id: 9a2edb15-6218-4245-8ae1-3fb2e385a122
+version: 8.0.20
+category: Device
+code: ATTR_DEV_001
+tags:
+  - UC100
+  - UC102
+  - UC103
+  - UC107
+  - UC101
+  - UC108
+  - UC104
+  - UC105
+  - UC106
+type: attributes
+attributes:
+  - description: Define what type of operating system device have.
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+    possible_values:
+      - value: Windows
+        label: Windows
+        tags:
+          - UC103
+          - UC106
+      - value: Linux
+        label: Linux
+        tags:
+          - UC103
+          - UC106
+      - value: macOS
+        label: macOS
+        tags:
+          - UC103
+          - UC106
+    name: Operating System
+    duplicate_allowed: false
+    tags:
+      - UC103
+      - UC106
+    expected_datatype: string
+    graph_property: device.osName
+    id: DEV-001
+  - description: Define what is the version of operating system.
+    supported_operators:
+      - is greater than
+      - is less than
+      - is equal to
+      - is not equal to
+    possible_values:
+      - value: 10.0.19045.5248
+        label: 10.0.19045.5248
+        tags:
+          - UC103
+          - UC106
+    name: Operating System Version
+    duplicate_allowed: false
+    tags:
+      - UC103
+      - UC106
+    expected_datatype: string
+    graph_property: device.osVersion
+    id: DEV-002
+  - description: Define what is the compliance setting name want to match.
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - value: SecureBootEnabled
+        label: Secure Boot Enabled
+        tags:
+          - UC109
+      - value: ActiveFirewallRequired
+        label: Active Firewall Required
+        tags:
+          - UC105
+      - value: TpmRequired
+        label: Tpm Required
+        tags:
+          - UC103
+          - UC115
+      - value: AntivirusRequired
+        label: Antivirus Required
+        tags:
+          - UC103
+          - UC117
+      - value: DefenderEnabled
+        label: Defender Enabled
+        tags:
+          - UC103
+          - UC116
+      - value: AntiSpywareRequired
+        label: Anti Spyware Required
+        tags:
+          - UC103
+          - UC112
+      - value: BitLockerRequired
+        label: BitLocker Required
+        tags:
+          - UC102
+      - value: DeviceThreatProtectionRequiredSecurityLevel
+        label: Threat Protection Security Level
+        tags:
+          - UC110
+      - value: CodeIntegrityEnabled
+        label: Code Integrity Enabled
+        tags:
+          - UC113
+      - value: firewallEnabled
+        label: firewall Enabled
+        tags:
+          - UC120
+      - value: RequireRemainContact
+        label: Require Remain Contact
+        tags:
+          - UC118
+      - value: SignatureOutOfDate
+        label: Signature is Out Of Date
+        tags:
+          - UC114
+      - value: StorageRequireEncryption
+        label: Storage Require Encryption
+        tags:
+          - UC111
+    name: Compliance Setting Name
+    duplicate_allowed: false
+    tags:
+      - UC102
+      - UC105
+      - UC110
+      - UC111
+      - UC112
+      - UC113
+      - UC114
+      - UC115
+      - UC117
+      - UC119
+      - UC116
+      - UC120
+      - UC118
+    expected_datatype: string
+    graph_property: split(compliancesetting.devicesettingname, '.')[1]
+    id: DEV-003
+  - description: Define what is the compliance setting state want to match.
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - value: compliant
+        label: compliant
+        tags:
+          - UC103
+      - value: error
+        label: error
+        tags:
+          - UC103
+      - value: unknown
+        label: unknown
+        tags:
+          - UC103
+    name: Compliance Setting State
+    duplicate_allowed: false
+    tags:
+      - UC102
+      - UC105
+    expected_datatype: string
+    graph_property: compliancesetting.devicesettingvalue
+    id: DEV-004
+  - description: Define what type of device user is using.
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+    expected_datatype: string
+    possible_values:
+      - value: Personal
+        label: Personal
+        tags:
+          - UC015
+      - value: Corporate
+        label: Corporate
+        tags:
+          - UC015
+    name: Owner Type
+    duplicate_allowed: false
+    tags:
+      - UC006
+      - UC015
+    graph_property: device.deviceownertype
+    id: DEV-005
+  - description: Compliance status of device.
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+    expected_datatype: string
+    possible_values:
+      - value: compliant
+        label: compliant
+        tags:
+          - UC015
+      - value: non compliant
+        label: non compliant
+        tags:
+          - UC015
+    name: Compliance Status
+    duplicate_allowed: false
+    tags:
+      - UC103
+    graph_property: device.complianceState
+    id: DEV-006
+  - description: If the device is jailbroken or not.
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+    expected_datatype: string
+    possible_values:
+      - value: 'true'
+        label: 'True'
+        tags:
+          - UC015
+      - value: 'false'
+        label: 'False'
+        tags:
+          - UC015
+    name: Jailbroken
+    duplicate_allowed: false
+    tags:
+      - UC006
+    graph_property: device.devicejailbroken
+    id: DEV-007
+  - description: Indicates whether real-time protection is enabled on the device.
+    supported_operators:
+      - is equal to
+      - is not equal to
+    expected_datatype: string
+    possible_values:
+      - value: 'true'
+        label: 'True'
+        tags:
+          - UC101
+      - value: 'false'
+        label: 'False'
+        tags:
+          - UC101
+    name: RealTime Protection Enabled
+    duplicate_allowed: false
+    tags:
+      - UC101
+    graph_property: device.realTimeProtectionEnabled
+    id: DEV-008
+  - description: Indicates whether antivirus signature updates are enabled on the device.
+    supported_operators:
+      - is equal to
+      - is not equal to
+    expected_datatype: string
+    possible_values:
+      - value: 'true'
+        label: 'True'
+        tags:
+          - UC100
+      - value: 'false'
+        label: 'False'
+        tags:
+          - UC100
+    name: Antivirus Signature Update Enabled
+    duplicate_allowed: false
+    tags:
+      - UC100
+      - UC104
+    graph_property: device.signatureUpdateEnabled
+    id: DEV-009
+  - description: Specifies the current version of the antivirus software installed on
+      the device.
+    supported_operators:
+      - is equal to
+      - is not equal to
+    expected_datatype: string
+    possible_values: [ ]
+    name: Antivirus Version
+    duplicate_allowed: false
+    tags:
+      - UC100
+    graph_property: device.antiMalwareVersion
+    id: DEV-010
+  - description: Enrollment Profile Name
+    supported_operators:
+      - is equal to
+      - is not equal to
+    expected_datatype: string
+    possible_values:
+      - value: 'null'
+        label: EMPTY
+        tags:
+          - UC101
+          - UC107
+    name: Enrollment Profile Name
+    duplicate_allowed: false
+    tags:
+      - UC101
+      - UC107
+    graph_property: device.enrollmentProfileName
+    id: DEV-011
+  - description: Device Tampering Protection
+    supported_operators:
+      - is equal to
+      - is not equal to
+    expected_datatype: string
+    possible_values:
+      - value: 'True'
+        label: Enabled
+        tags:
+          - UC101
+          - UC108
+      - value: 'False'
+        label: Disabled
+        tags:
+          - UC101
+          - UC108
+    name: Tampering Protection
+    duplicate_allowed: false
+    tags:
+      - UC101
+      - UC108
+    graph_property: device.tamperProtectionEnabled
+    id: DEV-012

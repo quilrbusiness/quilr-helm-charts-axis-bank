@@ -1,0 +1,50 @@
+version: 1.0.0
+criticality: 3
+mode: monitor
+control_name: Preventing The Leakage Of Sensitive Data Via An AI App
+control_description: "This control monitors and prevents the leakage of sensitive data via AI applications by requiring mandatory justification for certain actions."
+posture:
+  id: PID_01
+behavior:
+  id: BID_03
+use_case:
+  id: UC012
+trigger_conditions:
+  - operator: null
+    filter_group: null
+    filter_condition:
+      attribute_type: ATTR_APP_001
+      attribute_id: APP-001
+      extension_property: app_category.name
+      condition: is_equal_to
+      value: generative ai
+  - operator: AND
+    filter_group: null
+    filter_condition:
+      attribute_type: ATTR_DATA_001
+      attribute_id: DATA-009
+      extension_property: null
+      condition: is_equal_to
+      value: "true"
+actions:
+  - type:
+      id: ACTP_02
+    name:
+      id: ACT_33
+    meta:
+      channel: browser
+      engagement_type: templatized
+      message_template: ""
+      execution_type: 
+      execution_module: 
+      browser_action: Allow_Original_Prompt_With_Mandatory_Justification
+      prompt_frequency: 
+      default_conversation_params:
+        is_urgent: false
+        tone: 
+        cc_manager: false
+        sla: 
+        sla_duration_unit: 
+        reminder_count: 
+        custom_message: 
+      custom_conversation_params:

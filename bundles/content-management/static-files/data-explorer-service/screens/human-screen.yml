@@ -1,0 +1,1695 @@
+id: human-screen
+name: Users
+type: screen
+enabled: true
+version: 1.0.701
+icon_url: https://staticcontent1.blob.core.windows.net/quilrstatic/profile/findings.svg
+table_query:
+  id: 82f39be8-e238-4a2e-bee3-5ecb6bd420a2
+  name: Display Table Data
+  queryString: ""
+  type: merge
+  allowed_params: true
+  allowed_body: true
+  input_params:
+    x: ""
+  input_body: null
+  dataSourceType: knowledgegraph
+  sortOrder: desc
+  sortColumn: riskScore
+  limit: 10
+  offset: 0
+detailed_widget:
+  - id: 26de9580-9da0-45c3-a848-b6d8ca2ec5da
+    name: Findings_drill_down
+    position: main
+    template: findings_detailed_view
+  - id: 277cf876-3f78-4875-9e3f-d4b59ffda225
+    name: user_view
+    position: offset
+    template: users_view
+view_by:
+  - id: users
+    api: /v1/human/user
+    query: "
+      MATCH (user:USER{subscriber: $subscriber, tenant: $tenant})-[:HAS_EMAIL]-(email:EMAIL:PRIMARY)-[]-(accounts:ACCOUNT)-[:USING_APP]-(application:APPLICATION) where not user.mail='-'
+      OPTIONAL MATCH (user)-[:HAS_PERSONA]-(persona:PERSONA)
+      OPTIONAL MATCH (user)-[:HAS_DEPARTMENT]-(dept:DEPARTMENT)
+      OPTIONAL MATCH (user)-[:BELONGS_TO]-(groups:GROUP {userDefined: true})
+      WITH
+          user.id AS user_id,
+          user.displayName AS user_name,
+          user.profilePicUrl AS profile_pic,
+          COLLECT(DISTINCT groups.displayName) AS user_groups,
+          user.risk_metric AS risk,
+          user.score AS risk_score,
+          COLLECT(DISTINCT {
+              app_name: application.name,
+              app_logo: application.logoUrl
+          }) AS applications,
+          COLLECT(DISTINCT persona.browserName) AS browser_name,
+          COLLECT(accounts) as all_accounts
+
+      UNWIND all_accounts AS account
+
+      OPTIONAL MATCH (account)-[]-(finding:FINDING)-[]-(rule:RULE)-[]-(behavior:BEHAVIOR)-[]-(posture:POSTURE)
+      WHERE 
+          finding.status <> 'closed'
+      WITH
+          user_id,
+          user_name,
+          profile_pic,
+          user_groups,
+          risk,
+          risk_score,
+          applications,
+          browser_name,
+          behavior,
+          posture,
+          COUNT(DISTINCT finding.id) AS finding_count
+      WITH
+          user_id,
+          user_name,
+          profile_pic,
+          user_groups,
+          risk,
+          risk_score,
+          applications,
+          browser_name,
+          posture.name AS posture_name,
+          COLLECT(DISTINCT CASE WHEN behavior.name IS NOT NULL AND finding_count > 0 THEN {
+              behavior_name: behavior.name,
+              finding_count: finding_count
+          } END) AS behavior_details
+      RETURN DISTINCT
+          user_id,
+          user_name,
+          profile_pic,
+          user_groups,
+          risk,
+          risk_score,
+          applications,
+          browser_name,
+          COLLECT(DISTINCT CASE WHEN posture_name IS NOT NULL AND size([x IN behavior_details WHERE x IS NOT NULL]) > 0 THEN {
+              posture_name: posture_name,
+              behavior_details: behavior_details
+          } END) AS posture_result "
+    defaultValue: users
+    allowed_params: true
+    name: Users
+    pagination_query: "
+      MATCH (user:USER{subscriber: $subscriber, tenant: $tenant})-[:HAS_EMAIL]-(email:EMAIL:PRIMARY)-[]-(accounts:ACCOUNT)-[:USING_APP]-(applications:APPLICATION)
+      OPTIONAL MATCH(user)-[:HAS_PERSONA]-(persona:PERSONA)
+      OPTIONAL MATCH(user)-[:HAS_DEPARTMENT]-(dept:DEPARTMENT)
+      OPTIONAL MATCH(user)-[:BELONGS_TO]-(groups:GROUP {userDefined:true})
+      return
+      COUNT(DISTINCT user.id) as totalCount "
+    input_params:
+      x: ""
+    type: button
+    dataSourceType: knowledgegraph
+    active: true
+  - id: departments
+    api: /v1/human/department
+    query: "
+     MATCH (department:DEPARTMENT {subscriber: $subscriber, tenant: $tenant})-[]-(user:USER)-[:HAS_EMAIL]-(email:EMAIL:PRIMARY)-[]-(accounts:ACCOUNT)-[:USING_APP]-(applications:APPLICATION)
+      OPTIONAL MATCH (user)-[:HAS_PERSONA]-(persona:PERSONA)
+      OPTIONAL MATCH (user)-[:BELONGS_TO]-(groups:GROUP {userDefined: true})
+      WITH 
+          department.internalId as department_internal_id,
+          department.name AS department_name,
+          COUNT(DISTINCT user) as user_count,
+          department.score as department_risk_score,
+          COLLECT(DISTINCT persona.browserName) AS browser_name,
+          COLLECT(DISTINCT CASE WHEN applications.name IS NOT NULL AND applications.logoUrl IS NOT NULL THEN {
+              app_name: applications.name,
+              app_logo: applications.logoUrl
+          } END) AS application_accounts,
+          COLLECT(accounts) AS all_accounts
+
+      UNWIND all_accounts AS account
+
+      OPTIONAL MATCH (account)-[]-(finding:FINDING)-[]-(rule:RULE)-[]-(behavior:BEHAVIOR)-[]-(posture:POSTURE)
+      WHERE finding.status <> 'closed'
+      WITH 
+          department_internal_id,
+          department_name,
+          user_count,
+          department_risk_score,
+          application_accounts,
+          browser_name,
+          posture.name AS posture_name,
+          behavior.name AS behavior_name,
+          COUNT(DISTINCT finding) AS finding_count
+      WITH 
+          department_internal_id,
+          department_name,
+          user_count,
+          department_risk_score,
+          application_accounts,
+          browser_name,
+          posture_name,
+          COLLECT(DISTINCT CASE WHEN finding_count > 0 AND behavior_name IS NOT NULL THEN {
+              behavior_name: behavior_name,
+              finding_count: finding_count
+          } END) AS behavior_details
+      RETURN DISTINCT 
+          department_internal_id,
+          department_name,
+          user_count,
+          department_risk_score,
+          application_accounts,
+          browser_name,
+          COLLECT(DISTINCT CASE WHEN posture_name IS NOT NULL AND SIZE([x IN behavior_details WHERE x IS NOT NULL]) > 0 THEN {
+              posture_name: posture_name,
+              behavior_details: behavior_details
+          }END) AS posture_result"
+    defaultValue: users
+    allowed_params: true
+    name: Departments
+    pagination_query: "
+     MATCH (department:DEPARTMENT {subscriber: $subscriber, tenant: $tenant})-[]-(user:USER)-[:HAS_EMAIL]-(email:EMAIL:PRIMARY)-[]-(accounts:ACCOUNT)-[:USING_APP]-(applications:APPLICATION)
+      OPTIONAL MATCH (user)-[:HAS_PERSONA]-(persona:PERSONA)
+      OPTIONAL MATCH (user)-[:BELONGS_TO]-(groups:GROUP {userDefined: true})
+      RETURN
+        COUNT(DISTINCT department.internalId) as totalCount"
+    input_params:
+      starttime: ""
+      endtime: ""
+    type: button
+    dataSourceType: knowledgegraph
+    active: true
+  - id: groups
+    api: /v1/human/group
+    query: "MATCH (group:GROUP {subscriber: $subscriber, tenant: $tenant, userDefined: true})-[:BELONGS_TO]-(user:USER)-[:HAS_EMAIL]-(email:EMAIL:PRIMARY)-[]-(accounts:ACCOUNT)-[:USING_APP]-(applications:APPLICATION)
+      OPTIONAL MATCH (user)-[:HAS_PERSONA]-(persona:PERSONA)
+      WITH
+          apoc.node.id(group) as group_id,
+          group.displayName AS group_name,
+          COUNT(DISTINCT user.id) as user_count,
+          group.score as group_risk_score,
+          COLLECT(DISTINCT CASE WHEN applications.name IS NOT NULL AND applications.logoUrl IS NOT NULL THEN {
+              app_name: applications.name,
+              app_logo: applications.logoUrl
+          } END) AS application_accounts,
+          COLLECT(DISTINCT persona.browserName) AS browser_name,
+          COLLECT(accounts) as all_accounts
+
+      UNWIND all_accounts as account
+      OPTIONAL MATCH (account)-[]-(finding:FINDING)-[]-(rule:RULE)-[]-(behavior:BEHAVIOR)-[]-(posture:POSTURE)
+      WHERE
+          finding.status <> 'closed'
+      WITH
+          group_id,
+          group_name,
+          user_count,
+          group_risk_score,
+          application_accounts,
+          browser_name,
+          posture.name AS posture_name,
+          behavior.name AS behavior_name,
+          COUNT(DISTINCT finding.id) AS finding_count
+      WITH
+          group_id,
+          group_name,
+          user_count,
+          group_risk_score,
+          application_accounts,
+          browser_name,
+          posture_name,
+          COLLECT(DISTINCT CASE WHEN finding_count > 0 AND behavior_name IS NOT NULL THEN {
+              behavior_name: behavior_name,
+              finding_count: finding_count
+          } END) AS behavior_details
+
+      RETURN DISTINCT
+          group_id,
+          group_name,
+          user_count,
+          group_risk_score,
+          application_accounts,
+          browser_name,
+          COLLECT(DISTINCT CASE WHEN posture_name IS NOT NULL AND SIZE([x IN behavior_details WHERE x IS NOT NULL]) > 0 THEN {
+              posture_name: posture_name,
+              behavior_details: behavior_details
+          } END) AS posture_result"
+    defaultValue: users
+    allowed_params: true
+    name: Groups
+    pagination_query: "
+      MATCH (group:GROUP {subscriber: $subscriber, tenant: $tenant, userDefined: true})-[:BELONGS_TO]-(user:USER)-[:HAS_EMAIL]-(email:EMAIL:PRIMARY)-[]-(accounts:ACCOUNT)-[:USING_APP]-(applications:APPLICATION)
+      OPTIONAL MATCH (user)-[:HAS_PERSONA]-(persona:PERSONA)
+      RETURN COUNT(DISTINCT apoc.node.id(group)) as  totalCount"
+    input_params:
+      starttime: ""
+      endtime: ""
+    type: button
+    dataSourceType: knowledgegraph
+    active: true
+  - id: locations
+    query: "MATCH (u:USER)-[:HAS_EMAIL]->(email:EMAIL:PRIMARY)
+      WHERE u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      with u,email
+      OPTIONAL MATCH (u)-[:LOCATED_AT]->(location:OFFICE_LOCATION)
+      OPTIONAL MATCH (email)-[hasaccount]->(account:ACCOUNT)
+      OPTIONAL MATCH (account)-[:HAS_BROWSER]->(browser:BROWSER)
+      OPTIONAL MATCH (account)-[:USING_APP]->(app:APPLICATION)
+      OPTIONAL MATCH (u)-[:BELONGS_TO]->(g:GROUP{userDefined: true})
+      OPTIONAL MATCH (account)-[hi:HAS_ISSUE]->(i:ISSUE)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(i)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(behaviour:BEHAVIOUR)
+      OPTIONAL MATCH (behaviour)-[:BELONGS_TO]->(p:POSTURE)
+      WITH u, email, account, browser, app, g, i, r, behaviour, p, location
+      WHERE location.name IS NOT NULL and location.name <> '-'
+      AND location.score IS NOT NULL
+      AND g.score IS NOT NULL
+      AND toLower(location.name) =~ toLower('.*{searchText}.*')
+      RETURN DISTINCT
+      location.name AS name,
+      toInteger(location.score) AS riskScore,
+      COUNT(DISTINCT u.id) AS users,
+      [g in COLLECT(DISTINCT { name: g.displayName}) where g.name is not null] as groups,
+      count(DISTINCT i.id) as issues
+      ORDER BY riskScore DESC"
+    defaultValue: users
+    allowed_params: true
+    name: Locations
+    pagination_query: "
+      MATCH (u:USER)-[:HAS_EMAIL]->(email:EMAIL:PRIMARY)
+      WHERE u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      with u,email
+      OPTIONAL MATCH (u)-[:LOCATED_AT]->(location:OFFICE_LOCATION)
+      OPTIONAL MATCH (email)-[hasaccount]->(account:ACCOUNT)
+      OPTIONAL MATCH (account)-[:HAS_BROWSER]->(browser:BROWSER)
+      OPTIONAL MATCH (account)-[:USING_APP]->(app:APPLICATION)
+      OPTIONAL MATCH (u)-[:BELONGS_TO]->(g:GROUP{userDefined: true})
+      OPTIONAL MATCH (account)-[hi:HAS_ISSUE]->(i:ISSUE)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(i)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(behaviour:BEHAVIOUR)
+      OPTIONAL MATCH (behaviour)-[:BELONGS_TO]->(p:POSTURE)
+      WITH u, email, account, browser, app, g, i, r, behaviour, p, location
+      WHERE location.name IS NOT NULL AND location.name <> '-'
+      AND location.score IS NOT NULL
+      AND g.score IS NOT NULL
+      AND toLower(location.name) =~ toLower('.*{searchText}.*')
+      WITH DISTINCT
+      location.name AS name
+      RETURN COUNT(name) as totalCount"
+    input_params:
+      starttime: ""
+      endtime: ""
+    type: button
+    dataSourceType: knowledgegraph
+    active: true
+table_filters:
+  - id: departments
+    name: Departments
+    defaultValue: All
+    active: true
+    type: select
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      starttime: AND finding.generationTime >= $starttime
+      endtime: AND finding.generationTime <= $endtime
+    query: "match(d:DEPARTMENT {subscriber: $subscriber, tenant: $tenant}) return DISTINCT d.id AS department_id, d.name AS department_name"
+  - id: locations
+    name: Locations
+    active: true
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      starttime: AND finding.generationTime >= $starttime
+      endtime: AND finding.generationTime <= $endtime
+    defaultValue: All
+    type: select
+    query: "match (ol:OFFICE_LOCATION {subscriber: $subscriber, tenant: $tenant}) return DISTINCT ol.id AS office_location_id, ol.name AS office_location_name"
+  - id: groups
+    name: Groups
+    type: select
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    active: true
+    input_params:
+      starttime: AND finding.generationTime >= $starttime
+      endtime: AND finding.generationTime <= $endtime
+    defaultValue: All
+    query:
+      "MATCH (g:GROUP {subscriber: $subscriber, tenant: $tenant, userDefined: true}) RETURN DISTINCT g.id AS group_id, g.displayName as group_name"
+  - id: behavior
+    name: Behaviour
+    type: select
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    active: true
+    input_params:
+      starttime: AND finding.generationTime >= $starttime
+      endtime: AND finding.generationTime <= $endtime
+    defaultValue: All
+    query: "match(b:BEHAVIOR)-[]-(r:RULE)-[]-(f:FINDING {subscriber: $subscriber, tenant: $tenant}) return DISTINCT b.id AS behavior_id, b.name AS behavior_name ORDER BY behavior_id"     
+  - id: risk_level_user
+    name: Risk Level
+    type: select
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    active: true
+    input_params:
+      starttime: AND finding.generationTime >= $starttime
+      endtime: AND finding.generationTime <= $endtime
+    defaultValue: All
+    query:
+      "
+        MATCH (u:USER {subscriber: $subscriber, tenant: $tenant})-[:HAS_EMAIL]->(e:EMAIL)
+        WHERE u.score IS NOT NULL
+        WITH DISTINCT toInteger(u.score) AS score
+        WITH 
+            CASE 
+                WHEN score >= 0 AND score <= 20 THEN 'Very Low'
+                WHEN score >= 21 AND score <= 40 THEN 'Low'
+                WHEN score >= 41 AND score <= 60 THEN 'Medium'
+                WHEN score >= 61 AND score <= 80 THEN 'High'
+                WHEN score >= 81 AND score <= 100 THEN 'Very High'
+                ELSE 'Unknown'
+            END AS scoreLabel
+        WITH COLLECT(DISTINCT scoreLabel) AS distinctLabels
+        WITH distinctLabels, {id: 'risk_' + apoc.util.md5(['All']), label: 'All', value: 'All'} AS allFilter
+        WITH [allFilter] + 
+            [label IN distinctLabels | 
+                {id: 'risk_' + apoc.util.md5([label]), label: label, value: label}
+            ] AS filters
+        UNWIND filters AS filter
+        WITH filter
+        ORDER BY 
+            CASE filter.label
+                WHEN 'Very High' THEN 1
+                WHEN 'High' THEN 2
+                WHEN 'Medium' THEN 3
+                WHEN 'Low' THEN 4
+                WHEN 'Very Low' THEN 5
+                ELSE 6
+            END DESC
+        RETURN COLLECT(filter) AS filters"
+  - id: risk_level_group
+    name: Risk Level
+    type: select
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    active: true
+    input_params:
+      starttime: AND finding.generationTime >= $starttime
+      endtime: AND finding.generationTime <= $endtime
+    defaultValue: All
+    query:
+      "
+        MATCH (u:USER {subscriber: $subscriber, tenant: $tenant})-[:HAS_EMAIL]->(e:EMAIL)
+        MATCH (u)-[:BELONGS_TO]->(g:GROUP{userDefined: true})
+        WHERE g.score IS NOT NULL
+        WITH DISTINCT toInteger(g.score) AS score
+        WITH 
+            CASE 
+                WHEN score >= 0 AND score <= 20 THEN 'Very Low'
+                WHEN score >= 21 AND score <= 40 THEN 'Low'
+                WHEN score >= 41 AND score <= 60 THEN 'Medium'
+                WHEN score >= 61 AND score <= 80 THEN 'High'
+                WHEN score >= 81 AND score <= 100 THEN 'Very High'
+                ELSE 'Unknown'
+            END AS scoreLabel
+        WITH COLLECT(DISTINCT scoreLabel) AS distinctLabels
+        WITH distinctLabels, {id: 'risk_' + apoc.util.md5(['All']), label: 'All', value: 'All'} AS allFilter
+        WITH [allFilter] + 
+            [label IN distinctLabels | 
+                {id: 'risk_' + apoc.util.md5([label]), label: label, value: label}
+            ] AS filters
+        UNWIND filters AS filter
+        WITH filter
+        ORDER BY 
+            CASE filter.label
+                WHEN 'Very High' THEN 1
+                WHEN 'High' THEN 2
+                WHEN 'Medium' THEN 3
+                WHEN 'Low' THEN 4
+                WHEN 'Very Low' THEN 5
+                ELSE 6
+            END DESC
+        RETURN COLLECT(filter) AS filters"
+  - id: risk_level_location
+    name: Risk Level
+    type: select
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    active: true
+    input_params:
+      starttime: AND finding.generationTime >= $starttime
+      endtime: AND finding.generationTime <= $endtime
+    defaultValue: All
+    query:
+      "
+        MATCH (u:USER {subscriber: $subscriber, tenant: $tenant})-[:HAS_EMAIL]->(e:EMAIL)
+        MATCH (u)-[:LOCATED_AT]->(loc:OFFICE_LOCATION)
+        WHERE loc.score IS NOT NULL
+        WITH DISTINCT toInteger(loc.score) AS score
+        WITH 
+            CASE 
+                WHEN score >= 0 AND score <= 20 THEN 'Very Low'
+                WHEN score >= 21 AND score <= 40 THEN 'Low'
+                WHEN score >= 41 AND score <= 60 THEN 'Medium'
+                WHEN score >= 61 AND score <= 80 THEN 'High'
+                WHEN score >= 81 AND score <= 100 THEN 'Very High'
+                ELSE 'Unknown'
+            END AS scoreLabel
+        WITH COLLECT(DISTINCT scoreLabel) AS distinctLabels
+        WITH distinctLabels, {id: 'risk_' + apoc.util.md5(['All']), label: 'All', value: 'All'} AS allFilter
+        WITH [allFilter] + 
+            [label IN distinctLabels | 
+                {id: 'risk_' + apoc.util.md5([label]), label: label, value: label}
+            ] AS filters
+        UNWIND filters AS filter
+        WITH filter
+        ORDER BY 
+            CASE filter.label
+                WHEN 'Very High' THEN 1
+                WHEN 'High' THEN 2
+                WHEN 'Medium' THEN 3
+                WHEN 'Low' THEN 4
+                WHEN 'Very Low' THEN 5
+                ELSE 6
+            END DESC
+        RETURN COLLECT(filter) AS filters"
+  - id: risk_level_department
+    name: Risk Level
+    type: select
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    active: true
+    input_params:
+      starttime: AND finding.generationTime >= $starttime
+      endtime: AND finding.generationTime <= $endtime
+    defaultValue: All
+    query:
+      "
+        MATCH (u:USER {subscriber: $subscriber, tenant: $tenant})-[:HAS_EMAIL]->(e:EMAIL)
+        MATCH (u)-[:HAS_DEPARTMENT]->(dep:DEPARTMENT)
+        WHERE dep.score IS NOT NULL
+        WITH DISTINCT toInteger(dep.score) AS score
+        WITH 
+            CASE 
+                WHEN score >= 0 AND score <= 20 THEN 'Very Low'
+                WHEN score >= 21 AND score <= 40 THEN 'Low'
+                WHEN score >= 41 AND score <= 60 THEN 'Medium'
+                WHEN score >= 61 AND score <= 80 THEN 'High'
+                WHEN score >= 81 AND score <= 100 THEN 'Very High'
+                ELSE 'Unknown'
+            END AS scoreLabel
+        WITH COLLECT(DISTINCT scoreLabel) AS distinctLabels
+        WITH distinctLabels, {id: 'risk_' + apoc.util.md5(['All']), label: 'All', value: 'All'} AS allFilter
+        WITH [allFilter] + 
+            [label IN distinctLabels | 
+                {id: 'risk_' + apoc.util.md5([label]), label: label, value: label}
+            ] AS filters
+        UNWIND filters AS filter
+        WITH filter
+        ORDER BY 
+            CASE filter.label
+                WHEN 'Very High' THEN 1
+                WHEN 'High' THEN 2
+                WHEN 'Medium' THEN 3
+                WHEN 'Low' THEN 4
+                WHEN 'Very Low' THEN 5
+                ELSE 6
+            END DESC
+        RETURN COLLECT(filter) AS filters"
+widgets:
+  - id: riskDistrubution
+    name: Risk Distrubution
+    label: Widget
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    template: Posture
+    enabled: true
+    type: packedbubble
+    className: col-span-3
+    query_id: ""
+    input_params:
+      starttime: AND finding.generationTime >= $starttime
+      endtime: AND finding.generationTime <= $endtime
+    queryFilters: null
+    query: "
+      WITH [
+      {id: 'very_high', label: 'Very High', colorCode: '#EC5D5E'},
+      {id: 'high', label: 'High', colorCode: '#FFC53D'},
+      {id: 'medium', label: 'Medium', colorCode:'#FFFF57'},
+      {id: 'low', label: 'Low', colorCode: '#BDEE63'},
+      {id: 'very_low', label: 'Very Low', colorCode: '#1FD8A4'}
+      ] AS risk_metrics
+      OPTIONAL MATCH (user:USER{subscriber: $subscriber, tenant: $tenant})
+      WITH
+      risk_metrics,
+      CASE 
+          WHEN user.score > 0 AND user.score <= 20 THEN 'Very Low'
+          WHEN user.score > 20 AND user.score <= 40 THEN 'Low'
+          WHEN user.score > 40 AND user.score <= 60 THEN 'Medium'
+          WHEN user.score > 60 AND user.score <= 80 THEN 'High'
+          WHEN user.score > 80 AND user.score <= 100 THEN 'Very High'
+      END AS risk_level,
+      user
+      WITH risk_metrics, risk_level, COUNT(DISTINCT user.id) AS user_count
+      UNWIND risk_metrics AS risk
+      RETURN 
+      risk, 
+      COALESCE(SUM(CASE WHEN risk.label = risk_level THEN user_count ELSE 0 END), 0) AS user_count"    
+  - id: postureWidgetAssociate
+    name: Posture Widget
+    label: Widget
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    template: Posture
+    enabled: true
+    type: packedbubble
+    className: col-span-3
+    query_id: ""
+    input_params:
+      posture_Id: $posture_Id
+      starttime: AND finding.generationTime >= $starttime
+      endtime: AND finding.generationTime <= $endtime
+    queryFilters: []
+    query: "MATCH (posture:POSTURE)-[:BELONGS_TO]-(behavior:BEHAVIOR)
+            WHERE posture.id = $posture_Id    
+            OPTIONAL MATCH (behavior)-[]-(rule:RULE)-[]-(finding:FINDING)
+            WHERE 
+            finding.status <> 'closed'
+            AND finding.subscriber = $subscriber
+            AND finding.tenant = $tenant
+
+            OPTIONAL MATCH (finding)-[]-(d:DEVICE)<-[:OWNS_DEVICE]-(user:USER)
+            WHERE $posture_Id = 'PID_05'
+
+            OPTIONAL MATCH (finding)-[]-(account:ACCOUNT)-[]-(email:EMAIL:PRIMARY)<-[:HAS_EMAIL]-(user2:USER)
+            WHERE $posture_Id <> 'PID_05'
+
+            WITH 
+            posture.id AS posture_id,
+            behavior.id AS behavior_id,
+            posture.name AS posture_name,
+            behavior.name AS behavior_name,
+            COALESCE(user, user2) AS final_user,d,posture
+
+            WITH 
+            posture_id,
+            behavior_id,
+            posture_name,
+            behavior_name,
+            COUNT(DISTINCT final_user.id) as user_count,
+            COUNT(DISTINCT d.id) as device_count,posture
+
+            RETURN DISTINCT 
+            posture_id,
+            posture_name,
+            COLLECT(DISTINCT 
+            CASE 
+                WHEN posture.id = 'PID_05' THEN {
+                behavior_id: behavior_id,
+                behavior_name: behavior_name,
+                user_count: user_count,
+                device_count: device_count
+            }
+            ELSE {
+                behavior_id: behavior_id,
+                behavior_name: behavior_name,
+                user_count: user_count
+            }
+            END
+          ) AS behavior_details
+          "
+  - id: postureWidgetBarGraph
+    name: Posture Widget
+    label: Widget
+    allowed_params: true
+    dataSourceType: datalake
+    template: Posture
+    enabled: true
+    type: packedbubble
+    className: col-span-3
+    query_id: ""
+    input_params:
+      posture_name: $posture_name
+      type: $type
+      starttime: AND finding.generationTime >= $starttime
+      endtime: AND finding.generationTime <= $endtime
+    queryFilters: null
+    query: "
+      WITH risk_levels
+      AS (SELECT 'Very Low' AS risk_level, 1 AS priority UNION ALL SELECT 'Low', 2 UNION ALL SELECT 'Medium', 3 UNION ALL SELECT 'High', 4 UNION ALL SELECT 'Very High', 5), 
+      max_date AS (SELECT 
+                      MAX(TO_DATE(CONCAT(ppa.year, '-',
+                                          LPAD(CAST(ppa.monthofyear AS TEXT), 2, '0'), '-',
+                                          LPAD(CAST(ppa.dayofmonth AS TEXT), 2, '0')),'yyyy-mm-DD')
+                          ) AS max_date
+          FROM kafka_connect.snowdata_schema.postureprofileaggregated AS ppa
+          WHERE ppa.subscriber = $subscriber
+                AND ppa.tenant = $tenant
+                AND ppa.agg_type = $type
+                AND ppa.agg_subtype = 'posture'
+                AND lower(ppa.agg_subtype_name) = lower($posture_name)
+         )
+      SELECT 
+          rl.risk_level AS \"risk_level\",
+          COUNT(DISTINCT ppa.agg_type_name) AS \"risk_metric_count\"
+        FROM
+        risk_levels AS rl
+        LEFT JOIN
+        kafka_connect.snowdata_schema.postureprofileaggregated AS ppa
+        ON rl.risk_level = CASE ROUND((ppa.alert_percentile * 4) + 1)
+        WHEN 1 THEN 'Very Low'
+        WHEN 2 THEN 'Low'
+        WHEN 3 THEN 'Medium'
+        WHEN 4 THEN 'High'
+        WHEN 5 THEN 'Very High'
+        END
+        AND ppa.subscriber = $subscriber
+        AND ppa.tenant = $tenant
+        AND ppa.agg_type = $type
+        AND ppa.agg_subtype = 'posture'
+        AND lower(ppa.agg_subtype_name) = lower($posture_name)
+        AND TO_DATE(CONCAT(ppa.year, '-',
+        LPAD(CAST(ppa.monthofyear AS TEXT), 2, '0'), '-',
+        LPAD(CAST(ppa.dayofmonth AS TEXT), 2, '0')), 'yyyy-mm-DD') = (SELECT max_date FROM max_date)
+        GROUP BY rl.risk_level, rl.priority
+        ORDER BY rl.priority DESC"
+  - id: riskDistrubutionDepartment
+    name: Risk Distrubution
+    label: Widget
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    template: Posture
+    enabled: true
+    type: packedbubble
+    className: col-span-3
+    query_id: ""
+    input_params:
+      starttime: AND finding.generationTime >= $starttime
+      endtime: AND finding.generationTime <= $endtime
+    queryFilters: null
+    query: "
+      WITH [
+          {id: 'very_high', label: 'Very High', colorCode: '#EC5D5E'},
+          {id: 'high', label: 'High', colorCode: '#FFC53D'},
+          {id: 'medium', label: 'Medium', colorCode: '#FFFF57'},
+          {id: 'low', label: 'Low', colorCode: '#BDEE63'},
+          {id: 'very_low', label: 'Very Low', colorCode: '#1FD8A4'}
+      ] AS risk_metrics
+      OPTIONAL MATCH (department:DEPARTMENT {subscriber: $subscriber, tenant: $tenant})
+      WITH
+          risk_metrics, department,
+          CASE 
+              WHEN department.score > 0 AND department.score <= 20 THEN 'Very Low'
+              WHEN department.score > 20 AND department.score <= 40 THEN 'Low'
+              WHEN department.score > 40 AND department.score <= 60 THEN 'Medium'
+              WHEN department.score > 60 AND department.score <= 80 THEN 'High'
+              WHEN department.score > 80 AND department.score <= 100 THEN 'Very High'
+          END AS risk_level
+      WITH risk_metrics, risk_level, COUNT(DISTINCT department.id) AS department_count
+      UNWIND risk_metrics AS risk
+      RETURN 
+          risk, 
+          COALESCE(SUM(CASE WHEN risk.label = risk_level THEN department_count ELSE 0 END), 0) AS department_count"
+  - id: postureWidgetAssociateDepartment
+    name: Posture Widget
+    label: Widget
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    template: Posture
+    enabled: true
+    type: packedbubble
+    className: col-span-3
+    query_id: ""
+    input_params:
+      posture_id: $posture_id
+      starttime: AND finding.generationTime >= $starttime
+      endtime: AND finding.generationTime <= $endtime
+    queryFilters: []
+    query: "
+      MATCH (posture:POSTURE)-[:BELONGS_TO]-(behavior:BEHAVIOR)
+      WHERE
+          posture.id = $posture_id
+      OPTIONAL MATCH (behavior)-[]-(rule:RULE)-[]-(finding:FINDING)
+      OPTIONAL MATCH (finding)-[]-(account:ACCOUNT)-[]-(email:EMAIL:PRIMARY)-[:HAS_EMAIL]-(user:USER)
+      MATCH (user)-[:HAS_DEPARTMENT]-(department:DEPARTMENT{subscriber: $subscriber, tenant: $tenant})
+      WHERE
+          finding.status <> 'closed'
+      WITH
+          posture.id AS posture_id,
+          behavior.id AS behavior_id,
+          posture.name AS posture_name,
+          behavior.name AS behavior_name,
+          COUNT(DISTINCT user.id) as user_count
+      RETURN DISTINCT
+          posture_id,
+          posture_name,
+          COLLECT(DISTINCT {
+          behavior_id: behavior_id,
+          behavior_name: behavior_name,
+          user_count: user_count
+          }) AS behavior_details"
+  - id: riskDistrubutionGroup
+    name: Risk Distrubution
+    label: Widget
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    template: Posture
+    enabled: true
+    type: packedbubble
+    className: col-span-3
+    query_id: ""
+    input_params:
+      starttime: AND finding.generationTime >= $starttime
+      endtime: AND finding.generationTime <= $endtime
+    queryFilters: null
+    query: "
+      WITH [
+          {id: 'very_high', label: 'Very High', colorCode: '#EC5D5E'},
+          {id: 'high', label: 'High', colorCode: '#FFC53D'},
+          {id: 'medium', label: 'Medium', colorCode: '#FFFF57'},
+          {id: 'low', label: 'Low', colorCode: '#BDEE63'},
+          {id: 'very_low', label: 'Very Low', colorCode: '#1FD8A4'}
+      ] AS risk_metrics
+      OPTIONAL MATCH (group:GROUP{userDefined: true, subscriber: $subscriber, tenant: $tenant})
+      WITH
+          risk_metrics,
+          group,
+          CASE 
+              WHEN group.score > 0 AND group.score <= 20 THEN 'Very Low'
+              WHEN group.score > 20 AND group.score <= 40 THEN 'Low'
+              WHEN group.score > 40 AND group.score <= 60 THEN 'Medium'
+              WHEN group.score > 60 AND group.score <= 80 THEN 'High'
+              WHEN group.score > 80 AND group.score <= 100 THEN 'Very High'
+          END AS risk_level
+      WITH risk_metrics, risk_level, COUNT(DISTINCT group) AS group_count
+      UNWIND risk_metrics AS risk
+      RETURN 
+          risk, 
+          COALESCE(SUM(CASE WHEN risk.label = risk_level THEN group_count ELSE 0 END), 0) AS group_count"
+  - id: postureWidgetAssociateGroup
+    name: Posture Widget
+    label: Widget
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    template: Posture
+    enabled: true
+    type: packedbubble
+    className: col-span-3
+    query_id: ""
+    input_params:
+      posture_id: $posture_id
+      starttime: AND finding.generationTime >= $starttime
+      endtime: AND finding.generationTime <= $endtime
+    queryFilters: []
+    query: "
+      MATCH (posture:POSTURE)-[:BELONGS_TO]-(behavior:BEHAVIOR)
+      WHERE
+          posture.id = $posture_id
+      OPTIONAL MATCH (behavior)-[]-(rule:RULE)-[]-(finding:FINDING)
+      OPTIONAL MATCH (finding)-[]-(account:ACCOUNT)-[]-(email:EMAIL:PRIMARY)-[:HAS_EMAIL]-(user:USER)
+      MATCH (user)-[:BELONGS_TO]-(group:GROUP{userDefined: true, subscriber: $subscriber, tenant: $tenant})
+      WHERE
+          finding.status <> 'closed'
+      WITH
+          posture.id AS posture_id,
+          behavior.id AS behavior_id,
+          posture.name AS posture_name,
+          behavior.name AS behavior_name,
+          COUNT(DISTINCT user.id) as user_count
+      RETURN DISTINCT
+          posture_id,
+          posture_name,
+          COLLECT(DISTINCT {
+          behavior_id: behavior_id,
+          behavior_name: behavior_name,
+          user_count: user_count
+          }) AS behavior_details"
+table_render:
+  table_additional_data:
+    no_hover: true
+    row_border: true
+    alternate_row_colors: true
+    no_table_padding: true
+    table_heading_bg: "bg-dark-300"
+    table_filters_wrapper_class: "grid grid-cols-12"
+    no_calendar: true
+    no_drilldown: true
+  table_filters:
+    departments:
+      show_in_view:
+        - users
+    locations:
+      show_in_view:
+        - users
+    groups: 
+      show_in_view:
+        - users
+        - departments
+    risk_level_user:
+      show_in_view:
+        - users
+    risk_level_department:
+      show_in_view:
+        - departments
+    risk_level_location:
+      show_in_view:
+        - locations
+    risk_level_group:
+      show_in_view:
+        - groups
+  table:
+    name:
+      id: name
+      type: UserView
+      label: Name
+      valuePath: name
+      sortable: false
+      groupByKey: Name
+      order: 1
+    risk:
+      id: riskScore
+      type: RiskViewHuman
+      label: Risk
+      valuePath: name
+      groupByKey: Name
+      order: 2
+      chart: trend-chart-risk-user
+      chartType: line-chart
+      chartKeyId: id
+      chartParam:
+        xAxis:
+          type: "datetime"
+          title:
+            text: "Date"
+          visible: false
+          minorTickLength: 0
+          gridLineWidth: 1
+          gridLineColor: "#555555"
+          minorGridLineWidth: 0.5
+          minorGridLineColor: "#555555"
+          minorTickInterval: "auto"
+        yAxis:
+          title:
+            text: "Security Index"
+          max: 120
+          gridLineWidth: 1
+          minorGridLineWidth: 1
+          visible: false
+
+      chartQueryParam: id
+      sortable: false
+    posture:
+      id: posture
+      type: PostureViewHuman
+      name: posture
+      label: Posture
+      valuePath: name
+      chart: user-trend-chart-posture
+      chartType: severity
+      chartKeyId: id
+      chartQueryParam: id
+      groupByKey: Name
+      order: 3
+      map:
+        "Password Hygiene":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-password-hygiene.svg
+        "SaaS Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-saas-usage.svg
+        "MFA Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-mfa-usage.svg
+        "Human Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-human-risk.svg
+        "Data Handling":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-data-handling.svg
+        "AI Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-ai-usage.svg
+        "Social Engineering":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-social-engineering.svg
+        "Web Browsing":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-web-browsing.svg
+        "Workstation Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-workstation-risks.svg
+
+    accounts:
+      id: accounts
+      type: multi_icon
+      name: accounts
+      label: Accounts
+      valuePath: accounts
+      groupByKey: accounts
+      order: 4
+    coPilot:
+      id: coPilot
+      type: CoPilotCell
+      label: Co-Pilot
+      valuePath: coPilot
+      groupByKey: coPilot
+      sortable: false
+      order: 5
+      map:
+        disabled:
+          logo: "https://staticcontent1.blob.core.windows.net/finding-icons/Co-pilot-no.svg"
+        enabled:
+          logo: "https://staticcontent1.blob.core.windows.net/finding-icons/Co-pilot-yes.svg"
+    browser:
+      id: browser
+      type: BrowserIcon
+      name: browser
+      label: Browser
+      valuePath: browser
+      groupByKey: browser
+      order: 6
+      map:
+        "google chrome":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/87865_chrome_icon.png
+    # checkbox:
+    #   show: true
+    #   order: 0
+  users:
+    risks:
+      id: risk
+      type: boxTextExpanded
+      label: Risk
+      valuePath: name
+      sortable: false
+      groupByKey: Name
+      order: 1
+    name:
+      id: name
+      type: UserView
+      label: Name
+      valuePath: name
+      sortable: false
+      groupByKey: Name
+      order: 2
+    risk:
+      id: riskScore
+      type: RiskViewHuman
+      label: Issues
+      valuePath: name
+      groupByKey: Name
+      order: 3
+      chart: trend-chart-risk-user
+      chartType: line-chart
+      chartKeyId: id
+      chartParam:
+        xAxis:
+          type: "datetime"
+          title:
+            text: "Date"
+          visible: true
+          minorTickLength: 0
+          gridLineWidth: 1
+          gridLineColor: "#555555"
+          minorGridLineWidth: 0.5
+          minorGridLineColor: "#555555"
+          minorTickInterval: "auto"
+        yAxis:
+          title:
+            text: "Security Index"
+          max: 120
+          gridLineWidth: 1
+          minorGridLineWidth: 1
+          visible: false
+
+      chartQueryParam: id
+      sortable: false
+    posture:
+      id: posture
+      type: PostureViewHuman
+      name: posture
+      label: Posture
+      valuePath: name
+      chart: user-trend-chart-posture
+      chartType: severity
+      chartKeyId: id
+      chartQueryParam: id
+      groupByKey: Name
+      order: 4
+      map:
+        "Password Hygiene":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-password-hygiene.svg
+        "SaaS Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-saas-usage.svg
+        "MFA Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-mfa-usage.svg
+        "Human Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-human-risk.svg
+        "Data Handling":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-data-handling.svg
+        "AI Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-ai-usage.svg
+        "Social Engineering":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-social-engineering.svg
+        "Web Browsing":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-web-browsing.svg
+        "Workstation Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-workstation-risks.svg
+
+    accounts:
+      id: accounts
+      type: multi_icon
+      name: accounts
+      label: Accounts
+      valuePath: accounts
+      groupByKey: accounts
+      order: 5
+    browser:
+      id: browser
+      type: BrowserIcon
+      name: browser
+      label: Browser
+      valuePath: browser
+      groupByKey: browser
+      order: 6
+      map:
+        "google chrome":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/87865_chrome_icon.png
+    # checkbox:
+
+    #   show: true
+    #   order: 0
+  groups:
+    risks:
+      id: risk
+      type: boxTextExpanded
+      label: Risk
+      valuePath: name
+      sortable: false
+      groupByKey: Name
+      order: 1
+    name:
+      id: name
+      type: status
+      label: Name
+      valuePath: name
+      sortable: false
+      groupByKey: Name
+      order: 2
+    users:
+      id: users
+      type: text
+      extraClasses: text-center text-xl
+      label: Users
+      valuePath: users
+      sortable: false
+      groupByKey: Users
+      order: 3
+    risk:
+      id: riskScore
+      type: RiskViewHuman
+      label: Risk
+      valuePath: name
+      groupByKey: Name
+      order: 4
+      chart: trend-chart-risk-group
+      chartType: line-chart
+      chartKeyId: name
+      chartParam:
+        xAxis:
+          type: "datetime"
+          title:
+            text: "Date"
+          visible: true
+          minorTickLength: 0
+          gridLineWidth: 1
+          gridLineColor: "#555555"
+          minorGridLineWidth: 0.5
+          minorGridLineColor: "#555555"
+          minorTickInterval: "auto"
+        yAxis:
+          title:
+            text: "Security Index"
+          max: 120
+          gridLineWidth: 1
+          minorGridLineWidth: 1
+          visible: false
+
+      chartQueryParam: name
+      sortable: false
+    posture:
+      id: posture
+      type: PostureViewHuman
+      name: posture
+      label: Posture
+      valuePath: name
+      chart: group-trend-chart-posture
+      chartType: severity
+      chartKeyId: name
+      chartQueryParam: id
+      groupByKey: Name
+      order: 5
+      map:
+        "Password Hygiene":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-password-hygiene.svg
+        "SaaS Usage":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-saas-usage.svg
+        "MFA usage":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-mfa-usage.svg
+        "Human Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-human-risk.svg
+        "Data Handling":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-data-handling.svg
+        "AI Usage":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-ai-usage.svg
+        "Social Engineering":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-social-engineering.svg
+        "Web Browsing":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-web-browsing.svg
+        "Workstation Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-workstation-risks.svg
+  locations: 
+    risks:
+      id: risk
+      type: boxTextExpanded
+      label: Risk
+      valuePath: name
+      sortable: false
+      groupByKey: Name
+      order: 1
+    name:
+      id: name
+      type: status
+      label: Name
+      valuePath: name
+      sortable: false
+      groupByKey: Name
+      order: 2
+    users:
+      id: users
+      type: text
+      extraClasses: text-center text-xl
+      label: Users
+      valuePath: users
+      sortable: false
+      groupByKey: Users
+      order: 3
+    risk:
+      id: riskScore
+      type: RiskViewHuman
+      label: Risk
+      valuePath: name
+      groupByKey: Name
+      order: 4
+      chart: trend-chart-risk-location
+      chartType: line-chart
+      chartKeyId: name
+      chartParam:
+        xAxis:
+          type: "datetime"
+          title:
+            text: "Date"
+          visible: true
+          minorTickLength: 0
+          gridLineWidth: 1
+          gridLineColor: "#555555"
+          minorGridLineWidth: 0.5
+          minorGridLineColor: "#555555"
+          minorTickInterval: "auto"
+        yAxis:
+          title:
+            text: "Security Index"
+          max: 120
+          gridLineWidth: 1
+          minorGridLineWidth: 1
+          visible: false
+
+      chartQueryParam: name
+      sortable: false
+    posture:
+      id: posture
+      type: PostureViewHuman
+      name: posture
+      label: Posture
+      valuePath: name
+      chart: location-trend-chart-posture
+      chartType: severity
+      chartKeyId: name
+      chartQueryParam: id
+      groupByKey: Name
+      order: 5
+      map:
+        "Password Hygiene":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-password-hygiene.svg
+        "SaaS Usage":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-saas-usage.svg
+        "MFA usage":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-mfa-usage.svg
+        "Human Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-human-risk.svg
+        "Data Handling":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-data-handling.svg
+        "AI Usage":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-ai-usage.svg
+        "Social Engineering":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-social-engineering.svg
+        "Web Browsing":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-web-browsing.svg
+        "Workstation Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-workstation-risks.svg
+  departments:
+    risks:
+      id: risk
+      type: boxTextExpanded
+      label: Risk
+      valuePath: name
+      sortable: false
+      groupByKey: Name
+      order: 1
+    name:
+      id: name
+      type: status
+      label: Name
+      valuePath: name
+      sortable: false
+      groupByKey: Name
+      order: 2
+    users:
+      id: users
+      type: text
+      extraClasses: text-center text-xl
+      label: Users
+      valuePath: users
+      sortable: false
+      groupByKey: Users
+      order: 3
+    groups:
+      id: groups
+      type: columnView
+      label: Groups
+      valuePath: groups
+      sortable: false
+      groupByKey: groups
+      order: 4
+    risk:
+      id: riskScore
+      type: RiskViewHuman
+      label: Risk
+      valuePath: name
+      groupByKey: Name
+      order: 5
+      chart: trend-chart-risk-department
+      chartType: line-chart
+      chartKeyId: name
+      chartParam:
+        xAxis:
+          type: "datetime"
+          title:
+            text: "Date"
+          visible: true
+          minorTickLength: 0
+          gridLineWidth: 1
+          gridLineColor: "#555555"
+          minorGridLineWidth: 0.5
+          minorGridLineColor: "#555555"
+          minorTickInterval: "auto"
+        yAxis:
+          title:
+            text: "Security Index"
+          max: 120
+          gridLineWidth: 1
+          minorGridLineWidth: 1
+          visible: false
+
+      chartQueryParam: name
+      sortable: false
+    posture:
+      id: posture
+      type: PostureViewHuman
+      name: posture
+      label: Posture
+      valuePath: name
+      chart: department-trend-chart-posture
+      chartType: severity
+      chartKeyId: name
+      chartQueryParam: id
+      groupByKey: Name
+      order: 5
+      map:
+        "Password Hygiene":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-password-hygiene.svg
+        "SaaS Usage":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-saas-usage.svg
+        "MFA usage":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-mfa-usage.svg
+        "Human Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-human-risk.svg
+        "Data Handling":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-data-handling.svg
+        "AI Usage":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-ai-usage.svg
+        "Social Engineering":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-social-engineering.svg
+        "Web Browsing":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-web-browsing.svg
+        "Workstation Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-workstation-risks.svg
+pagination_query:
+  query: "MATCH (u:USER)-[:HAS_EMAIL]->(email:EMAIL:PRIMARY)
+    OPTIONAL MATCH (u)-[:HAS_MANAGER]->(manager: USER)
+    OPTIONAL MATCH (email)-[hasaccount]->(account:ACCOUNT)
+    OPTIONAL MATCH (account)-[:HAS_BROWSER]->(browser:BROWSER)
+    OPTIONAL MATCH (account)-[:USING_APP]->(app:APPLICATION)
+    OPTIONAL MATCH (u)-[:BELONGS_TO]->(g:GROUP{userDefined : true})
+    OPTIONAL MATCH (account)-[hi:HAS_ISSUE]->(i:ISSUE)
+    OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(i)
+    OPTIONAL MATCH (rule)-[:BELONGS_TO]->(behaviour:BEHAVIOUR)
+    OPTIONAL MATCH (behaviour)-[:BELONGS_TO]->(posture:POSTURE)
+    WHERE
+    u.subscriber = $subscriber
+    AND u.tenant = $tenant
+    AND toLower(u.displayName) =~ '.*{searchText}.*'
+    {placeholder}
+    RETURN
+    COUNT(DISTINCT u.id) AS totalCount"
+  dataSourceType: knowledgegraph
+table_widget:
+  - id: trend-chart-risk-user
+    name: risk
+    label: Risk
+    template: id
+    enabled: true
+    type: line-graph
+    className: w-1/2
+    allowed_params: true
+    dataSourceType: datalake
+    input_params:
+      startdate: $startdate
+      enddate: $enddate
+      id: $id
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: "select userid, risk_score as risk_index, year, monthofyear, dayofmonth from kafka_connect.snowdata_schema.userscoresnapshot where userid = $id AND DATE_FROM_PARTS(year, monthofyear, dayofmonth) BETWEEN $startdate AND $enddate and subscriber=$subscriber order by year, monthofyear, dayofmonth"
+  - id: trend-chart-risk-department
+    name: risk
+    label: Risk
+    template: id
+    enabled: true
+    type: line-graph
+    className: w-1/2
+    allowed_params: true
+    dataSourceType: datalake
+    input_params:
+      startdate: $startdate
+      enddate: $enddate
+      name: $name
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: "select risk_score as risk_index, year, monthofyear, dayofmonth from kafka_connect.snowdata_schema.userscoresnapshotaggregated where agg_type = 'organization' and agg_subtype='department' and agg_subtype_name=$name and DATE_FROM_PARTS(year, monthofyear, dayofmonth) BETWEEN $startdate AND $enddate and subscriber=$subscriber order by year, monthofyear, dayofmonth"
+  - id: trend-chart-risk-group
+    name: risk
+    label: Risk
+    template: id
+    enabled: true
+    type: line-graph
+    className: w-1/2
+    allowed_params: true
+    dataSourceType: datalake
+    input_params:
+      startdate: $startdate
+      enddate: $enddate
+      name: $name
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: "select risk_score as risk_index, year, monthofyear, dayofmonth from kafka_connect.snowdata_schema.userscoresnapshotaggregated where agg_type = 'organization' and agg_subtype='group' and agg_subtype_name = $name and DATE_FROM_PARTS(year, monthofyear, dayofmonth) BETWEEN $startdate AND $enddate and subscriber = $subscriber order by year, monthofyear, dayofmonth"
+  - id: trend-chart-risk-location
+    name: risk
+    label: Risk
+    template: id
+    enabled: true
+    type: line-graph
+    className: w-1/2
+    allowed_params: true
+    dataSourceType: datalake
+    input_params:
+      startdate: $startdate
+      enddate: $enddate
+      name: $name
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: "select risk_score as risk_index, year, monthofyear, dayofmonth from kafka_connect.snowdata_schema.userscoresnapshotaggregated where agg_type = 'organization' and agg_subtype='officeLocation' and agg_subtype_name=$name and DATE_FROM_PARTS(year, monthofyear, dayofmonth) BETWEEN $startdate AND $enddate and subscriber=$subscriber order by year, monthofyear, dayofmonth"
+  # - id: trend-chart-risk-department
+  #   name: risk
+  #   label: Risk
+  #   template: id
+  #   enabled: true
+  #   type: line-graph
+  #   className: w-1/22
+  #   allowed_params: true
+  #   dataSourceType: datalake
+  #   input_params:
+  #     startdate: $startdate
+  #     enddate: $enddate
+  #     id: $id
+  #   queryFilters:
+  #     - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+  #       name: Time Filter
+  #       type: multiselect
+  #       options: null
+  #   query: "select userid, riskindex as risk_index, year, monthofyear, dayofmonth from kafka_connect.snowdata_schema.userscoresnapshot where userid = $id AND DATE_FROM_PARTS(year, monthofyear, dayofmonth) BETWEEN $startdate AND $enddate and subscriber=$subscriber order by year, monthofyear, dayofmonth"
+  - id: user-percentage-risk
+    name: posture
+    label: Posture
+    template: id
+    enabled: true
+    type: line-graph
+    className: w-1/2
+    allowed_params: true
+    dataSourceType: datalake
+    input_params:
+      username: $username
+      starttime: $starttime
+      endtime: $endtime
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: 
+      "WITH parameters AS (
+          SELECT
+              $subscriber AS subscriber,
+              $tenant AS tenant,
+              $username AS username,
+              $endtime AS endtime,
+              $starttime AS starttime,
+              TO_DATE(TO_TIMESTAMP($starttime / 1000)) AS start_date,
+              TO_DATE(TO_TIMESTAMP($endtime / 1000)) AS end_date
+      ),
+      risk_scores AS (
+          SELECT
+              uss.username,
+              DATE_FROM_PARTS(uss.year, uss.monthofyear, uss.dayofmonth) AS date,
+              uss.risk_score
+          FROM
+              kafka_connect.snowdata_schema.userscoresnapshot uss
+          CROSS JOIN parameters p
+          WHERE
+              uss.subscriber = p.subscriber
+              AND uss.tenant = p.tenant
+              AND uss.USERNAME = p.username
+              AND DATE_FROM_PARTS(uss.year, uss.monthofyear, uss.dayofmonth) BETWEEN p.start_date AND p.end_date
+      ),
+      first_last_scores AS (
+          SELECT 
+              username,
+              MIN(risk_score) AS first_score,
+              MAX(risk_score) AS last_score
+          FROM 
+              risk_scores
+          GROUP BY
+              username
+      ),
+      percentage_changes AS (
+          SELECT
+              username,
+              CASE
+                  WHEN first_score IS NULL AND last_score IS NOT NULL THEN 0
+                  WHEN first_score IS NOT NULL AND last_score IS NULL THEN 0
+                  WHEN first_score IS NULL AND last_score IS NULL THEN 0
+                  WHEN first_score = last_score THEN 0
+                  ELSE ROUND(((last_score - first_score) / NULLIF(first_score, 0)) * 100, 0)
+              END AS risk_score_changed_percentage
+          FROM
+              first_last_scores
+      )
+      SELECT
+          COALESCE(ROUND(AVG(risk_score_changed_percentage), 2), 0) AS avg_risk_score_changed_percentage
+      FROM
+          percentage_changes "
+  - id: user-trend-chart-posture
+    name: posture
+    label: Posture
+    template: id
+    enabled: true
+    type: line-graph
+    className: w-1/2
+    allowed_params: true
+    dataSourceType: datalake
+    input_params:
+      enddate: $enddate
+      id: $id
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: "
+      WITH max_risk_index AS (
+      SELECT
+          agg_subtype_name AS name,
+          MAX(TO_NUMBER(ROUND((alert_percentile * 4) + 1))) AS risk_index
+      FROM
+          kafka_connect.snowdata_schema.postureprofileaggregated
+      WHERE
+          subscriber = $subscriber
+          AND tenant = $tenant
+          AND agg_type = 'userid'
+          AND agg_subtype = 'posture'
+          and agg_type_name = $id
+      GROUP BY
+          agg_subtype_name
+      )
+      SELECT
+          name,
+          risk_index
+      FROM
+          max_risk_index
+      ORDER BY
+          name"
+  - id: department-trend-chart-posture
+    name: posture
+    label: Posture
+    template: id
+    enabled: true
+    type: line-graph
+    className: w-1/2
+    allowed_params: true
+    dataSourceType: datalake
+    input_params:
+      enddate: $enddate
+      id: $id
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: 
+      "WITH max_risk_index AS (
+      SELECT
+          agg_subtype_name AS name,
+          MAX(TO_NUMBER(ROUND((alert_percentile * 4) + 1))) AS risk_index
+      FROM
+          kafka_connect.snowdata_schema.postureprofileaggregated
+      WHERE
+          subscriber = $subscriber
+          AND tenant = $tenant
+          AND agg_type = 'department'
+          AND agg_subtype = 'posture'
+          and agg_type_name = $id
+      GROUP BY
+          agg_subtype_name
+      )
+      SELECT
+          name,
+          risk_index
+      FROM
+          max_risk_index
+      ORDER BY
+          name"
+  - id: location-trend-chart-posture
+    name: posture
+    label: Posture
+    template: id
+    enabled: true
+    type: line-graph
+    className: w-1/2
+    allowed_params: true
+    dataSourceType: datalake
+    input_params:
+      enddate: $enddate
+      id: $id
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: 
+      "WITH max_risk_index AS (
+      SELECT
+          agg_subtype_name AS name,
+          MAX(TO_NUMBER(ROUND((alert_percentile * 4) + 1))) AS risk_index
+      FROM
+          kafka_connect.snowdata_schema.postureprofileaggregated
+      WHERE
+          subscriber = $subscriber
+          AND tenant = $tenant
+          AND agg_type = 'officeLocation'
+          AND agg_subtype = 'posture'
+          and agg_type_name = $id
+      GROUP BY
+          agg_subtype_name
+      )
+      SELECT
+          name,
+          risk_index
+      FROM
+          max_risk_index
+      ORDER BY
+          name"
+  - id: group-trend-chart-posture
+    name: posture
+    label: Posture
+    template: id
+    enabled: true
+    type: line-graph
+    className: w-1/2
+    allowed_params: true
+    dataSourceType: datalake
+    input_params:
+      enddate: $enddate
+      id: $id
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: 
+      "WITH max_risk_index AS (
+      SELECT
+          agg_subtype_name AS name,
+          MAX(TO_NUMBER(ROUND((alert_percentile * 4) + 1))) AS risk_index
+      FROM
+          kafka_connect.snowdata_schema.postureprofileaggregated
+      WHERE
+          subscriber = $subscriber
+          AND tenant = $tenant
+          AND agg_type = 'group'
+          AND agg_subtype = 'posture'
+          and agg_type_name = $id
+      GROUP BY
+          agg_subtype_name
+      )
+      SELECT
+          name,
+          risk_index
+      FROM
+          max_risk_index
+      ORDER BY
+          name"

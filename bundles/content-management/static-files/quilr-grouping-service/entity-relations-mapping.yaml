@@ -1,0 +1,82 @@
+id: 29bd7d03-e65a-4ff7-ad0c-df4a553cfd67
+version: 2.0
+config:
+  ROLE:
+    match: "(user:USER)-[:HAS_EMAIL]-(email:EMAIL)-[]-(account:ACCOUNT)-[:HAS_ROLE]-(role:ROLE)"
+    properties:
+      - name: isroleprivileged
+        type: boolean
+        displayName: Admin
+      - name: inbuiltrole
+        type: boolean
+        displayName: In Built-in Role
+      - name: rolename
+        type: boolean
+        displayName: Role Name
+    type: entity
+  DEPARTMENT:
+    match: "(user:USER)-[:HAS_DEPARTMENT]-(department:DEPARTMENT)"
+    properties:
+      - name: name
+        type: String
+        displayName: Department Name
+    type: entity
+  USER:
+    match: "(user:USER)"
+    properties:
+      - name: jobTitle
+        type: String
+        displayName: Job Title
+      - name: employeeType
+        type: String
+        displayName: Employee Type
+      - name: userType
+        type: String
+        displayName: User Type
+      - name: workFrom
+        type: String
+        displayName: Work Mode
+      - name: terminationDate
+        type: timestamp
+        displayName: Termination Date
+    type: entity
+  OFFICE_LOCATION:
+    match: "(user:USER)-[:LOCATED_AT]-(office_location:OFFICE_LOCATION)"
+    properties:
+      - name: name
+        type: String
+        displayName: Office Location Name
+    type: entity
+  EXECUTIVE:
+    match: "depth = (ceoUser:USER {displayName: 'Vidit Arora'})<-[:HAS_MANAGER*1..]-(user:USER)"
+    properties:
+      - name: depth
+        type: custom
+        displayName: Levels
+    preview: " RETURN user.jobTitle AS role, size(collect(DISTINCT user.id)) AS usersCount ORDER BY usersCount DESC"
+    type: group
+  ADMINISTRATOR:
+    match: "(user:USER)-[:HAS_EMAIL]-(email:EMAIL)-[]-(account:ACCOUNT)-[:HAS_ROLE]-(role:ROLE)"
+    properties:
+      - name: isroleprivileged
+        type: boolean
+        displayName: Admin
+    preview: " RETURN role.rolename AS role, COUNT(DISTINCT user.id) AS usersCount ORDER BY usersCount DESC"
+    type: group
+    nodelabel: ROLE
+  LEAVERS:
+    match: "(user:USER)-[:HAS_DEPARTMENT]-(department:DEPARTMENT), (user)-[:HAS_MANAGER]-(manager:USER), (user)-[:HAS_EMAIL]-(email:EMAIL)-[]-(account:ACCOUNT)-[:HAS_ROLE]-(role:ROLE)"
+    properties:
+      - name: terminationDate
+        type: timestamp
+        displayName: Termination Date
+    preview: " RETURN user.displayName as userName,
+                    manager.displayName as managerName,
+                    department.name as departmentName,
+                    user.jobTitle as jobTitle,
+                    COLLECT(DISTINCT role.rolename) as roleNames,
+                    user.terminationDate as terminaitionDate"
+    type: group
+    nodelabel: USER
+updatedon: 1725456223000
+createdon: 1725456223000

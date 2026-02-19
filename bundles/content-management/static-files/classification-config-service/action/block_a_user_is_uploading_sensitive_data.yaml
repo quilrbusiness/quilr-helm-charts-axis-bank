@@ -1,0 +1,21 @@
+id: 2b3c4d5e-6f70-7182-9a0b-1c2d3e4f9043
+version: 1.2
+code: ACT_252
+name: Block user uploading sensitive data
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: templatized
+    message_template: block-uploading-sensitive-data
+    execution_type: tool
+    execution_module: send_templated_user_message
+    browser_action: Block
+    blocked: false
+tags:
+  - UC043
+behavior:
+  - BID_203
+createdon: 1755715200000
+updatedon: 1758018676721

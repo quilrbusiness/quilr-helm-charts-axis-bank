@@ -1,0 +1,48 @@
+datatype: DICT
+defaultValue:
+  name: Source Code and Algorithms
+  description: Proprietary or security-critical code and algorithmic implementations
+  criticality: CRITICAL
+  sensitivity: Sensitive
+  examples:
+    - Proprietary Algorithm Implementation
+    - Unreleased Software Source Code
+    - Security System Codebase
+    - Database Schema with Access Credentials
+    - AI/ML Model Training Code and Parameters
+  indicators:
+    - Presence of programming language syntax
+    - Algorithmic logic or pseudocode
+    - Software architecture details
+    - Embedded access credentials or API keys
+  contentMarkers:
+    - Programming language-specific keywords
+    - Function or class definitions
+    - Algorithm-specific terminology
+    - Code comments indicating proprietary nature
+  impactSummary: >-
+    Intellectual property theft risk; security vulnerabilities; loss of
+    competitive advantage
+  classificationRules:
+    positive: >-
+      Contains detailed source code; proprietary algorithms; security-critical
+      implementations
+    negative: Public code snippets; general programming concepts; open-source code
+    resolution: >-
+      Assess the uniqueness, proprietary nature, and security implications of the
+      code
+  relatedClasses:
+    - AUTH001
+    - OPS001
+    - IPR001
+    - BCI001
+entityDescription: |-
+  Data Definition to classify and extract Source Code and Algorithms from text
+entityId: SRC001
+entityMeta:
+  category: Data Protection Rule
+  source: default
+entityName: Source Code and Algorithms
+entityType: dlp_rule
+isDisabled: false
+isModifiable: true

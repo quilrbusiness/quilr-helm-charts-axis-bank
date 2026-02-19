@@ -1,0 +1,266 @@
+id: 78b36f64-7c82-4e9b-a9e4-4d5c64ece130
+name: Apps Data To Knowledgegraph
+type: ingestion-to-graph
+version: 1.2.0
+schedule: 1h
+historicalrecordduration: 3h
+lambda_config:
+  batch_size : 100
+source: 
+  type: query
+  config: 
+    query: "SELECT  
+              QUILR_MATCHED_APP_ID, IDP_APP_MATCHED_ID , APPLICATION_HOMEPAGEURL AS DOMAIN, QUILR_INTEGRATION_VENDOR_NAME AS VENDOR,QUILR_TENANTID,QUILR_SUBSCRIBERID,
+              QUILR_INTEGRATION_INSTANCEID, APPLICATION_DISPLAYNAME, APPLICATION_AUTHENTICATION_ENABLED, APPLICATION_PRINCIPALID,
+              APPLICATION_IDPPROVIDER, APPLICATION_AUTHENTICATION_TYPE, APPLICATION_CREATIONTIME, APPLICATION_ISVERIFIED, APPLICATION_LOGOURL, APPLICATION_PRIVACYSTATEMENTURL,
+              APPLICATION_TERMSOFSERVICEURL, APPLICATION_OWNERS, APPLICATION_GRANTS_USERTYPE , APPLICATION_USERS , APPLICATION_USERGROUP_NAMES, APPLICATION_SCOPES AS SCOPE
+            FROM kafka_connect.snowdata_schema.transformeddata 
+            WHERE quilr_integration_type = 'apps' AND 
+            APPLICATION_HOMEPAGEURL IS NOT NULL 
+            AND RECORD_METADATA['CreateTime']::bigint > $starttime AND RECORD_METADATA['CreateTime']::bigint < $endtime"
+    type: datalake
+    limit: 
+    offset: 0
+destination: 
+  type: stream
+  topic: knowledgeGraph
+config: 
+  nodes: 
+    account: 
+      type: ACCOUNT
+      id: APP_AND_EMAIL
+      properties: 
+        email: $.APPLICATION_USERS.registrationDetails.userPrincipalName
+        appName: APPLICATION_DISPLAYNAME
+      immutableproperties:
+        creationTime: TIMESTAMP
+    login_method: 
+      merge:
+        attribute: $.APPLICATION_USERS.registrationDetails.id
+        property: userid
+      type: EMAIL
+      tags: 
+        - PRIMARY
+    account_main: 
+      id: VENDOR_AND_EMAIL
+      type: ACCOUNT
+      properties: 
+        email: $.APPLICATION_USERS.registrationDetails.userPrincipalName
+        appName: VENDOR
+      immutableproperties:
+        creationTime: TIMESTAMP
+    tenant: 
+      type: TENANT
+      id: QUILR_TENANTID
+    app: 
+      context: global
+      type: APPLICATION
+      merge:
+        property: id_
+        attribute: QUILR_MATCHED_APP_ID
+      immutableproperties:
+        domain: DOMAIN
+        newApp: newApp
+        globalSyncAllowed: globalSyncAllowed
+    grant: 
+      id: $.APPLICATION_GRANTS_USERTYPE.id
+      type: GRANT
+      properties: 
+        consentBy: $.APPLICATION_GRANTS_USERTYPE.consentBy
+        consentType: $.APPLICATION_GRANTS_USERTYPE.consentType
+    scope: SCOPE
+    group: 
+      id: $.APPLICATION_USERGROUP_NAMES.principalId
+      type: GROUP
+    accountAdmin: 
+      join: 
+        with: EMAIL
+        on: id
+        value: $.APPLICATION_OWNERS.userPrincipalName
+        relation: CREDSBASED_ACCOUNT
+      type: ACCOUNT
+  edges: 
+    - destination: app
+      direction: out
+      relation: USING_APP
+      source: account
+      properties:
+        microsoftId: APPLICATION_PRINCIPALID
+      immutableproperties:
+        creationTime: APPLICATION_CREATIONTIME
+    - destination: account
+      direction: out
+      relation: $APPLICATION_AUTHENTICATION_TYPE
+      source: login_method
+      immutableproperties:
+        creationTime: $.APPLICATION_USERS.createdDateTime
+    - destination: account_main
+      direction: out
+      relation: USING_ACCOUNT
+      source: account
+      when: APP_AND_EMAIL != VENDOR_AND_EMAIL
+    - destination: account_main
+      direction: out
+      relation: CREDSBASED_ACCOUNT
+      source: login_method
+      properties:
+        isAdmin: $.APPLICATION_USERS.registrationDetails.isAdmin
+        creationTime: $.APPLICATION_USERS.createdDateTime
+        defaultMfaMethod: $.APPLICATION_USERS.registrationDetails.defaultMfaMethod
+        isMfaCapable: $.APPLICATION_USERS.registrationDetails.isMfaCapable
+        isMfaEnabled: $.APPLICATION_USERS.registrationDetails.isEnabled
+        isMfaRegistered: $.APPLICATION_USERS.registrationDetails.isMfaRegistered
+        isPasswordlessCapable: $.APPLICATION_USERS.registrationDetails.isPasswordlessCapable
+        isSsprCapable: $.APPLICATION_USERS.registrationDetails.isSsprCapable
+        isSsprEnabled: $.APPLICATION_USERS.registrationDetails.isSsprEnabled
+        isSsprRegistered: $.APPLICATION_USERS.registrationDetails.isSsprRegistered
+        isSystemPreferredAuthenticationMethodEnabled: $.APPLICATION_USERS.registrationDetails.isSystemPreferredAuthenticationMethodEnabled
+        lastUpdatedDateTime: $.APPLICATION_USERS.registrationDetails.lastUpdatedDateTime
+        methodsRegistered: $.APPLICATION_USERS.registrationDetails.methodsRegistered
+        systemPreferredAuthenticationMethods: $.APPLICATION_USERS.registrationDetails.systemPreferredAuthenticationMethods
+    - destination: app
+      direction: out
+      relation: HAS_ACCESS
+      source: group
+      when: APPLICATION_USERGROUP_NAMES.principalType == 'Group'
+      properties:
+        joiningDate: $.APPLICATION_USERGROUP_NAMES.createdDateTime
+    - destination: accountAdmin
+      direction: out
+      relation: HAS_ADMIN
+      source: app
+      properties:
+        isMfaRegistered: $.APPLICATION_OWNERS.registrationDetails.isMfaRegistered
+        mfaType: $.APPLICATION_OWNERS.registrationDetails.methodsRegistered
+    - destination: grant
+      direction: out
+      relation: HAS_GRANT
+      source: app
+    - destination: accountAdmin
+      direction: out
+      relation: IMPOSED_ON
+      source: grant
+      when: APPLICATION_GRANTS_USERTYPE.consentBy == 'admin'
+    - destination: account_main
+      direction: out
+      relation: IMPOSED_ON
+      source: grant
+      when: APPLICATION_GRANTS_USERTYPE.consentBy == 'admin'
+    - destination: account_main
+      direction: out
+      relation: GIVEN_BY
+      source: grant
+      when: APPLICATION_GRANTS_USERTYPE.consentBy == 'user' && APPLICATION_GRANTS_USERTYPE.principalId == APPLICATION_USERS.principalId
+    - destination: app
+      direction: out
+      relation: HAS_APP_SETTINGS
+      source: tenant
+      properties:
+        isVerified: APPLICATION_ISVERIFIED
+        accountEnabled: APPLICATION_AUTHENTICATION_ENABLED
+        disabledByMicrosoftStatus: APPLICATION_OAUTHENABLED
+        firstSeen: APPLICATION_CREATIONTIME
+        logoUrl: APPLICATION_LOGOURL
+        privacyUrl: APPLICATION_PRIVACYSTATEMENTURL
+        tncUrl: APPLICATION_TERMSOFSERVICEURL
+        approval_status: APPSETTINGSTATUS
+        name: APPLICATION_DISPLAYNAME
+        criticality: app_criticality
+    - destination: scope
+      direction:  out
+      relation: HAS_SCOPE
+      source: grant
+lambda: |
+  def fn(payload):
+    import time
+    import re
+
+    from datetime import datetime
+    from itertools import product
+    from typing import Any, Dict, List, Union
+
+    def to_epoch_millis(date_str):
+      # Check if date_str is already in epoch milliseconds
+      if isinstance(date_str, int) or (isinstance(date_str, str) and re.match(r'^\d+$', date_str)):
+        return int(date_str)
+      try:
+        dt = datetime.fromisoformat(date_str.rstrip('Z'))
+        epoch = int(dt.timestamp() * 1000)
+        return epoch
+      except ValueError:
+        return date_str
+
+    def normalize_dates(data):
+      if isinstance(data, dict):
+        for key, value in data.items():
+          if isinstance(value, (dict, list)):
+            normalize_dates(value)
+          elif isinstance(value, str) and 'T' in value and ':' in value:
+            data[key] = to_epoch_millis(value)
+      elif isinstance(data, list):
+        for item in data:
+          normalize_dates(item)
+    
+    def flatten_lists(payload: List[Dict[str, Union[List, Any]]]) -> List[Dict[str, Any]]:
+      print("Inside flatten function..")
+      rows = []
+      for entry in payload:
+        
+        list_items = {k: (v if v else [None]) for k, v in entry.items() if isinstance(v, list) and k != "SCOPE"}
+        non_list_items = {k: v for k, v in entry.items() if not isinstance(v, list) or k == "SCOPE"}
+
+        empty_list_keys = [k for k, v in entry.items() if isinstance(v, list) and not v and k != "SCOPE"]
+
+        if list_items:
+            
+          list_keys = list(list_items.keys())
+          list_values = list(list_items.values())
+          
+          for combination in product(*list_values):
+            row = non_list_items.copy()
+            row.update({list_keys[i]: combination[i] for i in range(len(list_keys))})
+            for key in empty_list_keys:
+                row[key] = []
+            rows.append(row)
+      
+        else:
+          rows.append(non_list_items)
+      return rows
+
+    if payload:
+      new_payload = flatten_lists(payload)
+
+      for item in new_payload:  
+        if item.get("APPLICATION_USERS") is None or isinstance(item.get("APPLICATION_USERS"), list):
+          continue   
+        normalize_dates(item)
+        user_principal_name = item.get("APPLICATION_USERS", {}).get("registrationDetails", {}).get("userPrincipalName")
+        if not user_principal_name:
+          user_principal_name = item.get("APPLICATION_USERS", {}).get("id", "")
+        idp_app_id = item.get("IDP_APP_MATCHED_ID")
+        app_id = item.get("QUILR_MATCHED_APP_ID")
+        item["TIMESTAMP"] = int(time.time()) * 1000
+        signin_mode = item.get("APPLICATION_AUTHENTICATION_TYPE")
+        if signin_mode is None:
+          item["APPLICATION_AUTHENTICATION_TYPE"] = 'OAUTH_ACCOUNT'
+        elif isinstance(signin_mode, str):
+          if "saml" in signin_mode.lower():
+            item["APPLICATION_AUTHENTICATION_TYPE"] = "SAML_ACCOUNT"
+          elif "creds" in signin_mode.lower():
+            item["APPLICATION_AUTHENTICATION_TYPE"] = "CREDSBASED_ACCOUNT"
+          elif "oauth" in signin_mode.lower():
+            item["APPLICATION_AUTHENTICATION_TYPE"] = "OAUTH_ACCOUNT"
+        item["APP_AND_EMAIL"] = f"{user_principal_name}_{app_id}"
+        item["VENDOR_AND_EMAIL"] = f"{user_principal_name}_{idp_app_id}"
+        if "SAML" in item.get("APPLICATION_AUTHENTICATION_TYPE", ""):
+          item["APPSETTINGSTATUS"] = "APPROVED"
+        else:
+          item["APPSETTINGSTATUS"] = "UNAPPROVED"
+        item["globalSyncAllowed"] = True
+        item["newApp"] = True
+        item["app_criticality"] = 'CRITICAL'
+      return new_payload
+    else:
+      return payload
+createdon: 1721217856
+updatedon: 1721217856

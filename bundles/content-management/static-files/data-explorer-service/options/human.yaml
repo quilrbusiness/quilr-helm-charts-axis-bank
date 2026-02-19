@@ -1,0 +1,10 @@
+version: 1.0.8
+screen_id: human-screen
+title: Users
+tag: Human Screen
+description: Monitor your organization's security posture
+active: true
+type: options
+path: human
+iconUrl: "https://staticcontent1.blob.core.windows.net/quilrstatic/sidebar-icons/Human2.svg"
+order: 3

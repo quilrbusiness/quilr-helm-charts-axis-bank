@@ -1,0 +1,17 @@
+id: f01bedd5-57e6-44c9-a37a-2d0514f97a18
+version: 3.0
+code: Q064
+name: New Device login detected
+description: 
+type: rule
+view: identity_protection
+impact: high
+likelihood: high
+createdon: 1720094794000
+updatedon: 1720094794000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_45
+examples: []
+recommendations: []

@@ -1,0 +1,56 @@
+version: 1.0.2
+criticality: 4
+mode: monitor
+control_name: Discovering a new AI user
+control_description: "This control monitors and identifies newly introduced AI users within the organization."
+posture:
+  id: PID_01
+behavior:
+  id: BID_02
+use_case:
+  id: UC002
+trigger_conditions:
+- operator: 
+  filter_condition:
+    attribute_type: ATTR_Browser_001
+    attribute_id: BROWSER-002
+    condition: is_equal_to
+    value: visit
+  filter_group: 
+- operator: AND
+  filter_condition:
+    attribute_type: ATTR_APP_001
+    attribute_id: APP-001
+    condition: is_equal_to
+    value: generative ai
+  filter_group: 
+- operator: AND
+  filter_condition:
+    attribute_type: ATTR_USER_001
+    attribute_id: USER-007
+    condition: is equal to
+    value: "false"
+  filter_group: 
+actions:
+- type:
+    id: ACTP_02
+  name:
+    id: ACT_305
+  description: 
+  meta:
+    channel: browser
+    engagement_type: templatized
+    message_template: justify-creating-an-account-on-an-ai-app
+    execution_type: tool
+    execution_module: send_templated_user_message
+    browser_action: Ask
+    prompt_frequency: 
+    default_conversation_params:
+      is_urgent: false
+      tone: 
+      cc_manager: false
+      sla: 
+      sla_duration_unit: 
+      reminder_count: 
+      custom_message: 
+    custom_conversation_params:

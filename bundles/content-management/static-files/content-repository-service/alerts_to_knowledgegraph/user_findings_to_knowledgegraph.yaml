@@ -1,0 +1,234 @@
+id: 8f1169dd-7712-4d30-8248-62b60cd261da
+name: User Findings Data To Knowledge Graph
+type: ingestion-to-graph
+version: 1.0.14
+schedule: 2m
+historicalrecordduration: 2m
+source:
+  type: query
+  config:
+    query: "SELECT AC.RECORD_METADATA['CreateTime']::bigint AS datetime, AC.LEVELNAME, AC.LEVELCODE, AC.ENTITY, AC.ENTITYTYPE,
+                  AC.ALERTID, AC.CONTEXT_ID, AC.LEVEL, AC.ALERTTYPE, AC.ALERTSUBTYPE, AC.SEVERITY, AC.IMPACTCODE,
+                  AC.LIKELIHOODCODE, AC.GENERATIONTIME, AC.EVENTTIME, AC.SCORE, AM.ARTIFACTS, AM.MESSAGE,
+                  COALESCE(AM.PROPERTIES['userMail'],
+                          AM.PROPERTIES['alertEmailAddress'], 
+                          AM.PROPERTIES['accountname'], 
+                          AM.PROPERTIES['recipient_address']) AS USER_MAIL,
+                  AM.PROPERTIES['appId'] as APPID,
+                  AM.PROPERTIES['accountId'] as ACCOUNTID,
+                  AM.PROPERTIES['deviceId'] as DEVICE_ID,
+                  COALESCE(AM.PROPERTIES['mode']::text, AC.MODE) AS MODE,
+                  COALESCE(AM.PROPERTIES['resolutionChannel']::text, AC.RESOLUTIONCHANNEL) AS RESOLUTIONCHANNEL,
+                  COALESCE(AM.PROPERTIES['businessJustification']::text, AC.BUSINESSJUSTIFICATION) AS BUSINESSJUSTIFICATION,
+                  AM.PROPERTIES AS ALERT_PROPERTIES, AC.STATUS, AC.ISRESOLVED, AC.SLA, AC.CREATEDBY, AC.ASSIGNEDTOTYPE,
+                  AC.SOURCE, AC.COPILOTSTATUS, AC.TAGS, AC.ACTIONSTATUS,
+                  AC.ACTIONTAKEN, AC.SUBSCRIBER AS QUILR_SUBSCRIBERID, AC.TENANT AS QUILR_TENANTID
+            FROM kafka_connect.snowdata_schema.alertclassify AS AC 
+            JOIN kafka_connect.snowdata_schema.alertmeta AS AM 
+              ON AC.ALERTID = AM.ALERTID AND AC.SUBSCRIBER = AM.SUBSCRIBER AND AC.TENANT = AM.TENANT
+                 AND AC.ENTITYTYPE = 'user' 
+                 AND AC.LEVEL = 'rule'
+                 AND AC.ALERTTYPE = 'finding' 
+                 AND AC.RECORD_METADATA['CreateTime']::bigint >= $starttime
+                 AND AC.RECORD_METADATA['CreateTime']::bigint <= $endtime"
+    type: datalake
+    limit: 
+    offset: 0
+destination:
+  type: stream
+  topic: knowledgeGraph
+config:
+  nodes:
+    artifacts: ARTIFACTS
+    account:
+      id: ACCOUNT_APPLICATION_ID
+      type: ACCOUNT
+      ignore_case: true
+      properties:
+        email: USER_MAIL
+        appId: APPID
+    device:
+      id: DEVICE_ID
+      type: DEVICE
+    rule:
+      id: LEVELCODE
+      type: RULE
+      properties:
+        severity: SEVERITY
+    finding:
+      id: ALERTID
+      type: $FINDING_NODE_LABEL
+      properties:
+        sla: SLA
+        tags: TAGS
+        mode: MODE
+        score: SCORE
+        status: STATUS
+        source: SOURCE
+        name: LEVELNAME
+        severity: SEVERITY
+        eventTime: EVENTTIME
+        createdBy: CREATEDBY
+        subType: ALERTSUBTYPE
+        context_id: CONTEXT_ID
+        assignedto: ASSIGNEDTO
+        actionStatus: ACTIONSTATUS
+        copilotStatus: COPILOTSTATUS
+        assignedtotype: ASSIGNEDTOTYPE
+        generationTime: GENERATIONTIME
+        findingMessage: FINDING_MESSAGE
+        alert_properties: ALERT_PROPERTIES
+        resolutionChannel: RESOLUTIONCHANNEL
+        resolutionMessage: RESOLUTION_MESSAGE
+        businessJustificationSetting: BUSINESSJUSTIFICATION
+      immutableproperties:
+        startTime: CURRENT_TIMESTAMP
+        ingestionTime: CURRENT_TIMESTAMP
+    action:
+      type: ACTION
+      match:
+        property: encoded_finding_context
+        attribute: ENCODED_CONTEXT
+#      when: BROWSER_INTERACTION == true
+#    resolvedaction:
+#      type: ACTION
+#      id: ACTION_ID
+#      properties:
+#        name: ACTION_NAME
+#        state: STATUS
+#      when: ISRESOLVED == true
+    impact:
+      id: IMPACTCODE
+      type: IMPACT
+      context: global
+    likelihood:
+      id: LIKELIHOODCODE
+      type: LIKELIHOOD
+      context: global
+  edges:
+  - destination: finding
+    direction: out
+    relation: HAS_FINDING
+    source: account
+    immutableproperties:
+      startTime: CURRENT_TIMESTAMP
+  - destination: finding
+    direction: out
+    relation: HAS_FINDING
+    source: device
+    immutableproperties:
+      startTime: CURRENT_TIMESTAMP
+  - destination: artifacts
+    direction: out
+    relation: $ARTIFACT_RELATION_NAME
+    source: finding
+  - destination: finding
+    direction: out
+    relation: EVALUATED_TO
+    source: rule
+  - destination: action
+    direction: out
+    relation: TRIGGERED
+    source: finding
+    # map the action to the finding, only in case of ALERTSUBTYPE = event (DLP Alerts), for others it will be mapped through user interaction ingestion
+    when: ALERTSUBTYPE == 'event'
+    counters:
+      - property: browser_interaction_count
+        # for this, we are counting the number of times the action was triggered. Conditions: - action is taken on browser - finding resolution channel is browser
+        expression: "RESOLUTIONCHANNEL == 'browser'"
+        # location where property should be stored: source / destination / relation (default: relation)
+        locationReference: source
+#  - destination: resolvedaction
+#    direction: out
+#    relation: TRIGGERED
+#    source: finding
+  - destination: impact
+    direction: out
+    relation: HAS_IMPACT
+    source: rule
+  - destination: likelihood
+    direction: out
+    relation: HAS_LIKELIHOOD
+    source: rule
+lambda: |
+  def fn(payload):
+      import time
+      import uuid
+      import base64
+  
+      def b64encode(message):
+        message_bytes = message.encode('ascii')
+        base64_bytes = base64.b64encode(message_bytes)
+        return base64_bytes.decode('ascii')
+  
+      for item in payload:
+          item["CURRENT_TIMESTAMP"] = int(time.time()) * 1000
+
+          if not item.get("STATUS"):
+              item["STATUS"] = "open"
+          resolution_channel = item.get("RESOLUTIONCHANNEL")
+          mode = item.get("MODE")
+          if not resolution_channel:
+              item["RESOLUTIONCHANNEL"] = "Not Set"
+
+          item["BROWSER_INTERACTION"] = False
+          if resolution_channel == "browser" and mode in ["Block", "Ask", "Justify"]:
+              item["BROWSER_INTERACTION"] = True
+          
+          if item["BROWSER_INTERACTION"]:
+              item["STATUS"] = "inprogress"
+
+          user_mail = item.get("USER_MAIL")
+          app_id = item.get("APPID")
+          account_id = item.get("ACCOUNTID")
+          if account_id:
+              item["ACCOUNT_APPLICATION_ID"] = account_id
+              item["USER_MAIL"] = '_'.join(account_id.split('_')[:-1])
+          elif user_mail and app_id:
+              item["ACCOUNT_APPLICATION_ID"] = user_mail + "_" + app_id
+
+          artifacts = item.get("ARTIFACTS", [])
+          indexes_to_remove = set()
+          import copy
+          for index, artifact in enumerate(artifacts):
+              artifact_id = artifact.get("id", "")
+  
+              if artifact.get("type") == "ACCOUNT":
+                  if artifact_id.startswith("@"):
+                      artifact_id = artifact_id[1:]
+                  if not item.get("ACCOUNT_APPLICATION_ID"):
+                      item["ACCOUNT_APPLICATION_ID"] = artifact_id
+  
+              if artifact_id.startswith("@[") and artifact_id.endswith("]"):
+                  artifact_id = (artifact_id[2:-1]).replace(" ", "")
+                  distinct_artifacts = artifact_id.split(",")
+                  for distinct_artifact in distinct_artifacts:
+                      new_artifact = copy.deepcopy(artifact)
+                      new_artifact['id'] = "@" + distinct_artifact
+                      new_artifact['properties']['artifactValue'] = "@" + distinct_artifact
+                      indexes_to_remove.add(index)
+                      artifacts.append(new_artifact)
+  
+          for index in sorted(indexes_to_remove, reverse=True):
+              del artifacts[index]
+          
+          item["ARTIFACTS"] = artifacts
+          item["FINDING_MESSAGE"] = ""
+          item["RESOLUTION_MESSAGE"] = ""
+          item["FINDING_NODE_LABEL"] = "FINDING"
+          item["ARTIFACT_RELATION_NAME"] = "HAS_ARTIFACT"
+          item["ENCODED_CONTEXT"] = b64encode(f"{item.get('CONTEXT_ID', '')}_{item.get('LEVELCODE', '')}")
+          if item.get("ISRESOLVED"):
+              item["ACTION_ID"] = str(uuid.uuid4())
+              item["FINDING_NODE_LABEL"] = "FINDING_HISTORY"
+              if item["MODE"] == "Block" or item["ACTIONTAKEN"] == "Blocked":
+                  item["ACTION_NAME"] = "block_human_action"
+              else:
+                  item["ACTION_NAME"] = "resolve_incident"
+              item["RESOLUTION_MESSAGE"] = item.get("MESSAGE")
+          else:
+              item["FINDING_MESSAGE"] = item.get("MESSAGE")
+
+      return payload 
+createdon: 1707315500
+updatedon: 1707315500

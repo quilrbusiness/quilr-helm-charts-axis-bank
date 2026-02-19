@@ -1,0 +1,116 @@
+widget_id: 58e6194e-82ef-4d8d-9b0b-1c4660bd0f92
+template_id: HSI
+active: true
+title: Human Security Index (HSI)
+components:
+  - name: Human Security Index (HSI)
+    type: graph
+    data_source_type: datalake
+    lambda: |
+      def fn(client):
+        data_result = client.fetch_data(
+            query= """
+      WITH date_conversions AS (
+      SELECT
+          risk_score,
+          EXTRACT(EPOCH FROM TO_TIMESTAMP(CONCAT(year, '-', monthofyear, '-', dayofmonth), 'YYYY-MM-DD')) * 1000 AS epoch_millis
+      FROM
+          kafka_connect.snowdata_schema.userscoresnapshotaggregated
+      WHERE
+          agg_type = 'organization'  
+          and subscriber = $subscriber
+          and tenant = $tenant
+          and agg_subtype IS NULL
+          AND EXTRACT(EPOCH FROM TO_TIMESTAMP(CONCAT(year, '-', monthofyear, '-', dayofmonth), 'YYYY-MM-DD')) * 1000 BETWEEN $starttime AND $endtime
+      ),
+      risk_scores AS (
+          SELECT
+              epoch_millis,
+              ROUND(risk_score) AS risk_score
+          FROM
+              date_conversions
+          WHERE
+              risk_score IS NOT NULL
+      ),
+      current_risk_score AS (
+          SELECT
+              risk_score
+          FROM
+              risk_scores
+          ORDER BY
+              epoch_millis DESC
+          LIMIT 1
+      ),
+      initial_risk_score AS (
+          SELECT
+              risk_score
+          FROM
+              risk_scores
+          ORDER BY
+              epoch_millis ASC
+          LIMIT 1
+      ),
+      series_data AS (
+          SELECT
+              LISTAGG(
+                  CASE 
+                      WHEN risk_score IS NOT NULL THEN '{"timestamp":' || epoch_millis || ',"risk_score":' || risk_score || '}'
+                      ELSE NULL
+                  END,
+                  ','
+              ) WITHIN GROUP (ORDER BY epoch_millis) AS series_json
+          FROM
+              risk_scores
+      ),
+      change_calc AS (
+          SELECT
+              CASE 
+                  WHEN (SELECT risk_score FROM initial_risk_score) IS NOT NULL AND (SELECT risk_score FROM current_risk_score) IS NOT NULL
+                  THEN 
+                      CASE
+                          WHEN (SELECT risk_score FROM initial_risk_score) = (SELECT risk_score FROM current_risk_score) THEN 0
+                          ELSE 
+                              ROUND(
+                                  ((SELECT risk_score FROM initial_risk_score) - (SELECT risk_score FROM current_risk_score)) / 
+                                  NULLIF((SELECT risk_score FROM initial_risk_score), 0) * 100, 
+                                  2
+                              )
+                      END
+                  ELSE NULL
+              END AS change_value
+          FROM
+              dual
+      )
+      SELECT
+          '{' ||
+          '"series":[' || (SELECT series_json FROM series_data) || '],' ||
+          '"risk_score":' || (SELECT risk_score FROM current_risk_score) || ',' ||
+          '"change":' || 
+          CASE 
+              WHEN (SELECT change_value FROM change_calc) > 0 THEN '"+' || (SELECT change_value FROM change_calc) || '"'
+              WHEN (SELECT change_value FROM change_calc) < 0 THEN '"' || (SELECT change_value FROM change_calc) || '"'
+              ELSE '"0"'
+          END || ',' ||
+          '"industry_baseline":58' ||
+          '}' AS result
+      FROM
+          dual
+            """
+        )
+        if data_result and isinstance(data_result, list) and data_result[0]:
+            total_record_count = len(data_result)
+            formatted_data = {"data" :[]}
+            first_element = data_result[0]
+            if isinstance(first_element, dict) and len(first_element) > 0:
+              result = first_element.get("RESULT",{})
+              formatted_data["data"].append(result)
+            formatted_data["total_record_count"] = total_record_count
+            return formatted_data
+        else:
+            # Handle case where data_result is empty or doesn't contain expected structure
+            formatted_data = {
+                "data": [],
+                "total_record_count": 0
+            }
+            return formatted_data
+version: 1.0.4

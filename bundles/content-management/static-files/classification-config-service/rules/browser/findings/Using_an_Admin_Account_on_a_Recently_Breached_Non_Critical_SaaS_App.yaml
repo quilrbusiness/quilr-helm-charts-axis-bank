@@ -1,0 +1,17 @@
+id: 6c6ef1ff-d5e7-4bbf-8e7a-e04002a1e7c1
+version: 3.0
+code: Q038
+name: Using an Admin Account on a Recently Breached Non Critical SaaS App
+description: Login with an admin account to a recently breached application that does not handle sensitive data.
+type: rule
+view: identity_protection
+impact: high
+likelihood: moderate
+createdon: 1720396800000
+updatedon: 1720396800000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_02
+examples: []
+recommendations: []

@@ -1,0 +1,22 @@
+type: fabric
+createdon: 1736781960302
+lambda: ""
+historicalrecordduration: 4h
+istrackable: true
+id: bea70893-5a7f-449b-812f-882955d32d76
+name: okta-api-users-data-pipeline-scheduler
+source:
+  config:
+    uri: http://data-fabric-core-service:9031/fabric/start?fabricid=6e30987f-238f-464a-bb88-ea5f5a7f12dc
+    headers: {}
+    method: POST
+    body: {}
+  type: api
+destination:
+  topic: pipelineTracking
+  type: stream
+config: {}
+updatedon: 1736781960302
+version: 2
+schedule: 1h
+

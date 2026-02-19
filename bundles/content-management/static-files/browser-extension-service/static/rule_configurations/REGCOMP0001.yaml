@@ -1,0 +1,84 @@
+datatype: DICT
+defaultValue:
+  name: Regulatory Compliance Information
+  criticality: HIGH
+  description: |2-
+    Description:
+    Regulatory and Compliance Data refers to documents, communications, and records that are created or maintained to ensure that an organization complies with financial regulations and industry standards. This includes regulatory filings with bodies like the SEC, internal audit reports, risk assessments, and related communications. This data is highly sensitive as it often contains detailed information about a company's operations, financial performance, and compliance status.
+
+    Mandatory Data:
+
+    1. Regulatory Filings:
+       - Typical Formats:
+         - SEC Filings: Forms such as 10-K, 10-Q, S-1, and 8-K, usually in PDF, DOCX, or XML formats.
+         - Disclosure Documents: Annual reports, prospectuses, and other documents required by regulatory bodies.
+       - Variations: Filings may include attachments, exhibits, or amendments.
+       - Exclusions: Publicly available filings that have already been disclosed to the public should not be classified as sensitive unless they include confidential sections.
+       - Contextual Clues: Often found in documents labeled "SEC Filing", "Regulatory Disclosure", or "Annual Report".
+       - False Positive Examples: Drafts or templates of regulatory forms that are not completed or specific to the organization.
+
+    2. Internal Audit Reports:
+       - Typical Formats:
+         - Audit Findings: Detailed reports of internal audits, including findings, recommendations, and compliance status, often in DOCX or PDF formats.
+         - Audit Schedules: Plans and schedules for upcoming or ongoing audits.
+       - Variations: Reports may vary in length and detail, depending on the scope of the audit.
+       - Exclusions: General summaries or high-level overviews that do not contain specific findings should not be classified as sensitive.
+       - Contextual Clues: Often labeled as "Internal Audit Report", "Compliance Audit", or "Audit Findings".
+       - False Positive Examples: Generic audit checklists or guidelines used for training purposes.
+
+    3. Risk Assessments:
+       - Typical Formats:
+         - Risk Analysis Reports: Documents detailing the identification, evaluation, and mitigation of financial, operational, or regulatory risks.
+         - Compliance Risk Assessments: Evaluations focused specifically on compliance with laws and regulations.
+       - Variations: May include quantitative data, qualitative assessments, or both.
+       - Exclusions: Hypothetical scenarios or generic risk management frameworks not tied to specific assessments should not be classified as sensitive.
+       - Contextual Clues: Found in sections labeled "Risk Assessment", "Compliance Risk", or "Operational Risk".
+       - False Positive Examples: General risk management templates or models not specific to any real assessment.
+
+    4. Regulatory Communications:
+       - Typical Formats:
+         - Correspondence with Regulators: Emails, letters, or other communications with regulatory bodies such as the SEC, FINRA, or other financial authorities.
+         - Regulatory Inquiries: Documents and records related to inquiries or investigations initiated by regulatory bodies.
+       - Variations: Can include both formal letters and informal emails.
+       - Exclusions: General communication or announcements not specifically related to regulatory compliance should not be classified as sensitive.
+       - Contextual Clues: Often labeled as "Regulatory Correspondence", "Inquiry Response", or "Compliance Communication".
+       - False Positive Examples: Generic communication templates or examples used in non-sensitive contexts.
+
+    Supplementary Data:
+
+    1. Compliance Training and Policies:
+       - Formats:
+         - Training Materials: Documents or presentations used for compliance training sessions, often in PPTX or PDF formats.
+         - Compliance Policies: Internal policies and procedures designed to ensure regulatory compliance.
+       - Variations: May include quizzes, case studies, or policy manuals.
+       - Exclusions: General training materials or policies available to the public should not be classified as sensitive.
+       - Contextual Clues: Often found in documents labeled "Compliance Training", "Policy Manual", or "Standard Operating Procedure (SOP)".
+       - False Positive Examples: Outdated training materials or policies that have been superseded by new regulations.
+
+    2. Regulatory Reporting Tools:
+       - Formats:
+         - Software Tools: Applications or systems used for preparing and submitting regulatory reports.
+         - Data Extracts: CSV, XML, or other data files used for reporting purposes.
+       - Variations: Tools may vary depending on the type of reporting (e.g., financial reporting, trade reporting).
+       - Exclusions: Generic software descriptions or user manuals that do not contain actual reporting data should not be classified as sensitive.
+       - Contextual Clues: Often associated with software named "Regulatory Reporting Tool", "Compliance System", or "Data Submission Tool".
+       - False Positive Examples: Example data sets or demo versions of reporting tools used for training.
+
+    3. Legal and Compliance Documentation:
+       - Formats:
+         - Compliance Certifications: Documents certifying that the company complies with specific regulations or standards.
+         - Legal Opinions: Written opinions from legal counsel regarding compliance with regulations.
+       - Variations: May include certifications for specific regulations, such as Sarbanes-Oxley (SOX) or GDPR.
+       - Exclusions: Publicly available legal interpretations or general legal advice not specific to compliance should not be classified as sensitive.
+       - Contextual Clues: Often labeled as "Compliance Certification", "Legal Opinion", or "Regulatory Compliance".
+       - False Positive Examples: Generic legal documents or certifications not tied to specific compliance requirements.
+entityDescription: |-
+  Data Definition to classify and extract Regulatory Compliance Information from text
+entityId: REGCOMP0001
+entityMeta:
+  category: Data Protection Rule
+  source: default
+entityName: Regulatory Compliance Information
+entityType: dlp_rule_v3
+isDisabled: false
+isModifiable: true

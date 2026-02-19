@@ -1,0 +1,83 @@
+id: 56e69fb3-56d7-473b-9f4f-9ea68358310e
+version: 12.0.6
+category: Oauth
+code: ATTR_OAUTH_001
+tags: [ ]
+type: attributes
+attributes:
+  - name: Oauth Scope Severity
+    description: Define severity of Oauth Scope.
+    duplicate_allowed: false
+    tags:
+      - UC018
+      - UC017
+      - UC015
+    graph_property: scope.severity
+    expected_datatype: string
+    possible_values:
+      - label: High
+        value: High
+        tags:
+          - UC018
+          - UC017
+          - UC015
+      - label: Medium
+        value: Medium
+        tags:
+          - UC018
+          - UC017
+          - UC015
+      - label: Low
+        value: Low
+        tags:
+          - UC018
+          - UC017
+          - UC015
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+    id: OAUTH-001
+  - name: Oauth Scope
+    description: Define oauth scope used by an application.
+    duplicate_allowed: true
+    tags:
+      - UC018
+      - UC017
+      - UC015
+    graph_property: scope.id
+    expected_datatype: string
+    possible_values_query: MATCH (scope:SCOPE) WHERE scope.id <> '-' RETURN distinct(scope.id)
+    is_searchable: true
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+    id: OAUTH-002
+  - name: Oauth Scope Given By
+    description: Define if scope grant was given by user or admin.
+    duplicate_allowed: true
+    tags:
+      - UC018
+      - UC017
+      - UC015
+    graph_property: grant.consentBy
+    expected_datatype: string
+    possible_values:
+      - label: Admin
+        value: admin
+        tags:
+          - UC018
+          - UC017
+          - UC015
+      - label: User
+        value: user
+        tags:
+          - UC018
+          - UC017
+          - UC015
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+    id: OAUTH-003

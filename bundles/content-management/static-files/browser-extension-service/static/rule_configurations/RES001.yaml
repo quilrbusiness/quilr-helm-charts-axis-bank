@@ -1,0 +1,52 @@
+datatype: DICT
+defaultValue:
+  name: Research Data
+  description: >-
+    Unpublished or sensitive research information with competitive or ethical
+    implications
+  criticality: HIGH
+  sensitivity: Sensitive
+  examples:
+    - Preliminary Clinical Trial Results
+    - Unpublished Scientific Findings + Analysis
+    - Confidential Research Participant Data
+    - Proprietary Research Methodologies
+    - Grant Proposal Details + Budgets
+  indicators:
+    - Presence of unpublished scientific data
+    - Detailed research methodologies
+    - Information on ongoing experiments or trials
+    - Confidential collaboration or funding details
+  contentMarkers:
+    - Scientific or technical terminology
+    - Statistical analysis or raw data
+    - Participant codes or identifiers
+    - Research-specific dates or timelines
+  impactSummary: >-
+    Potential loss of research advantage; ethical violations; compromise of study
+    integrity
+  classificationRules:
+    positive: >-
+      Contains unpublished research data; detailed methodologies; confidential
+      participant information
+    negative: >-
+      Published scientific papers; general research topics; public grant
+      information
+    resolution: >-
+      Assess the novelty of the research, its current publication status, and
+      potential ethical implications
+  relatedClasses:
+    - IPR001
+    - SPI001
+    - BCI001
+    - PII001
+entityDescription: |-
+  Data Definition to classify and extract Research Data from text
+entityId: RES001
+entityMeta:
+  category: Data Protection Rule
+  source: default
+entityName: Research Data
+entityType: dlp_rule
+isDisabled: false
+isModifiable: true

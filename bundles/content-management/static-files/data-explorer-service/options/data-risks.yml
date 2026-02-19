@@ -1,0 +1,10 @@
+version: 1.0.0
+screen_id: data-risks
+title: Data Risks
+tag: Data Risks Screen
+description: Monitor your organization's data risks
+active: true
+type: options
+iconUrl: https://staticcontent1.blob.core.windows.net/finding-icons/posture-ai-usage.svg
+path: postures/data-risks
+order: 7

@@ -1,0 +1,8 @@
+id: 54069193-31f8-4dbd-97de-30fe4039b329
+vendor: Microsoft
+product: Graph API
+slug: Microsoft Give Consent
+description: Execute OAuth Consent Flow
+redirect_uri: "/auth/auth/login/microsoft"
+tests: []
+inputSchema: []

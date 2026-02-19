@@ -1,0 +1,74 @@
+id: a45204bc-19d8-4a5f-beb0-c0b5810fc982
+version: 1.3
+code: BID_18
+name: Browser Extension
+type: behavior
+createdon: 1741591350862
+updatedon: 1741591350862
+posture:
+  - PID_07
+browser_enabled: true
+description: Application with latest breach.
+query: ""
+config:
+  expression: "def fn(message): return True if message.get('userName') else False "
+  type: finding
+  subtype: status
+  status: open
+  sla: 1W
+  entity: userName
+  entitytype: user
+  tags:
+    - insecure_behavior
+  sourceofalert: Quilr
+  template: "Received an alert for the User: ${userName} on Application: ${appName}"
+  artifacts: 
+    - type: "ACCOUNT"
+      property: "id"
+      value: "$userAppAccount"
+      artifactproperties: 
+        artifactValue: $userName
+        displayInUI: enabled
+        artifactKey: "User"
+    - type: "APPLICATION" 
+      context: "global" 
+      property: id_
+      value: "$appId"
+      artifactproperties: 
+        artifactValue: $appName
+        displayInUI: enabled
+        artifactKey: "Application"
+#    - type: "App Criticality"
+#      property: "criticality"
+#      value: "$appCriticality"
+#      artifactproperties:
+#        artifactValue: $appCriticality
+#        displayInUI: enabled
+#        artifactKey: "Critical"
+#    - type: "First Seen"
+#      property: ""                                 #is this correct for matching ?
+#      value: "$"                                # need to add first seen and last seen in the artifact
+#      artifactproperties:
+#        artifactValue: $
+#        displayInUI: enabled
+#        artifactKey: ""
+#    - type: "Last Seen"
+#      property: ""                                 #is this correct for matching ?
+#      value: "$"                                # need to add first seen and last seen in the artifact
+#      artifactproperties:
+#        artifactValue: $
+#        displayInUI: enabled
+#        artifactKey: ""
+  properties:
+    userName: $userName
+    userAccountEnabled: $userAccountEnabled
+    TENANT: $TENANT
+    SUBSCRIBER: $SUBSCRIBER
+    appName: $appName
+    appUrl: $appUrl
+    appId: $appId
+    appCategory: $appCategory
+    appDomain: $appDomain
+    context_id: $CONTEXTID
+    eventtime: $EVENTTIME
+lambda: ""

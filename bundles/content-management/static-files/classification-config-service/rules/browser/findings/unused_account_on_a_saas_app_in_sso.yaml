@@ -1,0 +1,17 @@
+id: 8d99764d-01b6-4bc8-b22d-211d23da5837
+version: 3.0
+code: Q062
+name: Unused Account on a SaaS App in SSO
+description: 
+type: rule
+view: identity_protection
+impact: high
+likelihood: verylow
+createdon: 1720094794000
+updatedon: 1720094794000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_45
+examples: []
+recommendations: []

@@ -1,0 +1,159 @@
+# id: 666a8159-bd55-4c97-88ea-43874e4a480a
+# name: Unknown Apps Data To Knowledgegraph
+# type: ingestion-to-graph
+# version: 1.0
+# active: false
+# schedule: "15m"
+# historicalrecordduration: "4h"
+# source:
+#   type: query
+#   config:
+#     query: "SELECT \"ACCESS.CONFIG.APPLICATION.HOMEPAGE\" AS URL, 
+#                    CASE WHEN SPLIT_PART(SPLIT_PART(\"ACCESS.CONFIG.APPLICATION.HOMEPAGE\", '//', 2), '/', 1) LIKE 'www.%' 
+#                         THEN SPLIT_PART(SPLIT_PART(SPLIT_PART(\"ACCESS.CONFIG.APPLICATION.HOMEPAGE\", '//', 2), '/', 1), 'www.', 2) 
+#                         ELSE SPLIT_PART(SPLIT_PART(\"ACCESS.CONFIG.APPLICATION.HOMEPAGE\", '//', 2), '/', 1) 
+#                         END AS tld,
+#                    parse_json(a.value) as APP_OWNER, parse_json(b.value) as APP_GRANT, 
+#                    parse_json(c.value) as APP_USER, parse_json(d.value) AS APP_GROUP, 
+#                    \"PRODUCT.VENDOR_NAME\" as VENDOR, \"PRODUCT.TENANT\", \"ACCESS.CONFIG.DISPLAY_NAME\", 
+#                    \"ACCESS.CONFIG.APPLICATION.IS_TRUSTED\", \"ACCESS.CONFIG.APPLICATION.ACCOUNT_ENABLED\", 
+#                    \"ACCESS.CONFIG.APPLICATION.SIGNIN_MODE\", \"ACCESS.CONFIG.CREATION_TIME\",
+#                    \"ACCESS.CONFIG.APPLICATION.IS_VERIFIED_PUBLISHER\", \"ACCESS.CONFIG.APPLICATION.LOGO_URL\", 
+#                    \"ACCESS.CONFIG.APPLICATION.PRIVACY_STATEMENT_URL\", \"ACCESS.CONFIG.APPLICATION.TERMS_OF_SERVICE_URL\"
+#             FROM KAFKA_CONNECT.SNOWDATA_SCHEMA.TRANSFORMEDDATA, 
+#                  TABLE(FLATTEN(KAFKA_CONNECT.SNOWDATA_SCHEMA.TRANSFORMEDDATA.\"ACCESS.CONFIG.APPLICATION.APP_OWNERS\", OUTER => TRUE)) a, 
+#                  TABLE(FLATTEN(KAFKA_CONNECT.SNOWDATA_SCHEMA.TRANSFORMEDDATA.\"ACCESS.CONFIG.APPLICATION.CONSENT_PRINCIPAL\", OUTER => TRUE)) b, 
+#                  TABLE(FLATTEN(KAFKA_CONNECT.SNOWDATA_SCHEMA.TRANSFORMEDDATA.\"ACCESS.CONFIG.APPLICATION.APP_USERS\", OUTER => TRUE)) c, 
+#                  TABLE(FLATTEN(KAFKA_CONNECT.SNOWDATA_SCHEMA.TRANSFORMEDDATA.\"ACCESS.CONFIG.APPLICATION.APP_GROUPS\", OUTER => TRUE)) d 
+#             WHERE \"PRODUCT.TYPE\" = 'apps'
+#                   AND NOT \"PRODUCT.FEATURE\" = 'public.sync'
+#                   AND \"ACCESS.CONFIG.APPLICATION.HOMEPAGE\" IS NULL
+#                   AND \"ACCESS.CONFIG.DISPLAY_NAME\" IS NOT NULL
+#                   AND \"RECORD_METADATA\":CreateTime > $starttime
+#                   AND \"RECORD_METADATA\":CreateTime < $endtime"
+#     type: datalake
+#     limit:
+#     offset: 0
+# destination:
+#   type: stream
+#   topic: knowledgeGraph
+# config:
+#   nodes:
+#     admin:
+#       id: APP_OWNER_ID
+#       type: USER
+#     tenant:
+#       type: TENANT
+#       match:
+#         property: id
+#         attribute: PRODUCT.TENANT
+#     app:
+#       type: APPLICATION
+#       id: ACCESS.CONFIG.DISPLAY_NAME
+#       properties:
+#         status: STATUS
+#     grant:
+#       id: $.APP_GRANT.id
+#       type: GRANT
+#       properties:
+#         scope: $.APP_GRANT.scope
+#         consentBy: $.APP_GRANT.consentBy
+#         consentType: $.APP_GRANT.consentType
+#     group:
+#       id: $.APP_GROUP.principalId
+#       type: GROUP
+#     user:
+#       id: $.APP_USER.principalId
+#       type: USER
+#     accountUser:
+#       join:
+#         with: USER
+#         on: id
+#         value: $.APP_USER.principalId
+#         relation: HAS_ACCOUNT
+#       type: ACCOUNT
+#       tags:
+#         - PRIMARY
+#     accountAdmin:
+#       join:
+#         with: USER
+#         on: id
+#         value: APP_OWNER_ID
+#         relation: HAS_ACCOUNT
+#       type: ACCOUNT
+#       tags:
+#         - PRIMARY
+#   edges:
+#     - destination: app
+#       direction: out
+#       relation: HAS_APPSETTINGS
+#       source: tenant
+#       properties:
+#         accountEnabled: ACCESS.CONFIG.APPLICATION.ACCOUNT_ENABLED
+#         disabledByMicrosoftStatus: ACCESS.CONFIG.APPLICATION.IS_TRUSTED
+#         preferredSingleSignOnMode: ACCESS.CONFIG.APPLICATION.SIGNIN_MODE
+#         signinAccountType: ACCESS.CONFIG.APPLICATION.SIGNIN_ACCOUNT_TYPE
+#         firstSeen: ACCESS.CONFIG.CREATION_TIME
+#         verified: ACCESS.CONFIG.APPLICATION.IS_VERIFIED_PUBLISHER
+#         logoUrl: ACCESS.CONFIG.APPLICATION.LOGO_URL
+#         privacyUrl: ACCESS.CONFIG.APPLICATION.PRIVACY_STATEMENT_URL
+#         tncUrl: ACCESS.CONFIG.APPLICATION.TERMS_OF_SERVICE_URL
+#         loginRedirectUrl: ACCESS.CONFIG.APPLICATION.LOGINREDIRECT_URL
+#         status: APPSETTINGSTATUS
+#     - destination: accountUser
+#       direction: out
+#       relation: HAS_USER
+#       source: app
+#       properties:
+#         isSSOApproved: IS.SSO
+#     - destination: app
+#       direction: out
+#       relation: USING_APP
+#       source: accountUser
+#       when: VENDOR == 'Microsoft'
+#       properties:
+#         joiningDate: $.APP_USER.createdDateTime
+#         #lastSeen: $.APP_USERS[0].lastSeen
+#     - destination: accountAdmin
+#       direction: out
+#       relation: HAS_ADMIN
+#       source: app
+#     - destination: group
+#       direction: out
+#       relation: HAS_GROUP
+#       source: app
+#       properties:
+#         joiningDate: $.APP_GROUP.createdDateTime
+#     - destination: grant
+#       direction: out
+#       relation: HAS_GRANT
+#       source: app
+#     - destination: accountUser
+#       direction: out
+#       relation: GIVEN_BY
+#       source: grant
+#       when: APP_GRANT.consentBy == 'user' && APP_GRANT.principalId == APP_USER.principalId
+#     - destination: accountUser
+#       direction: out
+#       relation: IMPOSED_ON
+#       source: grant
+#       when: APP_GRANT.consentBy == 'admin'
+#     - destination: accountAdmin
+#       direction: out
+#       relation: IMPOSED_ON
+#       source: grant
+#       when: APP_GRANT.consentBy == 'admin'
+# lambda: |
+#   def fn(payload):
+#       for item in payload:
+#           item['STATUS'] = "UNKNOWN"
+#           app_domain = executor_instance.extract_domain(url=item.get("ACCESS.CONFIG.APPLICATION.HOMEPAGE"))
+#           item["APPMETA"] = excecutor_instance.db_lookup("app_meta_lookup_in_db", domain=app_domain)
+#           if isinstance(item["APPMETA"], list) and len(item["APPMETA"]) > 0:
+#               item["APPMETA"] = item["APPMETA"][0]
+#           item["IS.SSO"] = item.get("VENDOR", "") == "Okta" ? True : False
+#           if not item.get("APPSETTINGSTATUS"):
+#               item["APPSETTINGSTATUS"] = "Approved"
+#       return payload
+# createdon: 1707315500
+# updatedon: 1707315500

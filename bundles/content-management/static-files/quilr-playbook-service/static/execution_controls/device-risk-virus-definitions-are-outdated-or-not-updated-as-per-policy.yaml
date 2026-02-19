@@ -1,0 +1,29 @@
+version: 1.0.0
+criticality: 4
+mode: monitor
+control_name: Updating virus definitions if outdated or non-compliant with policy
+control_description: Detects devices with outdated antivirus definitions or those not updated as per the organization's security policy, which may leave systems vulnerable to malware threats.
+posture:
+  id: PID_05
+behavior:
+  id: BID_105
+use_case:
+  id: UC104
+trigger_conditions:
+- operator: 
+  filter_condition:
+    attribute_type: ATTR_DEV_001
+    attribute_id: DEV-009
+    extension_property: device.signatureUpdateEnabled
+    condition: is_equal_to
+    value: "True"
+  filter_group: 
+actions:
+- type:
+    id: ACTP_01
+  name:
+    id: ACT_103
+  description: 
+  meta:
+    prompt_frequency: 
+    

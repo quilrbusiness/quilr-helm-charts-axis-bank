@@ -1,0 +1,159 @@
+widget_id: 04580a0c-27ae-4c58-9614-bad7a9d4b7d0
+template_id: ActionPlan
+active: true
+title: Action Plan
+components:
+  - name: ""
+    type: text
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          data = {"name": "Stronger MFA for Privileged Users",
+                  "text": "Conduct monthly simulated phishing campaigns.",
+                  "button": {
+                    "text": "PENDING",
+                    "onClick": {
+                      "url": "",
+                      "body": {
+                        
+                      },
+                      "headers": {
+                        
+                      }
+                    }
+                  },
+                  "tagColor": "danger"
+                }
+          return data
+  - name: ""
+    type: text
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          data = {"name": "Delete Stale Admin Accounts in AWS",
+                  "text": "Provide specialized security training for executives.",
+                  "button": {
+                    "text": "PENDING",
+                    "onClick": {
+                      "url": "",
+                      "body": {
+                        
+                      },
+                      "headers": {
+                        
+                      }
+                    }
+                  },
+                  "tagColor": "danger"
+                }
+          return data
+  - name: ""
+    type: text
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          data = {"name": "Remove usage of Breached Apps",
+                  "text": "Implement stronger password requirements.",
+                  "button": {
+                    "text": "PENDING",
+                    "onClick": {
+                      "url": "",
+                      "body": {
+                        
+                      },
+                      "headers": {
+                        
+                      }
+                    }
+                  },
+                  "tagColor": "danger"
+                }
+          return data
+  - name: ""
+    type: text
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          data = {"name": "Targeted Simulation and Training for Vendor Management team",
+                  "button": {
+                    "text": "PENDING",
+                    "onClick": {
+                      "url": "",
+                      "body": {
+                        
+                      },
+                      "headers": {
+                        
+                      }
+                    }
+                  },
+                  "tagColor": "warning"
+                }
+          return data
+  - name: ""
+    type: text
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          data = {"name": "Optimize Training Content",
+                  "text": "Analyze feedback and update training modules.",
+                  "button": {
+                    "text": "PENDING",
+                    "onClick": {
+                      "url": "",
+                      "body": {
+                        
+                      },
+                      "headers": {
+                        
+                      }
+                    }
+                  },
+                  "tagColor": "warning"
+                }
+          return data
+  - name: ""
+    type: text
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          data = {"name": "Address Policy Non-Compliance",
+                  "button": {
+                    "text": "PENDING",
+                    "onClick": {
+                      "url": "",
+                      "body": {
+                        
+                      },
+                      "headers": {
+                        
+                      }
+                    }
+                  },
+                  "text": "Provide targeted awareness on policy adherence.",
+                  "tagColor": "green"
+                }
+          return data
+  - name: ""
+    type: text
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          data = {"name": "Optimize Training Content",
+                  "text": "Analyze feedback and update training modules.",
+                  "button": {
+                    "text": "PENDING",
+                    "onClick": {
+                      "url": "",
+                      "body": {
+                        
+                      },
+                      "headers": {
+                        
+                      }
+                    }
+                  },
+                  "tagColor": "green"
+                }
+          return data
+version: 10.0

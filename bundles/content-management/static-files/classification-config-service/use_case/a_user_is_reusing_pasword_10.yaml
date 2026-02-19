@@ -1,0 +1,37 @@
+id: 5823cb3e-5d33-49b9-a680-9c5fb6ca890a
+version: 5.19
+code: UC010
+name: when user is reusing IDP password
+type: use-case
+description: Define what should be done when a IDP user uses same password over multiple apps.   # customer can also change that
+posture:
+  - PID_03
+behavior:
+  - BID_10
+condition:
+  - operator: null
+    filter_condition:
+      attribute_type: ATTR_Browser_001
+      attribute_id: BROWSER-001
+      condition: is equal to
+      value: "false"
+    editable: true
+    supported_operators:
+      - is equal to
+      - is in
+    filter_group: null
+  - operator: AND
+    filter_group: null
+    filter_condition:
+      value: "true"
+      condition: is_equal_to
+      attribute_id: RPA-001
+      attribute_type: ATTR_RPA_001
+    editable: false
+    supported_operators:
+      - is equal to
+disabled: false
+createdon: 1710504494000
+updatedon: 1710504494000
+config:
+  save: false

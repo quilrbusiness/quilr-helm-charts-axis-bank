@@ -1,0 +1,51 @@
+datatype: DICT
+defaultValue:
+  name: Business Confidential Information
+  description: Sensitive business data impacting operations or competitive position
+  criticality: HIGH
+  sensitivity: Sensitive
+  examples:
+    - Detailed Market Strategy + Revenue Projections
+    - Undisclosed Product Specifications
+    - Client List with Contract Details
+    - Internal Audit Findings + Recommendations
+    - Confidential Supplier Agreements
+  indicators:
+    - Presence of competitive advantage information
+    - Detailed internal business processes
+    - Non-public financial or strategic data
+    - Confidential client or partner information
+  contentMarkers:
+    - Confidentiality labels or watermarks
+    - Specific business terminology or jargon
+    - Detailed numerical projections or analyses
+    - Internal project codes or nomenclature
+  impactSummary: >-
+    Competitive disadvantage; financial loss potential; damage to business
+    relationships
+  classificationRules:
+    positive: >-
+      Contains detailed non-public business information; strategic plans;
+      confidential operational data
+    negative: >-
+      Publicly available business information; general industry trends;
+      non-specific business terms
+    resolution: >-
+      Evaluate the strategic value and potential competitive impact of the
+      information
+  relatedClasses:
+    - FIN001
+    - OPS001
+    - IPR001
+    - CTX001
+    - COM001
+entityDescription: |-
+  Data Definition to classify and extract Business Confidential Information from text
+entityId: BCI001
+entityMeta:
+  category: Data Protection Rule
+  source: default
+entityName: Business Confidential Information
+entityType: dlp_rule
+isDisabled: false
+isModifiable: true

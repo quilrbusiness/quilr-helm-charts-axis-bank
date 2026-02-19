@@ -1,0 +1,951 @@
+id: 5c3b016e-b649-4d9a-9e3e-b17d5f8921a4
+name: Posture
+type: screen
+enabled: false
+version: 1.0.80
+icon_url: https://staticcontent1.blob.core.windows.net/quilrstatic/profile/findings.svg
+table_query:
+  id: 13a4e04c-8f73-4f3f-8039-51e52d251b3f
+  name: Display Table Data
+  queryString: "CALL {
+    MATCH (u:USER)-[:HAS_ACCOUNT]->(acc:ACCOUNT)
+    MATCH (acc)-[hv:HAS_VIOLATION]->(f:FINDING)
+    MATCH (f)-[:ASSOCIATED_WITH]-(application:APPLICATION)
+    OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(f)
+    OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+    OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+    OPTIONAL MATCH (f)-[:TRIGGERED]->(action:ACTION)
+    RETURN u, f AS finding, r, p, b, hv, 'open' AS status, application, action
+
+    UNION
+    MATCH (u:USER)-[:HAS_ACCOUNT]->(acc:ACCOUNT)
+    MATCH (acc)-[hv:HAS_VIOLATION]->(fh:FINDING_HISTORY)
+    MATCH (fh:FINDING_HISTORY)-[:ASSOCIATED_WITH]-(application:APPLICATION)
+    OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(fh)
+    OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+    OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+    OPTIONAL MATCH (f)-[:TRIGGERED]->(action:ACTION)
+    RETURN u, fh AS finding, r, p, b, hv, 'closed' AS status, application, action
+    }
+
+    WITH u, finding, r, p, b, hv, status, application, action
+    WHERE b.name is not null
+    AND u.subscriber = $subscriber
+    AND u.tenant = $tenant
+    AND (toLower(b.name) =~ '.*{searchText}.*' OR toLower(p.name) =~ '.*{searchText}.*')
+    {placeholder}
+
+    return b.id as id, b.name as name, collect(DISTINCT {name: p.name, id: p.id}) as posture"
+  type: merge
+  allowed_params: true
+  allowed_body: true
+  input_params:
+    Users: AND u.displayName = $Users
+    Department: AND u.department = $Department
+    App: AND application.appDisplayName = $App
+    status: AND status = $status
+    actionTaken: AND action.name = $actionTaken
+    Behaviours: AND b.name = $Behaviours
+    Posture: AND p.name = $Posture
+    Finding: AND r.name = $Finding
+    copilotStatus: AND finding.copilotStatus = $copilotStatus
+    starttime: AND finding.generationTime >= $starttime
+    endtime: AND finding.generationTime <= $endtime
+  input_body: null
+  dataSourceType: knowledgegraph
+  sortOrder: null
+  sortColumn: null
+  limit: 10
+  offset: 0
+detailed_widget:
+  - id: 26de9580-9da0-45c3-a848-b6d8ca2ec5da
+    name: Findings_drill_down
+    position: main
+    template: findings_detailed_view
+  - id: 277cf876-3f78-4875-9e3f-d4b59ffda225
+    name: user_view
+    position: offset
+    template: users_view
+view_by:
+  # - id: c82f6338-d003-455b-87e7-02858eb2d953
+  #   mergeQueryString: ""
+  #   query_id: 598c5993-b6bf-4fbe-8c08-707c5ec2ce66
+  #   name: All
+  #   type: select
+  #   active: true
+
+  - id: posture
+    query: "CALL {
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      OPTIONAL MATCH (acc)-[:HAS_FINDING]->(f:FINDING)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g: GROUP)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(f)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (f)-[:TRIGGERED]->(action:ACTION)
+      RETURN u, f AS finding, r, p, b, 'open' AS status, application, action, g
+
+      UNION
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      OPTIONAL MATCH (acc)-[:HAS_FINDING]->(fh:FINDING_HISTORY)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g: GROUP)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(fh)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (fh)-[:TRIGGERED]->(action:ACTION)
+      RETURN u, fh AS finding, r, p, b, 'closed' AS status, application, action, g
+      }
+
+      WITH u, finding, r, p, b, status, application, action, g
+      WHERE b.name is not null and p.id is not null
+      AND u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      AND (toLower(b.name) =~ '.*{searchText}.*' OR toLower(p.name) =~ '.*{searchText}.*')
+      {placeholder}
+
+      return p.id as id, p.name as name, collect(DISTINCT {name: b.name, id: b.id}) as behavior"
+    defaultValue: posture
+    allowed_params: true
+    name: Postures
+    pagination_query: "
+      CALL {
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      OPTIONAL MATCH (acc)-[:HAS_FINDING]->(f:FINDING)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g: GROUP)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(f)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (f)-[:TRIGGERED]->(action:ACTION)
+      RETURN u, f AS finding, r, p, b, 'open' AS status, application, action, g
+
+      UNION
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      OPTIONAL MATCH (acc)-[:HAS_FINDING]->(fh:FINDING_HISTORY)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g: GROUP)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(fh)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (fh)-[:TRIGGERED]->(action:ACTION)
+      RETURN u, fh AS finding, r, p, b, 'closed' AS status, application, action, g
+      }
+
+      WITH u, finding, r, p, b, status, application, action, g
+      WHERE b.name is not null and p.id is not null
+      AND u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      AND (toLower(b.name) =~ '.*{searchText}.*' OR toLower(p.name) =~ '.*{searchText}.*')
+      {placeholder}
+
+      WITH p.id as id, p.name as name, collect(DISTINCT {name: b.name, id: b.id}) as behavior
+
+      return count(id) as totalCount"
+    input_params:
+      starttime: AND finding.timestamp >= $starttime
+      endtime: AND finding.timestamp <= $endtime
+    type: button
+    dataSourceType: knowledgegraph
+    active: true
+  - id: behaviors
+    query: "CALL {
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      OPTIONAL MATCH (acc)-[:HAS_FINDING]->(f:FINDING)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g: GROUP)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(f)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (f)-[:TRIGGERED]->(action:ACTION)
+      RETURN u, f AS finding, r, p, b, 'open' AS status, application, action, g
+
+      UNION
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      OPTIONAL MATCH (acc)-[:HAS_FINDING]->(fh:FINDING_HISTORY)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g: GROUP)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(fh)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (fh)-[:TRIGGERED]->(action:ACTION)
+      RETURN u, fh AS finding, r, p, b, 'closed' AS status, application, action, g
+      }
+
+      WITH u, finding, r, p, b, status, application, action, g
+      WHERE b.name is not null
+      AND u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      AND (toLower(b.name) =~ '.*{searchText}.*' OR toLower(p.name) =~ '.*{searchText}.*')
+      {placeholder}
+
+      return b.id as id, b.name as name, collect(DISTINCT {name: p.name, id: p.id}) as posture"
+    defaultValue: posture
+    allowed_params: true
+    name: Behaviors
+    pagination_query: "
+      CALL {
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      OPTIONAL MATCH (acc)-[:HAS_FINDING]->(f:FINDING)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g: GROUP)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(f)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (f)-[:TRIGGERED]->(action:ACTION)
+      RETURN u, f AS finding, r, p, b, 'open' AS status, application, action, g
+
+      UNION
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      OPTIONAL MATCH (acc)-[:HAS_FINDING]->(fh:FINDING_HISTORY)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g: GROUP)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(fh)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (fh)-[:TRIGGERED]->(action:ACTION)
+      RETURN u, fh AS finding, r, p, b, 'closed' AS status, application, action, g
+      }
+
+      WITH u, finding, r, p, b, status, application, action, g
+      WHERE b.name is not null
+      AND u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      AND (toLower(u.displayName) =~ '.*{searchText}.*' OR toLower(r.name) =~ '.*{searchText}.*')
+      {placeholder}
+      WITH p.id as id, p.name as name, collect(DISTINCT {name: b.name, id: b.id}) as posture
+      return COUNT(id) as totalCount"
+    input_params:
+      starttime: AND finding.timestamp >= $starttime
+      endtime: AND finding.timestamp <= $endtime
+    type: button
+    dataSourceType: knowledgegraph
+    active: true
+
+table_filters: []
+
+widgets: []
+
+table_render:
+  behaviors:
+    name:
+      id: name
+      type: BehaviorViewBehavior
+      label: Name
+      valuePath: name
+      sortable: false
+      groupByKey: Name
+      order: 1
+      map:
+        "Password Hygiene":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-password-hygiene.svg
+          color: "#1E201E"
+        "SaaS Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-saas-usage.svg
+          color: "#1E201E"
+        "MFA Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-mfa-usage.svg
+          color: "#1E201E"
+        "Human Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-human-risk.svg
+          color: "#1E201E"
+        "Data Handling":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-data-handling.svg
+          color: "#1E201E"
+        "AI Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-ai-usage.svg
+          color: "#1E201E"
+        "Social Engineering":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-social-engineering.svg
+          color: "#1E201E"
+        "Web Browsing":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-web-browsing.svg
+          color: "#1E201E"
+        "Workstation Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-workstation-risks.svg
+          color: "#1E201E"
+    posture:
+      id: posture
+      label: Posture
+      valuePath: posture
+      type: TrendViewBehavior
+      sortable: false
+      mapId: name
+      groupByKey: posture
+      order: 2
+      map:
+        "Password Hygiene":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-password-hygiene.svg
+          color: "#1E201E"
+        "SaaS Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-saas-usage.svg
+          color: "#1E201E"
+        "MFA Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-mfa-usage.svg
+          color: "#1E201E"
+        "Human Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-human-risk.svg
+          color: "#1E201E"
+        "Data Handling":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-data-handling.svg
+          color: "#1E201E"
+        "AI Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-ai-usage.svg
+          color: "#1E201E"
+        "Social Engineering":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-social-engineering.svg
+          color: "#1E201E"
+        "Web Browsing":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-web-browsing.svg
+          color: "#1E201E"
+        "Workstation Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-workstation-risks.svg
+          color: "#1E201E"
+    trend:
+      id: trend
+      label: Trend
+      valuePath: posture
+      type: trendCell
+      sortable: false
+      groupByKey: trend
+      nameKey: posture
+      chartKeyId: name
+      chartParam:
+        xAxis:
+          type: "datetime"
+          title:
+            text: "Date"
+          visible: false
+          minorTickLength: 0
+          gridLineWidth: 1
+          gridLineColor: "#555555"
+          minorGridLineWidth: 0.5
+          minorGridLineColor: "#555555"
+          minorTickInterval: "auto"
+        yAxis:
+          title:
+            text: "Security Index"
+          min: 0
+          max: 6
+          gridLineWidth: 1
+          minorGridLineWidth: 1
+          visible: false
+      chartQueryParam: behav
+      chartType: line-chart
+
+      chart: trend-chart-behavior
+      order: 3
+      map:
+        "Password Hygiene":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-password-hygiene.svg
+          color: "#FFA355"
+        "SaaS Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-saas-usage.svg
+          color: "#60B5EF"
+        "MFA Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-mfa-usage.svg
+          color: "#F5BAFD"
+        "Human Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-human-risk.svg
+          color: "#C16EFF"
+        "Data Handling":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-data-handling.svg
+          color: "#90F7BC"
+        "AI Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-ai-usage.svg
+          color: "#DDD58A"
+        "Social Engineering":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-social-engineering.svg
+          color: "#F93873"
+        "Web Browsing":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-web-browsing.svg
+          color: "#6C80F4"
+        "Workstation Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-workstation-risks.svg
+          color: "#26A82B"
+
+    risklevel:
+      id: risklevel
+      label: Risk Level
+      order: 4
+      valuePath: posture
+      type: multicharts
+      sortable: false
+      groupByKey: posture
+      display: row
+      charts:
+        - id: quilr-bar-by-department-behaviour
+          label: By Department
+          chartType: quilr-bar
+          chartKeyId: name
+          chartQueryParam: behav
+        - id: quilr-bar-by-location-behaviour
+          label: By Location
+          chartType: quilr-bar
+          chartKeyId: name
+          chartQueryParam: behav
+        - id: quilr-bar-by-groups-behaviour
+          label: By Groups
+          chartType: quilr-bar
+          chartKeyId: name
+          chartQueryParam: behav
+        - id: quilr-bar-criticality-of-findings-behaviour
+          label: Criticality of Findings
+          chartType: quilr-bar
+          chartKeyId: name
+          chartQueryParam: behav
+        - id: quilr-bar-by-resolved-behaviour
+          label: Resolved
+          chartType: quilr-bar
+          chartKeyId: name
+          chartQueryParam: behav
+          source: knowledgegraph
+      # chart: trend-chart-behavior
+    resolutionPlan:
+      id: resolutionPlan
+      type: ResolutionViewHuman
+      name: resolutionPlan
+      label: Resolution Plan
+      width: w-[15%]
+      valuePath: resolutionPlan
+      groupByKey: browser
+      order: 5
+
+  posture:
+    name:
+      id: name
+      type: PostureNameCell
+      label: Name
+      valuePath: name
+      sortable: false
+      groupByKey: name
+      nameKey: posture
+      chartKeyId: name
+      chartParam:
+        xAxis:
+          type: "datetime"
+          title:
+            text: "Date"
+          visible: true
+          minorTickLength: 0
+          gridLineWidth: 1
+          gridLineColor: "#555555"
+          minorGridLineWidth: 0.5
+          minorGridLineColor: "#555555"
+          minorTickInterval: "auto"
+        yAxis:
+          title:
+            text: "Security Index"
+          min: 0
+          max: 6
+          gridLineWidth: 1
+          minorGridLineWidth: 1
+          visible: false
+      chartQueryParam: posture
+      chartType: line-chart
+
+      chart: trend-chart-postures
+      order: 1
+      map:
+        "Password Hygiene":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-password-hygiene.svg
+          color: "#FFA355"
+        "SaaS Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-saas-usage.svg
+          color: "#60B5EF"
+        "MFA Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-mfa-usage.svg
+          color: "#F5BAFD"
+        "Human Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-human-risk.svg
+          color: "#C16EFF"
+        "Data Handling":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-data-handling.svg
+          color: "#90F7BC"
+        "AI Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-ai-usage.svg
+          color: "#DDD58A"
+        "Social Engineering":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-social-engineering.svg
+          color: "#F93873"
+        "Web Browsing":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-web-browsing.svg
+          color: "#6C80F4"
+        "Workstation Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-workstation-risks.svg
+          color: "#26A82B"
+    behaviors:
+      id: behaviors
+      label: Behaviors
+      valuePath: behaviors
+      type: name_and_count
+      chartKeyId: name
+      chartQueryParam: posture
+      sortable: false
+      groupByKey: Behavior
+      order: 3
+      map:
+        "Password Hygiene":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-password-hygiene.svg
+          color: "#1E201E"
+          graphColor: "#FFA355"
+        "SaaS Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-saas-usage.svg
+          color: "#1E201E"
+          graphColor: "#60B5EF"
+        "MFA Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-mfa-usage.svg
+          color: "#1E201E"
+          graphColor: "#9679B5"
+    behavior:
+      id: behavior
+      label: Trend
+      valuePath: behavior
+      type: BehaviorViewPosturesTrend
+      chartKeyId: name
+      chartParam:
+        xAxis:
+          type: "datetime"
+          title:
+            text: "Date"
+          visible: true
+          minorTickLength: 0
+          gridLineWidth: 1
+          gridLineColor: "#555555"
+          minorGridLineWidth: 0.5
+          minorGridLineColor: "#555555"
+          minorTickInterval: "auto"
+        yAxis:
+          title:
+            text: "Security Index"
+          min: 0
+          max: 6
+          gridLineWidth: 1
+          minorGridLineWidth: 1
+          visible: false
+      chartQueryParam: posture
+      chartType: line-chart
+      chart: trend-chart-postures
+      sortable: false
+      groupByKey: Behavior
+      order: 2
+      map:
+        "Password Hygiene":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-password-hygiene.svg
+          color: "#1E201E"
+          graphColor: "#FFA355"
+        "SaaS Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-saas-usage.svg
+          color: "#1E201E"
+          graphColor: "#60B5EF"
+        "MFA Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-mfa-usage.svg
+          color: "#1E201E"
+          graphColor: "#9679B5"
+    risklevel:
+      id: risklevel
+      label: Risk Level
+      order: 4
+      valuePath: posture
+      type: multicharts
+      sortable: false
+      groupByKey: posture
+      display: row
+      charts:
+        - id: quilr-bar-by-department-postures
+          label: By Department
+          chartType: quilr-bar
+          chartKeyId: name
+          chartQueryParam: posture
+        - id: quilr-bar-by-location-postures
+          label: By Location
+          chartType: quilr-bar
+          chartKeyId: name
+          chartQueryParam: posture
+        - id: quilr-bar-by-groups-postures
+          label: By Groups
+          chartType: quilr-bar
+          chartKeyId: name
+          chartQueryParam: posture
+        - id: quilr-bar-criticality-of-findings-postures
+          label: Criticality of Findings
+          chartType: quilr-bar
+          chartKeyId: name
+          chartQueryParam: posture
+        - id: quilr-bar-by-resolved-postures
+          label: Resolved
+          chartType: quilr-bar
+          chartKeyId: name
+          chartQueryParam: posture
+          source: knowledgegraph
+      # chart: trend-chart-behavior
+    resolutionPlan:
+      id: resolutionPlan
+      type: ResolutionViewHuman
+      name: resolutionPlan
+      label: Resolution Plan
+      width: w-[20%]
+      valuePath: resolutionPlan
+      groupByKey: browser
+      order: 5
+
+pagination_query:
+  query: "CALL {
+    MATCH (u:USER)-[:HAS_ACCOUNT]->(acc:ACCOUNT)
+    MATCH (acc)-[hv:HAS_VIOLATION]->(f:FINDING)
+    MATCH (f)-[:ASSOCIATED_WITH]-(application:APPLICATION)
+    OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(f)
+    OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+    OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+    OPTIONAL MATCH (f)-[:TRIGGERED]->(action:ACTION)
+    RETURN u, f AS finding, r, p, b, hv, 'open' AS status, application, action
+
+    UNION
+    MATCH (u:USER)-[:HAS_ACCOUNT]->(acc:ACCOUNT)
+    MATCH (acc)-[hv:HAS_VIOLATION]->(fh:FINDING_HISTORY)
+    MATCH (fh:FINDING_HISTORY)-[:ASSOCIATED_WITH]-(application:APPLICATION)
+    OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(fh)
+    OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+    OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+    OPTIONAL MATCH (f)-[:TRIGGERED]->(action:ACTION)
+    RETURN u, fh AS finding, r, p, b, hv, 'closed' AS status, application, action
+    }
+
+    WITH u, finding, r, p, b, hv, status, application, action
+    WHERE b.name is not null
+    AND u.subscriber = $subscriber
+    AND u.tenant = $tenant
+    AND (toLower(u.displayName) =~ '.*{searchText}.*' OR toLower(r.name) =~ '.*{searchText}.*')
+    {placeholder}
+    WITH b.id as id, b.name as name, collect(DISTINCT {name: p.name, id: p.id}) as posture
+    return COUNT(id) as totalCount"
+  dataSourceType: knowledgegraph
+table_widget:
+  - id: trend-chart-postures
+    name: posture
+    label: Posture
+    template: name
+    enabled: true
+    type: line-graph
+    className: w-1/2
+    allowed_params: true
+    dataSourceType: datalake
+    input_params:
+      startdate: $startdate
+      enddate: $enddate
+      posture: $posture
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query:
+      "select *, ROUND((alert_percentile*4) + 1) as risk_index from kafka_connect.snowdata_schema.postureprofileaggregated
+      where AGG_TYPE='organization' and subscriber = $subscriber
+      and agg_subtype = 'posture'
+      and AGG_SUBTYPE_NAME = $posture
+      and DATE_FROM_PARTS(year, monthofyear, dayofmonth) BETWEEN $startdate AND $enddate
+
+      order by agg_subtype, AGG_SUBTYPE_NAME, year, monthofyear, dayofmonth"
+  - id: trend-chart-postures-by-behaviour
+    name: posture
+    label: Posture
+    template: name
+    enabled: true
+    type: line-graph
+    className: w-1/2
+    allowed_params: true
+    dataSourceType: datalake
+    input_params:
+      startdate: $startdate
+      enddate: $enddate
+      posture: $posture
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query:
+      "select *, ROUND((alert_percentile*4) + 1) as risk_index from kafka_connect.snowdata_schema.postureprofileaggregated where AGG_TYPE='posture' and AGG_SUBTYPE='behaviour' and subscriber = $subscriber  and agg_type_name = $posture and DATE_FROM_PARTS(year, monthofyear, dayofmonth) BETWEEN $startdate AND $enddate order by agg_subtype, AGG_SUBTYPE_NAME, year, monthofyear, dayofmonth"
+  - id: trend-chart-behavior
+    name: behavior
+    label: Widget
+    template: name
+    enabled: true
+    type: line-graph
+    className: w-1/2
+    allowed_params: true
+    dataSourceType: datalake
+    input_params:
+      startdate: $startdate
+      enddate: $enddate
+      behav: $behav
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: "select *, ROUND((alert_percentile*4) + 1) as risk_index from kafka_connect.snowdata_schema.behaviourprofileaggregated where AGG_TYPE='organisation' and subscriber = $subscriber and agg_subtype = 'behaviour' and AGG_SUBTYPE_NAME = $behav and DATE_FROM_PARTS(year, monthofyear, dayofmonth) BETWEEN $startdate AND $enddate order by agg_subtype, AGG_SUBTYPE_NAME, year, monthofyear, dayofmonth"
+
+  - id: quilr-bar-by-department-behaviour
+    name: behavior
+    label: Widget
+    template: name
+    enabled: true
+    type: quilr-bar
+    className: w-1/2
+    allowed_params: true
+    dataSourceType: datalake
+    input_params:
+      startdate: $startdate
+      enddate: $enddate
+      behav: $behav
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: "select *, ROUND((alert_percentile*4) + 1) as risk_index from kafka_connect.snowdata_schema.behaviourprofileaggregated where AGG_TYPE='behaviour' and subscriber = $subscriber and agg_subtype= 'department' and agg_type_name=$behav and DATE_FROM_PARTS(year, monthofyear, dayofmonth) BETWEEN $startdate AND $enddate order by subscriber,  agg_subtype, agg_subtype_name, year, monthofyear, dayofmonth"
+  - id: quilr-bar-by-location-behaviour
+    name: behavior
+    label: Widget
+    template: name
+    enabled: true
+    type: quilr-bar
+    className: w-1/2
+    allowed_params: true
+    dataSourceType: datalake
+    input_params:
+      startdate: $startdate
+      enddate: $enddate
+      behav: $behav
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: "select *, ROUND((alert_percentile*4) + 1) as risk_index from kafka_connect.snowdata_schema.behaviourprofileaggregated where AGG_TYPE='behaviour' and subscriber = $subscriber and agg_subtype= 'officeLocation' and agg_type_name=$behav and DATE_FROM_PARTS(year, monthofyear, dayofmonth) BETWEEN $startdate AND $enddate order by subscriber,  agg_subtype, agg_subtype_name, year, monthofyear, dayofmonth"
+  - id: quilr-bar-by-groups-behaviour
+    name: behavior
+    label: Widget
+    template: name
+    enabled: true
+    type: quilr-bar
+    className: w-1/2
+    allowed_params: true
+    dataSourceType: datalake
+    input_params:
+      startdate: $startdate
+      enddate: $enddate
+      behav: $behav
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: "select *, ROUND((alert_percentile*4) + 1) as risk_index from kafka_connect.snowdata_schema.behaviourprofileaggregated where AGG_TYPE='behaviour' and subscriber = $subscriber and agg_subtype= 'group' and agg_type_name=$behav and DATE_FROM_PARTS(year, monthofyear, dayofmonth) BETWEEN $startdate AND $enddate order by subscriber,  agg_subtype, agg_subtype_name, year, monthofyear, dayofmonth"
+  - id: quilr-bar-by-resolved-behaviour
+    name: behavior
+    label: Widget
+    template: name
+    enabled: true
+    type: quilr-bar
+    className: w-1/2
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      starttime: AND i.generationTime >= $starttime
+      endtime: AND i.generationTime <= $endtime
+      behav: AND b.name = $behav
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: "CALL {
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      MATCH (acc)-[hi:HAS_ISSUE]->(i:ISSUE)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(i)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+
+
+      return u, e, acc, i as issue, application, r, b
+
+      UNION
+
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      MATCH (acc)-[hi:HAS_ISSUE]->(ih:ISSUE_HISTORY)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(ih)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+
+      return u, e, acc, ih as issue, application, r, b
+      }
+
+      WITH u, acc, issue as i, r, b, issue.status as status, application
+      WHERE b.name is not null
+      AND u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      {placeholder}
+
+      return b.id as id, b.name as name, collect(DISTINCT({id: i.id, status: i.status})) as data"
+  - id: quilr-bar-criticality-of-findings-behaviour
+    name: behavior
+    label: Widget
+    template: name
+    enabled: true
+    type: quilr-bar
+    className: w-1/2
+    allowed_params: true
+    dataSourceType: datalake
+    input_params:
+      startdate: $startdate
+      enddate: $enddate
+      behav: $behav
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: "select *, ROUND((alert_percentile*4) + 1) as risk_index from kafka_connect.snowdata_schema.behaviourprofileaggregated where AGG_TYPE='behaviour' and subscriber = $subscriber and agg_subtype= 'criticality' and agg_type_name=$behav and DATE_FROM_PARTS(year, monthofyear, dayofmonth) BETWEEN $startdate AND $enddate order by subscriber,  agg_subtype, agg_subtype_name, year, monthofyear, dayofmonth"
+
+  - id: quilr-bar-by-department-postures
+    name: posture
+    label: Widget
+    template: name
+    enabled: true
+    type: quilr-bar
+    className: w-1/2
+    allowed_params: true
+    dataSourceType: datalake
+    input_params:
+      startdate: $startdate
+      enddate: $enddate
+      posture: $posture
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: "select *, ROUND((alert_percentile*4) + 1) as risk_index from kafka_connect.snowdata_schema.postureprofileaggregated where AGG_TYPE='posture' and subscriber = $subscriber and agg_subtype= 'department' and agg_type_name=$posture and DATE_FROM_PARTS(year, monthofyear, dayofmonth) BETWEEN $startdate AND $enddate order by subscriber,  agg_subtype, agg_subtype_name, year, monthofyear, dayofmonth"
+  - id: quilr-bar-by-location-postures
+    name: posture
+    label: Widget
+    template: name
+    enabled: true
+    type: quilr-bar
+    className: w-1/2
+    allowed_params: true
+    dataSourceType: datalake
+    input_params:
+      startdate: $startdate
+      enddate: $enddate
+      posture: $posture
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: "select *, ROUND((alert_percentile*4) + 1) as risk_index from kafka_connect.snowdata_schema.postureprofileaggregated where AGG_TYPE='posture' and subscriber = $subscriber and agg_subtype= 'officeLocation' and agg_type_name=$posture and DATE_FROM_PARTS(year, monthofyear, dayofmonth) BETWEEN $startdate AND $enddate order by subscriber,  agg_subtype, agg_subtype_name, year, monthofyear, dayofmonth"
+  - id: quilr-bar-by-groups-postures
+    name: posture
+    label: Widget
+    template: name
+    enabled: true
+    type: quilr-bar
+    className: w-1/2
+    allowed_params: true
+    dataSourceType: datalake
+    input_params:
+      startdate: $startdate
+      enddate: $enddate
+      posture: $posture
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: "select *, ROUND((alert_percentile*4) + 1) as risk_index from kafka_connect.snowdata_schema.postureprofileaggregated where AGG_TYPE='posture' and subscriber = $subscriber and agg_subtype= 'group' and agg_type_name=$posture and DATE_FROM_PARTS(year, monthofyear, dayofmonth) BETWEEN $startdate AND $enddate order by subscriber,  agg_subtype, agg_subtype_name, year, monthofyear, dayofmonth"
+  - id: quilr-bar-by-resolved-postures
+    name: posture
+    label: Widget
+    template: name
+    enabled: true
+    type: quilr-bar
+    className: w-1/2
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      starttime: AND i.generationTime >= $starttime
+      endtime: AND i.generationTime <= $endtime
+      posture: AND p.name = $posture
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: "CALL {
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      MATCH (acc)-[hi:HAS_ISSUE]->(i:ISSUE)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(i)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+
+
+      return u, e, acc, i as issue, application, r, b,p
+
+      UNION
+
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      MATCH (acc)-[hi:HAS_ISSUE]->(ih:ISSUE_HISTORY)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(ih)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+
+      return u, e, acc, ih as issue, application, r, b,p
+      }
+
+      WITH u, acc, issue as i, r, b, issue.status as status, application,p
+
+
+      WHERE b.name is not null
+      AND u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      {placeholder}
+
+      return b.id as id, b.name as name, collect(DISTINCT({id: i.id, status: i.status})) as data"
+  - id: quilr-bar-criticality-of-findings-postures
+    name: posture
+    label: Widget
+    template: name
+    enabled: true
+    type: quilr-bar
+    className: w-1/2
+    allowed_params: true
+    dataSourceType: datalake
+    input_params:
+      startdate: $startdate
+      enddate: $enddate
+      posture: $posture
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: "select *, ROUND((alert_percentile*4) + 1) as risk_index from kafka_connect.snowdata_schema.postureprofileaggregated where AGG_TYPE='posture' and subscriber = $subscriber and agg_subtype= 'criticality' and agg_type_name=$posture and DATE_FROM_PARTS(year, monthofyear, dayofmonth) BETWEEN $startdate AND $enddate order by subscriber,  agg_subtype, agg_subtype_name, year, monthofyear, dayofmonth"

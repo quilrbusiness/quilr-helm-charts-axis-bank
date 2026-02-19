@@ -1,0 +1,17 @@
+id: 2e9adfdd-1098-4cda-a252-d0f2bd597230
+version: 3.0
+code: Q103
+name: User Account Without MFA
+description: 
+type: rule
+view: identity_protection
+impact: high
+likelihood: high
+createdon: 1720094794000
+updatedon: 1720094794000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_29
+examples: []
+recommendations: []

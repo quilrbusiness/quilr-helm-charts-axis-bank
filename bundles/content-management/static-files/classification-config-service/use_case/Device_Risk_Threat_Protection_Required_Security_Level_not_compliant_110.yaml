@@ -1,0 +1,31 @@
+id: a866d8d3-99d9-4a0f-b424-4d8350b50f87
+name: device security level is non-compliant
+updatedon: 1739367013795
+condition:
+- filter_condition:
+    condition: is equal to
+    value: DeviceThreatProtectionRequiredSecurityLevel
+    attributeid: DEV-003
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: 
+  editable: false
+- filter_condition:
+    condition: is not equal to
+    value: compliant
+    attribute_id: DEV-004
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: AND
+  editable: false
+createdon: 1739367013795
+version: 1.4
+description: The device’s threat protection settings do not meet the required security level. Immediate attention is needed to ensure the device is compliant with the organization's security standards to prevent potential vulnerabilities and threats.
+posture:
+- PID_05
+code: UC110
+disabled: false
+type: use-case
+behavior:
+- BID_101
+

@@ -1,0 +1,11 @@
+name: block when user is copy pasting data from one app to another
+type: message
+channel: Browser
+content:
+  header: Data Transfer Blocked!
+  title: |
+    You seem to be transferring data, which may or may not be sensitive, between apps. Your company policy does not allow copying data from this app.<br/> If you believe this is an error, contact your Security Team for assistance.
+  description: ""
+  acknowledgedButtons: []
+rendered_content_type: application/json
+is_active: true

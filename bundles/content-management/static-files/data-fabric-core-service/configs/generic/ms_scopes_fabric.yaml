@@ -1,0 +1,77 @@
+id: 13a41409-7c49-4fad-b2f6-5f6249c56950
+name: ms-scopes-fabric
+type: fabric
+version: 1.0.0
+trail:
+  block: start
+  dependson: [ ]
+  attempt:
+    - block: load_scopes_data
+      dependson: [ ]
+      attempt:
+        - block: publish_to_transformedOutput
+          dependson: [ ]
+          attempt:
+            - block: end
+              dependson: [ ]
+              attempt: [ ]
+              otherwise: [ ]
+              start: false
+              end: false
+          otherwise:
+            - block: end
+              dependson: [ ]
+              attempt: [ ]
+              otherwise: [ ]
+              start: false
+              end: false
+          start: false
+          end: false
+      otherwise: [ ]
+      start: false
+      end: false
+  otherwise:
+    - block: end
+      dependson: [ ]
+      attempt: [ ]
+      otherwise: [ ]
+      start: false
+      end: true
+  start: true
+  end: false
+blocks:
+  - name: start
+    type: start
+    config: {}
+  - name: end
+    type: end
+    config: {}
+  - name: load_scopes_data
+    type: receiver
+    config:
+      type: rest
+      uri: https://staticcontent1.blob.core.windows.net/oauathscopes/microsoft_scopes.json
+      method: GET
+      headers: {}
+      body: {}
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: publish_to_transformedOutput
+    type: sender
+    config:
+      type: kafka
+      topic: transformedOutput
+      facade:
+        SCOPE: $.input.using.SCOPE
+        SCOPE_ID: $.input.using.SCOPE_ID
+        SCOPE_APPLICATION_ADMINREQUIRED: $.input.using.SCOPE_APPLICATION_ADMINREQUIRED
+        SCOPE_DELEGATED_ADMINREQUIRED: $.input.using.SCOPE_DELEGATED_ADMINREQUIRED
+        SCOPE_COVERAGE: $.input.using.SCOPE_COVERAGE
+        SCOPE_SERVICE: $.input.using.SCOPE_SERVICE
+        SCOPE_PERMISSIONTYPE: $.input.using.SCOPE_PERMISSIONTYPE
+        SCOPE_SEVERITY: $.input.using.SCOPE_SEVERITY
+        SCOPE_SOURCE: $.input.using.SCOPE_SOURCE
+        SCOPE_DESCRIPTION: $.input.using.SCOPE_DESCRIPTION
+        QUILR_INTEGRATION_TYPE: scope
+      foreach: $.block.load_scopes_data.output.response.response[*]

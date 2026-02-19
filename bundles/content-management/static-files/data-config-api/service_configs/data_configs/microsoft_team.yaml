@@ -1,0 +1,37 @@
+id: 1d8a63bc-6fc1-40bd-9539-27f88fa2c278
+name: Microsoft Teams
+description: This connector integrates Microsoft Teams with the Quilr, allowing secure access to team information, channel details, and messaging.
+connection_config_id: 455df5c6-429f-4067-bd9d-c5827949daa7
+icon_url: https://staticcontent1.blob.core.windows.net/static-images-company-logos/teams.microsoft.com.png
+login_enabled: false
+parent_org:
+  name: Microsoft
+  description: Effortlessly integrate your Microsoft's Intune MDM for gaining deeper insights in your environment.
+  icon_url: https://staticcontent1.blob.core.windows.net/static-images-company-logos/entra_id.png
+category: Communication
+version: 1.0.6
+updated_at: 1735908739241
+metadata:
+  type: oauth_integration
+  product: Teams
+  subProduct: /v1.0
+  vendor: Microsoft
+internal:
+  content_ids:
+    env_var: ""
+    default_value: "a163b434-483d-40e1-9bc6-103dbca351b1, 8e830726-83b7-4961-a99c-96489c0c50e1, b274c567-382e-4e21-bfc9-213ecf3415c2"
+inputSchema:
+  - id: scope_selection
+    type: multiselect
+    label: Teams Scopes
+    description: Select the scopes you want to give access to.
+    options:
+      - id: openid profile offline_access user.read user.read.all MailboxSettings.Read
+        label: User Information
+        description: Allows Quilly to read user information and send the message to user.
+      - id: TeamsActivity.Read TeamsActivity.Send TeamsAppInstallation.ReadForUser ChannelMessage.Send Chat.ReadWrite Chat.Create ChatMessage.Send
+        description: Allows Quilly to read teams activity notification and channel
+    default:
+      - openid profile offline_access user.read user.read.all MailboxSettings.Read
+outputSchema: {}
+is_active: true

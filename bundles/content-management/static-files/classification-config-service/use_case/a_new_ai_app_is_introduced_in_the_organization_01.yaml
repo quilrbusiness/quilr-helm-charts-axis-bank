@@ -1,0 +1,42 @@
+id: e0d0c12e-ccfa-42e8-8c20-7f5f52afa0ce
+version: 1.9
+code: UC001
+name: a new AI app is introduced in the organization
+type: use-case
+description: Define what should be done when a user is user is copying into clipboard.
+posture:
+  - PID_01
+behavior:
+  - BID_17
+condition:
+  - operator: null
+    filter_condition:
+      attribute_type: ATTR_Browser_001
+      attribute_id: BROWSER-002
+      condition: is equal to
+      value: "visit"
+    filter_group: null
+    editable: false
+    supported_operators:
+      - is equal to
+  - operator: AND
+    filter_condition:
+      attribute_type: ATTR_APP_001
+      attribute_id: APP-001
+      condition: is equal to
+      value: "Generative AI"
+    filter_group: null
+    editable: false
+  - operator: AND
+    filter_condition:
+      attribute_type: ATTR_APP_001
+      attribute_id: APP-013
+      condition: is equal to
+      value: "true"
+    filter_group: null
+    editable: false
+    supported_operators:
+      - is equal to
+disabled: false
+createdon: 1710504494000
+updatedon: 1710504494000

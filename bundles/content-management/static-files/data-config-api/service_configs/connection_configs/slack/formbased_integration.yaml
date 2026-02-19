@@ -1,0 +1,13 @@
+id: 96d8f493-93a8-4ee0-b66b-e1509425ee2c
+vendor: Slack
+product: Rest API
+slug: slack_config
+description: Set of parameters which are essential to authenticate API client
+tests: []
+inputSchema:
+  - id: key
+    type: text
+    title: API Key
+    description: API key to access Slack endpoints (including scheme, ex., Authorization <key>)
+    required: true
+    obscure: yes

@@ -1,0 +1,48 @@
+datatype: DICT
+defaultValue:
+  name: User-Generated Public Content
+  description: Content created and shared publicly by users
+  criticality: LOW
+  sensitivity: Non-Sensitive
+  examples:
+    - Public Social Media Posts
+    - Customer Reviews on Public Platforms
+    - Comments on Public Forums or Blogs
+    - Publicly Shared Photos or Videos
+    - Open-Source Software Contributions
+  indicators:
+    - Content explicitly shared on public platforms
+    - User-generated data with public visibility settings
+    - Information intended for a broad audience
+    - Collaborative or community-created content
+  contentMarkers:
+    - Social media formatting and hashtags
+    - Review ratings and user nicknames
+    - Forum or blog comment structures
+    - Creative Commons licenses
+    - Open-source project contributions
+  impactSummary: Minimal privacy concern; content is intentionally made public by its creator
+  classificationRules:
+    positive: >-
+      Contains user-created content on public platforms; information shared with
+      public visibility
+    negative: >-
+      Private messages; content shared in closed groups; draft or unpublished user
+      content
+    resolution: >-
+      Verify the public nature of the platform and the user's intent to share
+      publicly
+  relatedClasses:
+    - PBI001
+    - GKN001
+    - COM001
+entityDescription: |-
+  Data Definition to classify and extract User-Generated Public Content from text
+entityId: UGC001
+entityMeta:
+  category: Data Protection Rule
+  source: default
+entityName: User-Generated Public Content
+entityType: dlp_rule
+isDisabled: false
+isModifiable: true

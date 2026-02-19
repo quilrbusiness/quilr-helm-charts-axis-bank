@@ -1,0 +1,18 @@
+name: approved_app_users
+#query: "MATCH (app:APPLICATION)-[:HAS_USER]-(acc:ACCOUNT) WHERE app.disabledByMicrosoftStatus = $appStatus return app.appDisplayName as appName, app.appUrl as appUrl, acc"
+#parameters:
+#  # email: "{persona.email}"
+#  appStatus: "false"
+#  and ha.isSSOApproved = $ssoStatus
+query: "MATCH (app:APPLICATION)-[ha:HAS_USER]-(acc:ACCOUNT) WHERE acc.subscriber = $subscriber 
+and acc.id = $email OPTIONAL MATCH (app)-[:HAS_APP_CATEGORY]-(cat) return DISTINCT 
+app.appDisplayName as appName, app.firstSeen as appCreationDate, app.appUrl as appUrl, 
+app.domain as appDomain, cat.id as appCategory, acc.id as userMail"
+parameters:
+  email: "$.email"
+  subscriber: "$.subscriber"
+#  ssoStatus: true
+datasource: "knowledgegraph"
+enablecache: false
+expireinmillis: 60000
+browser: true

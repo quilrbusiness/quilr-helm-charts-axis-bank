@@ -1,0 +1,10 @@
+name: it_admin_lookup
+query: "MATCH (u1:USER)-[rel:HAS_MANAGER]->(u2) where u1.mail = $email and u2.mail is not null 
+return u1.displayName as username, u2.mail as managerEmail"
+parameters:
+  # email: "{persona.email}"
+  email: "$.email"
+datasource: "knowledgegraph"
+enablecache: false
+expireinmillis: 60000
+browser: true

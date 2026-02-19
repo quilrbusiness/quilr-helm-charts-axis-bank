@@ -1,0 +1,50 @@
+datatype: DICT
+defaultValue:
+  name: Non-Critical System Information
+  description: Technical data about systems or processes with moderate sensitivity
+  criticality: MEDIUM
+  sensitivity: Sensitive
+  examples:
+    - Internal IP Addresses
+    - Non-Production Server Names
+    - Software Version Information
+    - General Network Topology
+    - Non-Sensitive System Configurations
+  indicators:
+    - Presence of internal technical details
+    - System identifiers not intended for public use
+    - Information on IT infrastructure or processes
+    - Non-critical operational data
+  contentMarkers:
+    - IP address formats
+    - Server or device naming conventions
+    - Software version numbers
+    - Technical abbreviations or codes
+  impactSummary: >-
+    Potential for minor system targeting; slight operational insights for
+    competitors
+  classificationRules:
+    positive: >-
+      Contains internal technical details; system identifiers; non-critical
+      infrastructure information
+    negative: >-
+      Public technical documentation; general product specifications; widely known
+      system information
+    resolution: >-
+      Evaluate the specificity of the technical information and its potential
+      value to unauthorized parties
+  relatedClasses:
+    - AUTH001
+    - BCI001
+    - COM001
+    - OPS001
+entityDescription: |-
+  Data Definition to classify and extract Non-Critical System Information from text
+entityId: SYS001
+entityMeta:
+  category: Data Protection Rule
+  source: default
+entityName: Non-Critical System Information
+entityType: dlp_rule
+isDisabled: false
+isModifiable: true

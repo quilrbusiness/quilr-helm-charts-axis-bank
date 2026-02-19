@@ -1,0 +1,17 @@
+id: df4314ff-514c-4561-8d44-c3d1d210aaaa
+version: 3.0
+code: Q063
+name: Unused admin Account
+description: 
+type: rule
+view: identity_protection
+impact: veryhigh
+likelihood: moderate
+createdon: 1720094794000
+updatedon: 1720094794000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_45
+examples: []
+recommendations: []

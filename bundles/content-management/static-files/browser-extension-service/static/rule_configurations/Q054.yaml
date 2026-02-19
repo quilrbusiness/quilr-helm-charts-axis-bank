@@ -1,0 +1,14 @@
+datatype: DICT
+defaultValue:
+  message: ''
+  mode: Ask
+entityDescription: ''
+entityId: Q054
+entityMeta:
+  behavior: Weak MFA
+  category: ISPM
+  posture: MFA Usage
+entityName: Not using MFA on SSO/IDP
+entityType: rule
+isDisabled: false
+isModifiable: true

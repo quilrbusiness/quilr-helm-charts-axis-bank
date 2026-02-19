@@ -1,0 +1,21 @@
+code: ACT_235
+createdon: 1710504494000
+id: f5997ee2-df4e-483b-925b-560259027e7e
+version: 1
+actiontype: ACTP_02
+behavior:
+- BID_200
+updatedon: 1710504494000
+name: prompt when user copies data between applications
+type: action
+tags:
+- UC031
+config:
+  meta:
+    execution_type: tool
+    browser_action: Ask
+    engagement_type: templatized
+    execution_module: send_templated_user_message
+    message_template: ask-when-user-is-copy-pasting-data-from-one-app-to-another
+    channel: 
+

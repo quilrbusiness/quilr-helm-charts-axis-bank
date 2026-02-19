@@ -1,0 +1,12 @@
+name: Block application by organisation
+type: message
+channel: Browser
+content:
+  header: Access Blocked!
+  title: |
+    Access to this application has been restricted as per your organization’s policy to protect your data and systems.
+    <br />For more information or to request access, please reach out to the IT helpdesk.
+  description: ""
+  acknowledgedButtons: null
+rendered_content_type: application/json
+is_active: true

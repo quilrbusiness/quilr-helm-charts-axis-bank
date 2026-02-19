@@ -1,0 +1,92 @@
+name: chatgpt-prompt
+version: 1.0.0
+sequences:
+  - name: get_search_query
+    waiton: []
+    next:
+      - name: showLoading
+        waiton: [get_search_query]
+        next: []
+      - name: check_query_prompt
+        waiton: [get_search_query]
+        ifnext:
+          name: process_body
+          waiton: [check_query_prompt]
+          next:
+            - name: validate_query
+              waiton: [process_body]
+              next:
+                - name: check_response
+                  waiton: [validate_query]
+                  ifnext:
+                    name: show_notification
+                    waiton: [check_response]
+                    next:
+                      - name: END
+                  elsenext:
+                    name: "propagate_request"
+                    next:
+                      - name: END
+        elsenext:
+          name: END
+actions:
+  - name: showLoading
+    type: show_loader
+    config:
+      val: true
+  - name: removeLoading
+    type: remove-loader
+    config:
+      val: false
+  - name: get_search_query
+    type: get_dom_element
+    config:
+      matcher: "textarea#prompt-textarea"
+  - name: check_query_prompt
+    type: condition_eval
+    config:
+      condition: "data.outcome.outcomes['get_search_query'].response.data && data.outcome.outcomes['get_search_query'].response.data.element && data.outcome.outcomes['get_search_query'].response.data.element.value && data.outcome.outcomes['get_search_query'].response.data.element.value.length > 0"
+  - name: process_body
+    type: effect
+    config:
+      command: "JSON.parse(JSON.stringify({'event':'paste', 'content': data.outcome.outcomes['get_search_query'].response.data.element.value ,'element': 'text_area', 'agent': 'browser'}))"
+  - name: validate_query
+    type: dlpcheck
+    config:
+      url: "/browser-extension/browser/llm/verify"
+      method: "POST"
+      body: data.outcome.outcomes['process_body'].response.data
+      type: chunks
+
+  - name: check_response
+    type: condition_eval
+    config:
+      condition: "data.outcome.outcomes['validate_query'].response.data && data.outcome.outcomes['validate_query'].response.data.severity && data.outcome.outcomes['validate_query'].response.data.severity === 'CRITICAL'"
+  - name: show_notification
+    type: format_data
+    config:
+      id: "{Date.now().toString()}"
+      redactedcontent: "data.outcome.outcomes['get_search_query'].response.data.element.value"
+      originalcontent: "data.outcome.outcomes['get_search_query'].response.data.element.value"
+      type: modal
+      template: "1"
+  - name: propagate_request
+    type: effect
+    config:
+      command: true
+persona:
+  roles:
+    - PRIVILEGED_ACCESS
+application:
+  urlpattern: "chatgpt.com"
+  analysismethod: "includes"
+browser: true
+args:
+  target: button[data-testid=send-button]
+  stopPropagation: true
+  preventDefault: true
+  persistent: true
+event: submit
+active: false
+priority: 0
+element: window

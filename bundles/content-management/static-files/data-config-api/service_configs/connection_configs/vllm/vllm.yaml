@@ -1,0 +1,19 @@
+id: f7d7c24c-3d11-46fb-88dd-54075561f422
+vendor: vLLM
+product: vLLM Inference Engine
+slug: vllm_config
+description: set the parameters for vllm server.
+tests: []
+inputSchema:
+  - id: server
+    type: text
+    title: vLLM Server IP / Domain
+    description: Provide vLLM server IP address or Domain
+    required: true
+    obscure: no
+  - id: port
+    type: integer
+    title: vLLM Server Port
+    description: Provide vLLM Server Port
+    required: true
+    obscure: no

@@ -1,0 +1,38 @@
+id: 6c24a79d-0666-4930-baff-200a89a803db
+name: Azure Cloud
+description: This connector integrates Azure AI foundry and Azure Machine Learning Studio with the Quilr, allowing secure access to AI Asset information.
+connection_config_id: ec1a7866-cc58-4a19-a887-a78541bd1ee8
+icon_url: https://staticcontent1.blob.core.windows.net/static-images-company-logos/azure%20cloud%20png.png
+login_enabled: false
+parent_org:
+  name: Microsoft
+  description: Effortlessly integrate your applications with Microsoft's robust cloud services using our Azure Cloud connector. With secure authentication and streamlined data retrieval, you can efficiently manage and utilize your AI assets within the Quilr platform.
+  icon_url: https://staticcontent1.blob.core.windows.net/static-images-company-logos/azure%20cloud%20png.png
+category: Asset Discovery
+version: 1.0.0
+updated_at: 1735908739241
+metadata:
+  type: oauth_integration
+  product: Azure Cloud
+  subProduct: /v1.0
+  vendor: Microsoft
+internal:
+  content_ids:
+    env_var: ""
+    default_value: "a163b434-483d-40e1-9bc6-103dbca351b1"
+inputSchema:
+  - id: scope_selection
+    type: multiselect
+    label: AI Asset Discovery Scopes
+    description: Select the scopes you want to give access to.
+    options:
+      - id: openid profile offline_access
+        label: Device Information
+        description: Allows Quilr to access management APIs for retrieving resources.
+#      - id: user_impersonation
+#        label: Azure Management API
+#        description: Allows Quilr to access and manage resources in Azure through the Azure Management API on behalf of the signed-in user.
+    default:
+      - openid profile offline_access
+outputSchema: {}
+is_active: true

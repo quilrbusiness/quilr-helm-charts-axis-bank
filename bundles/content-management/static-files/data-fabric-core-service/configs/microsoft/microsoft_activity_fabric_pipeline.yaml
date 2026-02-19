@@ -1,0 +1,274 @@
+id: 42deef16-fc3b-41f8-bca5-d07b6e1aa1cd
+name: graph-api-user-activity-data
+type: fabric
+version: 1.0.0
+trail:
+  block: start
+  dependson: [ ]
+  attempt:
+    - block: get_refreshed_token
+      dependson: [ ]
+      attempt:
+        - block: update_completion_to_10
+          dependson: [ ]
+          attempt: [ ]
+          otherwise: [ ]
+          start: false
+          end: false
+#        - block: send_token_to_vault
+#          dependson: [ ]
+#          attempt:
+#            - block: update_completion_to_25
+#              dependson: [ ]
+#              attempt: [ ]
+#              otherwise: [ ]
+#              start: false
+#              end: false
+#          otherwise: [ ]
+#          start: false
+#          end: false
+        - block: list_servicePrincipals
+          dependson: [ ]
+          attempt:
+            - block: update_completion_to_40
+              dependson: [ ]
+              attempt: [ ]
+              otherwise: [ ]
+              start: false
+              end: false
+            - block: get_signins_in_last_3_months
+              dependson: [ ]
+              attempt:
+                - block: update_completion_to_60
+                  dependson: [ ]
+                  attempt: [ ]
+                  otherwise: [ ]
+                  start: false
+                  end: false
+                - block: merge_signin_activity
+                  dependson: [ ]
+                  attempt:
+                    - block: update_completion_to_80
+                      dependson: [ ]
+                      attempt: [ ]
+                      otherwise: [ ]
+                      start: false
+                      end: false
+                    - block: publish_to_rawOutput
+                      dependson: [ ]
+                      attempt:
+                        - block: update_completion_to_100
+                          dependson: [ ]
+                          attempt: [ ]
+                          otherwise: [ ]
+                          start: false
+                          end: false
+                        - block: end
+                          dependson: [ ]
+                          attempt: [ ]
+                          otherwise: [ ]
+                          start: false
+                          end: true
+                      otherwise: [ ]
+                      start: false
+                      end: false
+                  otherwise: [ ]
+                  start: false
+                  end: false
+              otherwise: [ ]
+              start: false
+              end: false
+          otherwise: [ ]
+          start: false
+          end: false
+      otherwise: [ ]
+      start: false
+      end: false
+  otherwise:
+    - block: end
+      dependson: [ ]
+      attempt: [ ]
+      otherwise: [ ]
+      start: false
+      end: true
+  start: true
+  end: false
+blocks:
+  - name: start
+    type: start
+    config: {}
+  - name: end
+    type: end
+    config: {}
+#  - name: get_refreshed_token
+#    type: receiver
+#    config:
+#      type: rest
+#      uri: https://login.microsoftonline.com/common/oauth2/v2.0/token
+#      method: GET
+#      headers: {}
+#      body:
+#        grant_type: refresh_token
+#        client_id: a7fc33a8-d01e-4759-9502-45a14a91d1ec
+#        client_secret: bt38Q~2tPH2b.dj_UWnuRGLlR_x.wT-agH_2Mc6i
+#        scope: https://graph.microsoft.com/.default
+#        refresh_token: $.credential.token.refreshToken
+#      extract: null
+#      pagination: null
+#      paginationplacement: null
+  - name: get_refreshed_token
+    type: receiver
+    config:
+      type: rest
+      uri: https://login.microsoftonline.com/common/oauth2/v2.0/token
+      method: GET
+      headers: {}
+      body:
+        grant_type: refresh_token
+        client_id: $.env.client_id
+        client_secret: $.env.client_secret
+        scope: https://graph.microsoft.com/.default
+        refresh_token: $.credential.token.refreshToken
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: send_token_to_vault
+    type: sender
+    config:
+      type: vault
+      credential_type: token
+      subscriber: $.context.subscriber
+      tenant: $.context.tenant
+      userid: $.context.context.userid
+      facade:
+        accessToken: $.block.get_refreshed_token.output.response.response.access_token
+        refreshToken: $.block.get_refreshed_token.output.response.response.refresh_token
+  - name: list_servicePrincipals
+    type: receiver
+    config:
+      type: rest
+      uri: https://graph.microsoft.com/v1.0/servicePrincipals?$count=true&$select=&$filter=tags/any(t:t eq 'WindowsAzureActiveDirectoryIntegratedApp')
+      method: GET
+      headers:
+        Authorization: Bearer $.block.get_refreshed_token.output.response.response.access_token
+      body: {}
+      extract: value
+      pagination: null
+      paginationplacement: null
+  - name: get_signins_in_last_3_months
+    type: receiver
+    config:
+      type: rest
+      uri: https://graph.microsoft.com/v1.0/auditLogs/signIns?$filter=appId eq '$.input.using.appId' and createdDateTime ge 2024-02-01T00:00:00Z and createdDateTime le 2024-05-21T23:59:59Z
+      method: GET
+      headers:
+        Authorization: Bearer $.block.get_refreshed_token.output.response.response.access_token
+      body:
+        appId: $.input.using.appId
+      foreach: $.block.list_servicePrincipals.output.response.response[*]
+      extract: value
+      pagination: null
+      paginationplacement: null
+  - name: merge_signin_activity
+    type: util
+    config:
+      type: merge
+      primary: $.block.list_servicePrincipals.output.response.response
+      secondary: $.block.get_signins_in_last_3_months.output.response
+      pickfrom: response
+      sinkto: signIns
+      condition: "$.primary.appId == $.secondary.body.appId && $.secondary.response.error.code == null"
+  - name: publish_to_rawOutput
+    type: sender
+    config:
+      type: kafka
+      topic: rawOutput
+      facade:
+        name: Active Directory Users Activity Connector
+        description: Azure AD Connector Configuration
+        type: activity
+        vendor: Microsoft
+        product: microsoft.graph
+        subProduct: /v1.0/auditLogs/signIns
+        data: $.input.using
+        subscriber: $.context.subscriber
+        tenant: $.context.tenant
+      foreach: $.block.merge_signin_activity.output.response.response[*]
+  - name: update_completion_to_10
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update/output
+      method: POST
+      headers:
+        Internal: true
+      body:
+        completed_percentage: 10
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: update_completion_to_25
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update/output
+      method: POST
+      headers:
+        Internal: true
+      body:
+        completed_percentage: 25
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: update_completion_to_40
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update/output
+      method: POST
+      headers:
+        Internal: true
+      body:
+        completed_percentage: 40
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: update_completion_to_60
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update/output
+      method: POST
+      headers:
+        Internal: true
+      body:
+        completed_percentage: 60
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: update_completion_to_80
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update/output
+      method: POST
+      headers:
+        Internal: true
+      body:
+        completed_percentage: 80
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: update_completion_to_100
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update/output
+      method: POST
+      headers:
+        Internal: true
+      body:
+        completed_percentage: 100
+      extract: null
+      pagination: null
+      paginationplacement: null

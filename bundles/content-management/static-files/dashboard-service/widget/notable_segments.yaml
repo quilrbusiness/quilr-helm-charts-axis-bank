@@ -1,0 +1,175 @@
+widget_id: 31b35a79-daef-4535-ae57-b951aa1b31c1
+template_id: NotableSegments
+active: true
+title: Notable Behaviors
+components:
+  - name: High Risk
+    type: bubble
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          # Combine redundant queries and use descriptive variable name:
+          data = {"type": "bubble",
+                  "name": "High Risk",
+                  "color": "#C32914",
+                  "legendSymbol": "rectangle",
+                  "data": [
+                      {
+                          "x": 95,
+                          "y": 10,
+                          "z": 13.8
+                      },
+                      {
+                          "x": 86.5,
+                          "y": 102.9,
+                          "z": 14.7
+                      },
+                      {
+                          "x": 80.8,
+                          "y": 30,
+                          "z": 15.8
+                      },
+                      {
+                          "x": 30,
+                          "y": 20,
+                          "z": 14
+                      },
+                      {
+                          "x": 40,
+                          "y": 40,
+                          "z": 16
+                      }
+                  ]
+                  }
+          return data
+  - name: Somewhat Risk
+    type: bubble
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          # Combine redundant queries and use descriptive variable name:
+          data = {"color": "#E98817",
+                  "legendSymbol": "rectangle",
+                  "data": [
+                      {
+                          "x": 80,
+                          "y": 90,
+                          "z": 13.8
+                      },
+                      {
+                          "x": 80.5,
+                          "y": 102.9,
+                          "z": 14.7
+                      },
+                      {
+                          "x": 89.8,
+                          "y": 40,
+                          "z": 15.8
+                      },
+                      {
+                          "x": 60,
+                          "y": 30,
+                          "z": 14
+                      }
+                  ]
+              }
+          return data
+  - name: Neutral
+    type: bubble
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          # Combine redundant queries and use descriptive variable name:
+          data = {"color": "#8C8C8C",
+                "legendSymbol": "rectangle",
+                "data": [
+                    {
+                        "x": 20,
+                        "y": 30,
+                        "z": 13.8
+                    },
+                    {
+                        "x": 50.5,
+                        "y": 12.9,
+                        "z": 14.7
+                    },
+                    {
+                        "x": 49.8,
+                        "y": 80,
+                        "z": 15.8
+                    },
+                    {
+                        "x": 90,
+                        "y": 120,
+                        "z": 14
+                    }
+                ]
+            }
+          return data
+      
+
+  - name: Somewhat Vigillant
+    type: bubble
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          # Combine redundant queries and use descriptive variable name:
+          data = {"color": "#607FF4",
+                "legendSymbol": "rectangle",
+                "data": [
+                    {
+                        "x": 20,
+                        "y": 90,
+                        "z": 13.8
+                    },
+                    {
+                        "x": 30.5,
+                        "y": 102.9,
+                        "z": 14.7
+                    },
+                    {
+                        "x": 49.8,
+                        "y": 50,
+                        "z": 15.8
+                    },
+                    {
+                        "x": 64,
+                        "y": 30,
+                        "z": 14
+                    }
+                ]
+            }
+          return data
+  - name: High Vigillant
+    type: bubble
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          # Combine redundant queries and use descriptive variable name:
+          data = {"color": "#107A3B  ",
+                "legendSymbol": "rectangle",
+                "data": [
+                    {
+                        "x": 40,
+                        "y": 90,
+                        "z": 13.8
+                    },
+                    {
+                        "x": 60.5,
+                        "y": 82.9,
+                        "z": 14.7
+                    },
+                    {
+                        "x": 69.8,
+                        "y": 50,
+                        "z": 15.8
+                    },
+                    {
+                        "x": 10,
+                        "y": 30,
+                        "z": 20
+                    }
+                ]
+            }
+          return data
+version: 6.0

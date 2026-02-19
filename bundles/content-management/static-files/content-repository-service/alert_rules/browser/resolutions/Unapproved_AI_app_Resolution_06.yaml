@@ -1,0 +1,65 @@
+id: d60d3fb9-77d5-43f8-a822-dc18f13dc3eb
+name: Unapproved AI App Resolution
+type: rule
+version: 3.2
+schedule: 2m
+historicalrecordduration: 2m
+active: false
+source:
+  type: query
+  config:
+    query: "MATCH (user:USER) - [has_email:HAS_EMAIL] - (email:EMAIL:PRIMARY),
+            (email)-[account_relation]-(account:ACCOUNT)-[using_app:USING_APP]-(app:APPLICATION),
+            (app) - [has_app_category:HAS_APP_CATEGORY] - (app_category:APP_CATEGORY)
+            OPTIONAL MATCH (user)-[:BELONGS_TO]->(group:GROUP {userDefined: true})
+            OPTIONAL MATCH (user)-[:HAS_DEPARTMENT]->(department:DEPARTMENT)
+            OPTIONAL MATCH (tenant:TENANT)-[app_settings:HAS_APP_SETTINGS]-(app)
+            WITH user, account_relation, app, app_category, app_settings, group, department
+            WHERE account_relation.timestamp >= $starttime
+              AND account_relation.timestamp <= $endtime
+              AND toupper(COALESCE(app_settings.approval_status, app.approval_status, 'NOT SET'))= 'APPROVED'
+              AND app_category.name = 'generative ai' 
+              AND type(account_relation) IN ['CREDSBASED_ACCOUNT', 'OAUTH_ACCOUNT']
+            WITH user, account_relation, app, app_category, app_settings, group, department
+            RETURN DISTINCT
+              user.id AS userId,
+              user.displayName AS userName,
+              user.mail AS userMail,
+              user.accountEnabled AS userAccountEnabled,
+              user.tenant AS TENANT,
+              user.subscriber AS SUBSCRIBER,
+              app.id_ AS appId,
+              app.name AS appName,
+              app.Url AS appUrl,
+              app.domain AS appDomain,
+              COLLECT(app_category.name) AS appCategory,
+              user.mail + '_' + app.id_ AS userAppAccount,
+              COALESCE(app_settings.criticality, app.criticality, 'NOT SET') AS appCriticality,
+              COALESCE(app_settings.approval_status, app.approval_status, 'NEEDS REVIEW') as appApprovalStatus,
+              account_relation.context_id as CONTEXTID,
+              account_relation.last_access_time as EVENTTIME"
+    type: knowledgegraph 
+    limit:
+    offset: 0
+destination:
+  type: stream 
+  topic: ruleEvaluator
+config:
+  expression: "def fn(message): return True if message.get('userName') else False " 
+  type: resolution
+  subtype: status
+  code: Q006
+  entity: userName
+  entitytype: user
+  template: "User: ${userName} password strength on Application: ${appName} is strong"
+  properties: {}
+  artifacts:
+    - type: "CRED_FINGERPRINNT"
+      property: id
+      value: "$credFingerprintId"
+      artifactproperties: 
+        artifactValue: $passwordStrength
+        displayInUI: disabled
+lambda: ""
+createdon: 1720396800
+updatedon: 1720396800

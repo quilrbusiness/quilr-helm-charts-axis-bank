@@ -1,0 +1,134 @@
+id: 0531915c-b67f-4e6f-9086-7b1f8c8a8f3f
+version: 17.0.27
+category: Browser
+code: ATTR_Browser_001
+tags: []
+type: attributes
+attributes:
+  - name: Authentication Type
+    description: Define what a user does on a SaaS app.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC005
+      - UC010
+      - UC006
+      - UC007
+      - UC008
+      - UC009
+      - UC011
+      - UC015
+      - UC016
+      - UC019
+      - UC303
+      - UC304
+    graph_property: credsbased_account.signup
+    extension_property: checkOb.check.properties.signup
+    expected_datatype: string
+    possible_values:
+      - label: Login
+        value: 'false'
+        tags:
+          - UC011
+          - UC007
+          - UC010
+          - UC013
+          - UC005
+          - UC006
+          - UC008
+          - UC009
+          - UC015
+          - UC016
+          - UC303
+          - UC304
+          - UC029
+          - UC030
+          - UC031
+          - UC032
+          - UC033
+          - UC034
+          - UC035
+          - UC036
+          - UC037
+      - label: Sign Up
+        value: 'true'
+        tags:
+          - UC011
+          - UC007
+          - UC010
+          - UC013
+          - UC005
+          - UC006
+          - UC008
+          - UC009
+          - UC015
+          - UC016
+          - UC303
+          - UC304
+          - UC029
+          - UC030
+          - UC031
+          - UC032
+          - UC033
+          - UC034
+          - UC035
+          - UC036
+          - UC037
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: BROWSER-001
+  - name: User Action
+    description: Define what a user does on a SaaS app.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC003
+      - UC005
+      - UC010
+      - UC006
+      - UC007
+      - UC008
+      - UC009
+      - UC011
+      - UC015
+      - UC019
+      - UC203
+      - UC201
+    graph_property: browser_event.event_name
+    extension_property: browser.event
+    expected_datatype: string
+    possible_values:
+      - label: Copy
+        value: copy
+        tags: null
+      - label: Paste
+        value: paste
+        tags: null
+      - label: Upload
+        value: upload
+        tags:
+          - UC015
+      - label: Visit
+        value: visit
+        tags:
+          - UC015
+          - UC001
+          - UC002
+          - UC203
+          - UC201
+          - UC304
+      - label: Download
+        value: download
+        tags:
+          - UC015
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: BROWSER-002

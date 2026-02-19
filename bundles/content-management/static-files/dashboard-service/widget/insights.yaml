@@ -1,0 +1,51 @@
+widget_id: 281e8f20-fe65-4270-8474-34c1224f1e09
+template_id: ActionableCardTemplate
+active: true
+title: Insights
+components:
+  - name: actionCard
+    type: text
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          data = {"iconType": "ads_click",
+                  "variant": "primary",
+                  "buttonContent": "Define Goal",
+                  "text": "10% decreased in use of Unapproved SaaS Apps increasing HSI by 3 Points.",
+                  "buttonStyleType": "solid",
+                  "buttonOnClick": {
+                    "url": "",
+                    "body": "",
+                    "headers": ""
+                  },
+                  "crossOnClick": {
+                    "url": "",
+                    "body": "",
+                    "headers": ""
+                  }
+                }
+          return data
+  - name: actionCard
+    type: text
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          data = {
+        "iconType": "ads_click",
+        "variant": "primary",
+        "text": "Recent Increase in Successful Vendor Email Commpramise delivery to end User's Mailbox",
+        "buttonContent": "Define Goal",
+        "buttonStyleType": "solid",
+        "buttonOnClick": {
+          "url": "",
+          "body": "",
+          "headers": ""
+        },
+        "crossOnClick": {
+          "url": "",
+          "body": "",
+          "headers": ""
+        }
+      }
+          return data
+version: 4.0

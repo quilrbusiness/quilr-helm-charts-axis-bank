@@ -1,0 +1,19 @@
+id: 3d44c983-f6c6-4316-ad82-8bd8bfe4095e
+version: 10.6
+code: ACT_33
+name: Allow original prompt with mandatory justification
+type: action
+actiontype: ACTP_02 #ACTP_04
+config:
+  meta:
+    channel: null
+    engagement_type: "templatized"
+    message_template: ""
+    browser_action: Allow_Original_Prompt_With_Mandatory_Justification
+tags:
+  - UC012
+  - UC014
+behavior:
+  - BID_03
+createdon: 1710504494000
+updatedon: 1710504494000

@@ -1,0 +1,51 @@
+id: 239b1918-3b8c-4507-ac87-08eaf56d95f1
+version: 7.0.21
+category: Data
+code: ATTR_DATA_001
+tags:
+  - UC031
+  - UC035
+  - UC040
+  - UC045
+  - UC042
+  - UC041
+  - UC044
+  - UC043
+  - UC012
+  - UC014
+type: attributes
+attributes:
+  - name: Model
+    description: Define the type of sensitive data found.
+    duplicate_allowed: false
+    tags: null
+    graph_property: null
+    discard_gp: true
+    # raw: true
+    expected_datatype: string
+    extension_property: dlp.detections
+    is_searchable: true
+    possible_values_query: SELECT modelname as label from data_model where tenant=:tenant
+    data_source_type: datalake
+    supported_operators:
+      - is in
+    id: DATA-008
+  - name: Sensitive
+    description: Define criticality of sensitive data found.
+    duplicate_allowed: false
+    extension_property: dlp.isSensitive
+    discard_gp: true
+    tags: null
+    graph_property: null
+    expected_datatype: boolean
+    possible_values:
+      - label: "False"
+        value: "false"
+        tags: null
+      - label: "True"
+        value: "true"
+        tags: null
+    supported_operators:
+      - is equal to
+      - is not equal to
+    id: DATA-009

@@ -1,0 +1,17 @@
+datatype: DICT
+defaultValue:
+  message: "Please enable MFA right away. Only using passwords is the easiest way for someone to get into your account."
+  mode: Ask
+entityDescription: ""
+entityId: Q052
+entityMeta:
+  behavior: No MFA
+  category: ISPM
+  posture: MFA Usage
+  check_id:
+    form_check_ids:
+      - CH-MFA
+entityName: Not using MFA on non- business critical App
+entityType: rule
+isDisabled: false
+isModifiable: true

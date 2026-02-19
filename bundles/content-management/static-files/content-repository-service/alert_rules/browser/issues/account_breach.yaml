@@ -1,0 +1,123 @@
+# id: c26c894b-bafb-459c-b54a-01e8686297dc
+# type: rule
+# name: Account Breach Issue
+# version: 2.0
+# schedule: 2m
+# historicalrecordduration: 1D
+# source:
+#   type: dynamicquery
+#   config:
+#     criteria:
+#       - entity: USER
+#         returnproperties:
+#           - id: userid
+#             displayName: username
+#             mail: usermail
+#             department: userdepartment
+#             subscriber: SUBSCRIBER
+#             tenant: TENANT
+#       - entity: FINDING
+#         returnproperties:
+#           - id: findindid
+#             appId: appid
+#             appCategory: appcategory
+#             appDisplayName: appdisplayname
+#             timestamp: findingtimestamp
+#       - entity: RULE
+#         conditions:
+#           - key: id
+#             operator: IN
+#             value:
+#               - RULE_ACT_012
+#               - RULE_ACT_013
+#               - RULE_ACT_015
+#               - RULE_ACT_016
+#         returnproperties:
+#           - id: ruleid
+#             name: rulename
+#       - entity: BEHAVIOUR
+#         conditions:
+#           - key: id
+#             operator: IN
+#             value:
+#               - BID_03
+#               - BID_04
+#               - BID_05
+#               - BID_13
+#         returnproperties:
+#           - id: behaviourid
+#             name: behaviourname
+#       - entity: POSTURE
+#         conditions:
+#           - key: id
+#             operator: "="
+#             value: PID_12
+#         returnproperties:
+#           - id: postureid
+#             name: posturename
+#     type: knowledgegraph
+#     limit: null
+#     offset: 0
+# destination:
+#   type: stream
+#   topic: ruleEvaluator
+# config:
+#   expression: "def fn(message): return True"
+#   sourceoffinding: Quilr
+#   existingcode: ISSUE_001
+#   assignedto: userName
+#   assignedtotype: user
+#   status: open
+#   sla: 1W
+#   entity: userDisplayName
+#   entitytype: user
+#   code: ISSUE_001
+#   type: issue
+#   # findingsequence: x && (y || s) || 
+#   #   - ruleid: RULE_ACT_012
+#   #     mandatory: true
+#   #     timegap: 24h
+#   #   - ruleid: RULE_ACT_013
+#   #     mandatory: true
+#   #     timegap: 24h
+#   #   - ruleid: RULE_ACT_01
+#   #     mandatory: false
+#   #     timegap: 24h
+#   #   - ruleid: RULE_ACT_016
+#   #     mandatory: false
+#   #     timegap: 24h
+# findingsequence:
+#   groups:
+#     - 
+#       - ruleid: Q069
+#         mandatory: false
+#       - ruleid: Q097
+#         mandatory: false
+#       condition: any
+#     - 
+#       - ruleid: Q065
+#         mandatory: false
+#       - ruleid: Q068
+#         mandatory: false
+#       - ruleid: Q064
+#         mandatory: false
+#       condition: any
+#     - 
+#       - ruleid: Q074
+#         mandatory: true
+#   timegap: 8h
+
+
+#   template: "Account Breach Detected for User: ${userName} and application: {$appDisplayName}"
+#   artifacts:
+#     userId: userid
+#     userName: username
+#     userMail: usermail
+#     appId: appid
+#     appCategory: appcategory
+#     appDisplayName: appdisplayname
+#     findingIds: findingids
+#     ruleIds: ruleids
+# lambda: ""
+# createdon: 1709547181
+# updatedon: 1709547181

@@ -1,0 +1,20 @@
+name: prompt admin user to enable mfa
+type: message
+channel: Browser
+content:
+  header: "Warning: MFA Needed!"
+  title: |
+    As an admin, please set up multi-factor authentication (MFA) for added security. It helps keep your account safe from unauthorized access!
+    <br  />
+    <br />Your actions matter — help keep your organization safe!
+  acknowledgedButtons:
+    - id: 35606440-2416-4b1b-b1f8-c8b17faed298
+      isPrimary: true
+      name: "I'm using MFA"
+      whitelist: true
+    - id: 8157ef95-128a-4071-94d0-d1839a585431
+      isPrimary: false
+      name: "App doesn't support MFA"
+      whitelist: true
+rendered_content_type: application/json
+is_active: true

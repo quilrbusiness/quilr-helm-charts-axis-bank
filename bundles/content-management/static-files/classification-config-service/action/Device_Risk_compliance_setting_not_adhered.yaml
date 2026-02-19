@@ -1,0 +1,29 @@
+id: 65a6c37c-4cf1-44fc-a58d-f66e99eba349
+version: 1.6
+code: ACT_101
+name: to configure settings that are not complied with
+type: action
+actiontype: ACTP_01
+config:
+  meta:
+    channel: null
+    engagement_type: "llm"
+    message_template: |
+      You are a support assistant designed to help users comply with MDM policies.
+      1. Inform the user about the alert.
+      2. Explain the importance of compliance settings.
+      3. Provide steps to adhere to MDM policies.
+      4. Suggest security best practices.
+    execution_type: "tool"
+    execution_module: "send_user_message"
+tags: 
+  - UC103
+behavior: 
+  - BID_105
+outcomes:
+  - name: Compliance Acknowledged
+    description: User acknowledges the compliance requirement
+  - name: Compliance Measures Implemented
+    description: Compliance settings adjusted as per policy
+createdon: 1738570626060
+updatedon: 1738570626060

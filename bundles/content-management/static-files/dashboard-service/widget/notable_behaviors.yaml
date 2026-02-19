@@ -1,0 +1,47 @@
+widget_id: 6b24b597-5c9c-4eff-aa05-e8b4a83868bc
+template_id: NotableBehaviors
+active: true
+title: Notable Behaviors
+components:
+  - name: radio_buttons
+    type: radio
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          return {"radio_1": "Probability",
+                  "radio_2": "Trends"}
+  - name: description1
+    type: html
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          result={"series": {"data": [{
+                              "error": True,
+                              "heading": "Unapproved SaaS Applications",
+                              "percentage": 74
+                            },
+                            {
+                              "error": True,
+                              "heading": "Vendor Email Compromise",
+                              "percentage": 42
+                            },
+                            {
+                              "error": False,
+                              "heading": "Public File Sharing",
+                              "percentage": 29
+                            },
+                            {
+                              "error": False,
+                              "heading": "Stale Admin Credentials",
+                              "percentage": 21
+                            },
+                            {
+                              "error": False,
+                              "heading": "MFA Usages",
+                              "percentage": 11
+                            }
+                          ]
+                        }
+                      }
+          return result
+version: 10.0

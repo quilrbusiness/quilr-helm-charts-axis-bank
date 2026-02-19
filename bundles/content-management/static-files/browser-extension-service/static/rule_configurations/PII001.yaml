@@ -1,0 +1,44 @@
+datatype: DICT
+defaultValue:
+  name: Personal Identifiable Information
+  description: Data directly identifying an individual across various contexts
+  criticality: CRITICAL
+  sensitivity: Sensitive
+  examples:
+    - Full Name + (National ID or Date of Birth)
+    - Biometric Data (e.g., Fingerprint, Facial Recognition)
+    - Full Address + Phone Number
+    - Email Address + Password
+    - Health Record Number + Patient Name
+  indicators:
+    - Uniqueness of identifiers
+    - Combination of personal data points
+    - Irreversibility of identification
+    - Legal protection requirements
+  contentMarkers:
+    - Structured personal data formats
+    - High information density
+    - Presence of standardized ID numbers
+    - Combination of names with numeric identifiers
+  impactSummary: >-
+    Identity theft risk; severe privacy violation; legal and regulatory
+    non-compliance
+  classificationRules:
+    positive: Contains multiple personal identifiers or complete unique identifier
+    negative: Generic personal info without unique identifiers; publicly available data
+    resolution: Assess the uniqueness and completeness of the personal information
+  relatedClasses:
+    - FIN001
+    - AUTH001
+    - SPI001
+    - PPI001
+entityDescription: |-
+  Data Definition to classify and extract Personal Identifiable Information (PII) from text
+entityId: PII001
+entityMeta:
+  category: Data Protection Rule
+  source: default
+entityName: Personal Identifiable Information
+entityType: dlp_rule
+isDisabled: false
+isModifiable: true

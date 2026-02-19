@@ -1,0 +1,14 @@
+datatype: DICT
+defaultValue:
+  message: ''
+  mode: Ask
+entityDescription: ''
+entityId: Q055
+entityMeta:
+  behavior: Weak MFA
+  category: ISPM
+  posture: MFA Usage
+entityName: Using Phone Based MFA on business critical App
+entityType: rule
+isDisabled: false
+isModifiable: true

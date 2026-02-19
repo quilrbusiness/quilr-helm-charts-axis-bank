@@ -1,0 +1,46 @@
+id: 7ffc1fb4-6e35-4268-9301-28296068ec6e
+version: 1.4
+code: UC031
+name: a user is copy-pasting data from one app to another
+type: use-case
+description: Trigger actions when a user copies data from one application and pastes it into another application.
+posture:
+  - PID_06
+behavior:
+  - BID_201
+condition:
+  - operator: null
+    filter_condition:
+      attribute_type: ATTR_Browser_001
+      attribute_id: BROWSER-002
+      condition: is_equal_to
+      value: paste
+    filter_group: null
+    editable: false
+    supported_operators:
+      - is equal to
+  - operator: AND
+    filter_condition:
+      attribute_type: ATTR_CLP_001
+      attribute_id: CLP_038
+      condition: is in
+      value: ""
+    filter_group: null
+    editable: true
+    supported_operators:
+      - is equal to
+      - is in
+  - operator: AND
+    filter_condition:
+      attribute_type: ATTR_APP_001
+      attribute_id: APP-019
+      condition: is in
+      value: ""
+    filter_group: null
+    editable: true
+    supported_operators:
+      - is equal to
+      - is in
+disabled: false
+createdon: 1710504494000
+updatedon: 1710504494000

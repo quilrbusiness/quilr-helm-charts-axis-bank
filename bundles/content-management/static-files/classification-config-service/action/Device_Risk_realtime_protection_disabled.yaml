@@ -1,0 +1,31 @@
+id: 66da607b-9fef-4484-aa54-ae8e58173012
+version: 1.5
+code: ACT_104
+name: to enable real-time protection for the device
+type: action
+actiontype: ACTP_01
+config:
+  meta:
+    channel: null
+    engagement_type: "llm"
+    message_template: |
+      You are a support assistant designed to help users enable real-time protection.
+      1. Inform the user about the alert.
+      2. Explain the risks of disabling real-time protection.
+      3. Provide steps to enable real-time protection.
+      4. Suggest security best practices.
+    execution_type: "tool"
+    execution_module: "send_user_message"
+tags: 
+  - UC101
+behavior: 
+  - BID_105
+outcomes:
+  - name: Enabling Protection
+    description: Protection has to be enabled.
+  - name: User Not Responding
+    description: The user is not responding to the prompt.
+  - name: Justification for Not Enabling
+    description: User has to provide a justification for not enabling protection.
+createdon: 1738570626060
+updatedon: 1738570626060

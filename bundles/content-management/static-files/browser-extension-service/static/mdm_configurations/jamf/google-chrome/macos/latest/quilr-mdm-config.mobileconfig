@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>PayloadContent</key>
+  <array>
+    <dict>
+      <key>ExtensionInstallForcelist</key>
+      <array>
+        <string>piajhjohgigijkddhdpgbjdcfhmammbk;https://saas-extension.quilr.ai/manifest.xml</string>
+      </array>
+      <key>ExtensionSettings</key>
+      <dict>
+        <key>piajhjohgigijkddhdpgbjdcfhmammbk</key>
+        <dict>
+          <key>installation_mode</key>
+          <string>force_installed</string>
+          <key>override_update_url</key>
+          <true/>
+          <key>update_url</key>
+          <string>https://saas-extension.quilr.ai/manifest.xml</string>
+          <key>toolbar_pin</key>
+          <string>force_pinned</string>
+        </dict>
+      </dict>
+      <key>PayloadDisplayName</key>
+      <string>Google Chrome</string>
+      <key>PayloadIdentifier</key>
+      <string>com.google.Chrome.C2E3D516-1AE5-49E6-AB96-5C192CA05E2B</string>
+      <key>PayloadType</key>
+      <string>com.google.Chrome</string>
+      <key>PayloadUUID</key>
+      <string>C2E3D516-1AE5-49E6-AB96-5C192CA05E2B</string>
+      <key>PayloadVersion</key>
+      <integer>1</integer>
+    </dict>
+  </array>
+  <key>PayloadDescription</key>
+  <string>Quilr chrome extension managed deployment for MAC OS.</string>
+  <key>PayloadDisplayName</key>
+  <string>Quilr Extension MAC Deployment - Chrome</string>
+  <key>PayloadIdentifier</key>
+  <string>com.quilr.browserextension</string>
+  <key>PayloadOrganization</key>
+  <string>Quilr AI</string>
+  <key>PayloadType</key>
+  <string>Configuration</string>
+  <key>PayloadUUID</key>
+  <string>DF77646D-22A8-4616-8306-2AC48FA88BEF</string>
+  <key>PayloadVersion</key>
+  <integer>1</integer>
+</dict>
+</plist>

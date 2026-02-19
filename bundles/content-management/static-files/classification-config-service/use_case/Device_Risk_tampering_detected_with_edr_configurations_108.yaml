@@ -1,0 +1,23 @@
+id: d1efbe89-50bf-41f8-8c50-0a6f702318d4
+name: tampering protection is disabled
+updatedon: 1738293350434
+condition:
+- filter_condition:
+    condition: is equal to
+    value: "False"
+    attribute_id: DEV-012
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: 
+  editable: false
+createdon: 1738293350434
+version: 1.8
+description: Detects when tamper protection is disabled on a device, which may indicate an attempt to bypass security controls.
+posture:
+- PID_05
+code: UC108
+disabled: false
+type: use-case
+behavior:
+- BID_102
+

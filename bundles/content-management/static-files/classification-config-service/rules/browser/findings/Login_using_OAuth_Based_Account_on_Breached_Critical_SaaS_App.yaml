@@ -1,0 +1,17 @@
+id: 3a382cea-184c-40c4-b537-751868d65c1e
+version: 3.0
+code: Q045
+name: Login using OAuth Based Account on Breached Critical SaaS App
+description: Login using oauth account to a recently breached application that does handle sensitive data or is critical to business operations.=.
+type: rule
+view: identity_protection
+impact: high
+likelihood: high
+createdon: 1720396800000
+updatedon: 1720396800000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_45
+examples: []
+recommendations: []

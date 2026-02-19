@@ -1,0 +1,21 @@
+id: cbf93ef9-0c0d-4e92-979b-b8f2a44f6647
+name: Azure AD Emails Data Frabric Pipeline Scheduler
+type: fabric
+version: 2.0
+schedule: "1D"
+historicalrecordduration: "4h"
+istrackable: true
+source:
+  type: api
+  config:
+    uri: http://data-fabric-core-service:9031/fabric/start?fabricid=aafb608d-4e2b-4a2f-ab8e-80dcfcab2a5f
+    method: POST
+    headers: {}
+    body: {}
+destination:
+  type: stream
+  topic: pipelineTracking
+config: {}
+lambda: ""
+createdon: 1714051624
+updatedon: 1714051624

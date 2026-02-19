@@ -1,0 +1,39 @@
+widget_id: 18cebd1c-120e-44d1-8ef7-612c2a4c705b
+template_id: Issues
+active: true
+title: Issues
+components:
+  - name: Issues
+    type: table
+    data_source_type: knowledgegraph
+    lambda: |
+      def fn(client):
+        data_result = client.fetch_data(
+            query="MATCH (u:USER)-[:HAS_EMAIL]-(email:PRIMARY)-[ha]->(acc:ACCOUNT)"
+                  " WHERE u.subscriber = $subscriber and u.tenant = $tenant"
+                  " MATCH (acc)-[:HAS_ISSUE]->(i:ISSUE)"
+                  " OPTIONAL MATCH (acc)-[:USING_ACCOUNT]-(acc2:ACCOUNT)"
+                  " MATCH (i)-[:EVALUATED_TO]-(r:RULE)"
+                  " OPTIONAL MATCH (u)-[:HAS_DEPARTMENT]->(d:DEPARTMENT)"
+                  " OPTIONAL MATCH (acc2)-[:BELONGS_TO]->(g:GROUP)"
+                  " OPTIONAL MATCH (fh:FINDING_HISTORY)"
+                  " RETURN r.name AS name, i.status as status, COUNT(DISTINCT u.id) AS totalUsers, "
+                  " [g IN COLLECT(DISTINCT {id: g.id, name: g.displayName}) "
+                  " WHERE g.id IS NOT NULL AND g.name IS NOT NULL] AS groups"
+        )
+        if data_result and isinstance(data_result, list) and data_result[0]:
+            total_record_count = 1
+            formatted_data = {}
+            for item in data_result:
+               key = item.pop("name")
+               formatted_data[key] = item
+            formatted_data["total_record_count"] = total_record_count
+            return formatted_data
+        else:
+            # Handle case where data_result is empty or doesn't contain expected structure
+            formatted_data = {
+                "data": [],
+                "total_record_count": 0
+            }
+            return formatted_data
+version: 1.0.0

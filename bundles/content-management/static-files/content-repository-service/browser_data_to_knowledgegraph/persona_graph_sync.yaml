@@ -1,0 +1,71 @@
+# Inactive yaml
+id: 2b349168-3e63-40a0-949e-e8e06cbd9712
+name: Persona Graph Sync
+type: ingestion-to-graph
+version: 2.0
+schedule: "1D"
+historicalrecordduration: 
+source:
+  type: query
+  config:
+    query: "SELECT a.value::string as ROLE, parse_json(b.value) as DEVICE, 
+      parse_json(c.value) as LOCATION, * from KAFKA_CONNECT.SNOWDATA_SCHEMA.PERSONA, 
+      TABLE(FLATTEN(KAFKA_CONNECT.SNOWDATA_SCHEMA.PERSONA.\"ROLES\", OUTER => TRUE)) a, 
+      TABLE(FLATTEN(KAFKA_CONNECT.SNOWDATA_SCHEMA.PERSONA.\"DEVICES\", OUTER => TRUE)) b, 
+      TABLE(FLATTEN(KAFKA_CONNECT.SNOWDATA_SCHEMA.PERSONA.\"LOCATIONS\", OUTER => TRUE)) c"
+    type: datalake
+    limit:
+    offset: 0
+destination:
+  type: stream
+  topic: knowledgeGraph
+config:
+  nodes:
+    user:
+      id: USERID
+      type: USER
+    persona:
+      id: ID
+      type: PERSONA
+      properties:
+        subscriber: PRODUCT.SUBSCRIBER
+        tenant: PRODUCT.TENANT
+        fullname: FULLNAME
+        emailaddress: EMAILADDRESS
+        permissions: PERMISSIONS
+        riskprofile: RISKPROFILE
+    role:
+      id: ROLE
+      type: ROLE
+    device:
+      id: $.DEVICE.id
+      type: DEVICE
+      properties:
+        deviceType: $.DEVICE.type
+        isApproved: $.DEVICE.approved
+    location:
+      id: $.LOCATION.ipaddress
+      type: LOCATION
+      properties:
+        isApproved: $.LOCATION.approved
+  edges:
+    - destination: persona
+      direction: out
+      relation: HAS_PERSONA
+      source: user
+    - destination: role
+      direction: out
+      relation: HAS_ROLE
+      source: persona
+    - destination: device
+      direction: out
+      relation: HAS_DEVICE
+      source: persona
+    - destination: location
+      direction: out
+      relation: HAS_LOCATION
+      source: persona
+lambda: ""
+createdon: 1707315500
+updatedon: 1707315500
+active: false

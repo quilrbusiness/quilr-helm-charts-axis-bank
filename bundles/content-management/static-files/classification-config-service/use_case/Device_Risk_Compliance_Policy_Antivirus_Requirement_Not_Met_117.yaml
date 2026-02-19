@@ -1,0 +1,31 @@
+id: 314be3d1-c8f7-4106-a846-73d121a82c5b
+name: antivirus compliance requirement is not met
+updatedon: 1739444296857
+condition:
+- filter_condition:
+    condition: is equal to
+    value: AntivirusRequired
+    attribute_id: DEV-003
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: 
+  editable: false
+- filter_condition:
+    condition: is not equal to
+    value: compliant
+    attribute_id: DEV-004
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: AND
+  editable: false
+createdon: 1739444296857
+version: 1.4
+description: The device does not meet the required threat protection security level, increasing the risk of malware infections and security breaches. Continuous compliance with threat protection policies is necessary to ensure device and data securit
+posture:
+- PID_05
+code: UC117
+disabled: false
+type: use-case
+behavior:
+- BID_101
+

@@ -1,0 +1,4 @@
+filter_id: "817e9b97-bf63-4dda-86ad-78976f6ee33b"
+config:
+  behaviour_type: "SELECT event_type FROM behaviour_data"
+version: "1.0"

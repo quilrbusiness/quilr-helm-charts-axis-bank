@@ -1,0 +1,2926 @@
+id: 001962a5-d59a-45bc-81ab-0a039e41aba7
+version: 17.1.5
+category: Application
+code: ATTR_APP_001
+tags:
+  - UC001
+  - UC002
+  - UC003
+  - UC005
+  - UC006
+  - UC007
+  - UC008
+  - UC010
+  - UC011
+  - UC012
+  - UC013
+  - UC014
+  - UC025
+  - UC026
+  - UC027
+  - UC028
+  - UC029
+  - UC030
+  - UC031
+  - UC032
+  - UC033
+  - UC034
+  - UC035
+  - UC036
+  - UC037
+  - UC038
+  - UC039
+  - UC040
+  - UC041
+  - UC042
+  - UC043
+  - UC044
+  - UC045
+  - UC301
+  - UC302
+  - UC303
+  - UC304
+  - UC305
+  - UC306
+  - UC307
+  - UC308
+  - UC309
+  - UC310
+  - UC201
+  - UC203
+  - UC204
+type: attributes
+attributes:
+  - name: Category
+    description: List of application category like AI, security and more.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC003
+      - UC005
+      - UC007
+      - UC008
+      - UC010
+      - UC011
+      - UC012
+      - UC013
+      - UC014
+      - UC025
+      - UC026
+      - UC027
+      - UC028
+      - UC029
+      - UC030
+      - UC031
+      - UC032
+      - UC033
+      - UC034
+      - UC035
+      - UC036
+      - UC037
+      - UC038
+      - UC039
+      - UC040
+      - UC041
+      - UC042
+      - UC043
+      - UC044
+      - UC045
+      - UC201
+      - UC203
+      - UC303
+      - UC304
+    graph_property: app_category.name
+    extension_property: app_category.name
+    expected_datatype: string
+    possible_values_query: MATCH (app_category:APP_CATEGORY) WHERE (app_category.priority < 2 OR app_category.priority is null) AND app_category.name <> '-' AND toLower(app_category.name) =~ toLower('.*{search_text}.*') RETURN distinct(app_category.name)
+    is_searchable: true
+    supported_operators:
+      - is equal to
+      - is in
+      - is not equal to
+    id: APP-001
+  - name: Status
+    description: Application is approved, unapproved or tolerated in organization.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC005
+      - UC007
+      - UC008
+      - UC010
+      - UC011
+      - UC012
+      - UC013
+      - UC014
+      - UC025
+      - UC026
+      - UC027
+      - UC029
+      - UC030
+      - UC031
+      - UC032
+      - UC033
+      - UC034
+      - UC035
+      - UC036
+      - UC037
+      - UC038
+      - UC039
+      - UC040
+      - UC041
+      - UC042
+      - UC043
+      - UC044
+      - UC045
+      - UC201
+      - UC203
+      - UC303
+      - UC304
+    graph_property: COALESCE(app_settings.approval_status, app.approval_status, 'NEEDS REVIEW')
+    expected_datatype: string
+    extension_property: has_app_settings.approval_status
+    possible_values:
+      - label: Needs Review
+        value: Needs Review
+        tags: null
+      - label: Approved
+        value: Approved
+        tags: null
+      - label: Tolerated
+        value: Tolerated
+        tags: null
+      - label: Unapproved
+        value: Unapproved
+        tags: null
+    supported_operators:
+      - is equal to
+      - is in
+    id: APP-002
+  - name: Criticality
+    description: Application is critical or not in organization.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC005
+      - UC006
+      - UC007
+      - UC008
+      - UC010
+      - UC011
+      - UC025
+      - UC026
+      - UC028
+      - UC029
+      - UC030
+      - UC031
+      - UC032
+      - UC033
+      - UC034
+      - UC035
+      - UC036
+      - UC037
+      - UC038
+      - UC039
+      - UC042
+      - UC045
+      - UC303
+      - UC304
+    graph_property: COALESCE(app_settings.criticality, app.criticality, 'NOT SET')
+    extension_property: has_app_settings.criticality
+    expected_datatype: string
+    possible_values:
+      - label: Critical
+        value: Critical
+        tags: null
+      - label: Not Critical
+        value: Not Critical
+        tags: null
+      - label: Not Set
+        value: Not Set
+        tags: null
+    supported_operators:
+      - is equal to
+      - is in
+    id: APP-003
+  - name: Domain
+    description: Define application domain to include or exclude.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC010
+      - UC012
+      - UC013
+      - UC014
+      - UC025
+      - UC026
+      - UC027
+      - UC028
+      - UC029
+      - UC030
+      - UC031
+      - UC032
+      - UC033
+      - UC034
+      - UC035
+      - UC036
+      - UC037
+      - UC038
+      - UC039
+      - UC040
+      - UC041
+      - UC042
+      - UC043
+      - UC044
+      - UC045
+      - UC303
+      - UC304
+    graph_property: app.domain
+    expected_datatype: string
+    extension_property: app.domain
+    possible_values_query: MATCH (app:APPLICATION) WHERE NOT app.domain IN ['','-'] AND toLower(app.domain) =~ toLower('.*{search_text}.*') RETURN distinct(app.domain)
+    is_searchable: true
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-004
+  - name: Multi-Factor Authentication (MFA) support
+    description: Application support MFA or not.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC040
+      - UC041
+      - UC042
+      - UC043
+      - UC044
+      - UC045
+      - UC303
+      - UC304
+    graph_property: COALESCE(CASE WHEN app.isMfaSupported <> '' THEN app.isMfaSupported ELSE NULL END, true)
+    extension_property: application.isMfaSupported
+    expected_datatype: string
+    possible_values:
+      - label: 'True'
+        value: 'True'
+        tags: null
+      - label: 'False'
+        value: 'False'
+        tags: null
+    supported_operators:
+      - is equal to
+    id: APP-005
+  - name: Security Score
+    description: Score is based on application support MFA, SSL version.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC040
+      - UC041
+      - UC042
+      - UC043
+      - UC044
+      - UC045
+      - UC303
+      - UC304
+    graph_property: app.securityScore
+    extension_property: application.securityScore
+    expected_datatype: int
+    possible_values:
+      - label: Very Low
+        value: 0
+        tags: null
+      - label: Very Low
+        value: 1
+        tags: null
+      - label: Very Low
+        value: 2
+        tags: null
+      - label: Low
+        value: 3
+        tags: null
+      - label: Low
+        value: 4
+        tags: null
+      - label: Moderate
+        value: 5
+        tags: null
+      - label: Moderate
+        value: 6
+        tags: null
+      - label: High
+        value: 7
+        tags: null
+      - label: High
+        value: 8
+        tags: null
+      - label: Very High
+        value: 9
+        tags: null
+      - label: Very High
+        value: 10
+        tags: null
+    supported_operators:
+      - is greater than
+      - is less than
+    id: APP-006
+  - name: Compliance Score
+    description: Score is based on compliance application has.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC040
+      - UC041
+      - UC303
+      - UC304
+    graph_property: app.complianceScore
+    extension_property: application.complianceScore
+    expected_datatype: int
+    possible_values:
+      - label: Very Low
+        value: 0
+        tags: null
+      - label: Very Low
+        value: 1
+        tags: null
+      - label: Very Low
+        value: 2
+        tags: null
+      - label: Low
+        value: 3
+        tags: null
+      - label: Low
+        value: 4
+        tags: null
+      - label: Moderate
+        value: 5
+        tags: null
+      - label: Moderate
+        value: 6
+        tags: null
+      - label: High
+        value: 7
+        tags: null
+      - label: High
+        value: 8
+        tags: null
+      - label: Very High
+        value: 9
+        tags: null
+      - label: Very High
+        value: 10
+        tags: null
+    supported_operators:
+      - is greater than
+      - is less than
+    id: APP-007
+  - name: Support SAML
+    description: Whether or not application support SAML.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC040
+      - UC041
+      - UC303
+      - UC304
+    graph_property: app.supportSaml
+    extension_property: application.supportSaml
+    expected_datatype: string
+    possible_values:
+      - label: 'True'
+        value: 'True'
+        tags: null
+      - label: 'False'
+        value: 'false'
+        tags: null
+    supported_operators:
+      - is equal to
+      - is not equal to
+    id: APP-008
+  - name: Breach Date
+    description: When was the application last breached.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC010
+      - UC013
+      - UC025
+      - UC026
+      - UC027
+      - UC028
+      - UC029
+      - UC030
+      - UC031
+      - UC032
+      - UC033
+      - UC034
+      - UC035
+      - UC036
+      - UC037
+      - UC038
+      - UC039
+      - UC040
+      - UC041
+      - UC042
+      - UC043
+      - UC044
+      - UC045
+      - UC303
+      - UC304
+    graph_property: app.breachDate
+    extension_property: application.breachDate
+    expected_datatype: string
+    possible_values:
+      - label: last 1 month
+        value: timestamp() - 1000*60*60*24*30
+        tags: null
+      - label: last 6 month
+        value: timestamp() - 1000*60*60*24*180
+        tags: null
+      - label: last 1 year
+        value: timestamp() - 1000*60*60*24*365
+        tags: null
+      - label: last 2 year
+        value: timestamp() - 1000*60*60*24*730
+        tags: null
+    supported_operators:
+      - is less than equal to
+    id: APP-009
+  - name: Compliance
+    description: What compliance should application have.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC040
+      - UC041
+      - UC042
+      - UC043
+      - UC044
+      - UC045
+      - UC303
+      - UC304
+    graph_property: app.compliance
+    extension_property: application.compliance
+    expected_datatype: string
+    possible_values:
+      - label: SOC1
+        value: SOC1
+        tags: null
+      - label: SOC2
+        value: SOC2
+        tags: null
+      - label: SOC3
+        value: SOC3
+        tags: null
+      - label: SP800_53
+        value: SP800_53
+        tags: null
+      - label: SSAE18
+        value: SSAE18
+        tags: null
+      - label: PCIDSS
+        value: PCIDSS
+        tags: null
+      - label: SP800_53
+        value: SP800_53
+        tags: null
+      - label: COBIT
+        value: COBIT
+        tags: null
+      - label: COPPA
+        value: COPPA
+        tags: null
+      - label: FERPA
+        value: FERPA
+        tags: null
+      - label: FFIEC
+        value: FFIEC
+        tags: null
+      - label: FINRA
+        value: FINRA
+        tags: null
+      - label: FISMA
+        value: FISMA
+        tags: null
+      - label: GAAP
+        value: GAAP
+        tags: null
+      - label: GLBA
+        value: GLBA
+        tags: null
+      - label: HIPPA
+        value: HIPPA
+        tags: null
+      - label: HITRUSTCSF
+        value: HITRUSTCSF
+        tags: null
+      - label: ISO27001
+        value: ISO27001
+        tags: null
+      - label: ISO27002
+        value: ISO27002
+        tags: null
+      - label: ISO27017
+        value: ISO27017
+        tags: null
+      - label: ISO27018
+        value: ISO27018
+        tags: null
+      - label: ITAR
+        value: ITAR
+        tags: null
+    supported_operators:
+      - is in
+      - is not in
+    id: APP-010
+  - name: FedRAMP Level
+    description: Which FedRAMP application should have.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC040
+      - UC041
+      - UC303
+      - UC304
+    graph_property: app.ComplianceFedRAMPLevel
+    extension_property: application.ComplianceFedRAMPLevel
+    expected_datatype: string
+    possible_values:
+      - label: High
+        value: High
+        tags: null
+      - label: Moderate
+        value: Moderate
+        tags: null
+      - label: Low
+        value: Low
+        tags: null
+      - label: LI-SaaS
+        value: LI-SaaS
+        tags: null
+    supported_operators:
+      - is equal to
+      - is not equal to
+    id: APP-011
+  - name: first account creation time
+    description: When was the application first seen in organization.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC040
+      - UC041
+      - UC303
+      - UC304
+    graph_property: using_app.creationTime
+    extension_property: credbased_account.first_seen
+    expected_datatype: datetime
+    possible_values:
+      - label: last 1 month
+        value: timestamp() - 1000*60*60*24*30
+        tags: null
+      - label: last 2 month
+        value: timestamp() - 1000*60*60*24*60
+        tags: null
+      - label: last 1 year
+        value: timestamp() - 1000*60*60*24*365
+        tags: null
+      - label: last 2 year
+        value: timestamp() - 1000*60*60*24*730
+        tags: null
+    supported_operators:
+      - is less than equal to
+    id: APP-012
+  - name: is newly introduced
+    description: When the application has no accounts in the organization.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC010
+      - UC013
+      - UC025
+      - UC026
+      - UC027
+      - UC028
+      - UC029
+      - UC030
+      - UC031
+      - UC032
+      - UC033
+      - UC034
+      - UC035
+      - UC036
+      - UC037
+      - UC038
+      - UC039
+      - UC040
+      - UC041
+      - UC042
+      - UC043
+      - UC044
+      - UC045
+      - UC303
+      - UC304
+    graph_property: COALESCE(using_app.is_newly_introduced, false)
+    extension_property: is_new_app
+    expected_datatype: boolean
+    possible_values:
+      - label: true
+        value: true
+        tags: null
+      - label: false
+        value: false
+        tags: null
+    supported_operators:
+      - is equal to
+    id: APP-013
+  - name: User's first account creation time
+    description: First account ever on an app for the current user
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC040
+      - UC041
+      - UC042
+      - UC043
+      - UC044
+      - UC045
+      - UC303
+      - UC304
+    graph_property: credbased_account.user_first_seen
+    extension_property: user_first_seen
+    expected_datatype: datetime
+    possible_values:
+      - label: last 1 month
+        value: timestamp() - 1000*60*60*24*30
+        tags: null
+      - label: last 2 month
+        value: timestamp() - 1000*60*60*24*60
+        tags: null
+      - label: last 1 year
+        value: timestamp() - 1000*60*60*24*365
+        tags: null
+      - label: last 2 year
+        value: timestamp() - 1000*60*60*24*730
+        tags: null
+    supported_operators:
+      - is less than equal to
+    id: APP-014
+  - name: Last Observed in the Organization
+    description: When was the application last seen in organization.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC040
+      - UC041
+      - UC042
+      - UC043
+      - UC044
+      - UC045
+      - UC303
+      - UC304
+    graph_property: credbased_account.last_access_time
+    extension_property: credsbased_account.last_access_time
+    expected_datatype: datetime
+    possible_values:
+      - label: last 1 month
+        value: timestamp() - 1000*60*60*24*30
+        tags: null
+      - label: last 2 month
+        value: timestamp() - 1000*60*60*24*60
+        tags: null
+      - label: last 1 year
+        value: timestamp() - 1000*60*60*24*365
+        tags: null
+      - label: last 2 year
+        value: timestamp() - 1000*60*60*24*730
+        tags: null
+    supported_operators:
+      - is less than equal to
+    id: APP-015
+  - name: Owner
+    description: Specify who owns an application.
+    duplicate_allowed: false
+    tags: [ ]
+    graph_property: null
+    extension_property: application.owner
+    expected_datatype: string
+    possible_values_query: null
+    is_searchable: true
+    supported_operators:  
+      - is equal to
+      - is not equal to
+    id: APP-016
+  - name: Domain Age
+    description: Describe what domain age application should have.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC010
+      - UC013
+      - UC025
+      - UC026
+      - UC027
+      - UC028
+      - UC029
+      - UC030
+      - UC031
+      - UC032
+      - UC033
+      - UC034
+      - UC035
+      - UC036
+      - UC037
+      - UC038
+      - UC039
+      - UC040
+      - UC041
+      - UC042
+      - UC043
+      - UC044
+      - UC045
+      - UC303
+      - UC304
+    graph_property: null
+    extension_property: null
+    expected_datatype: string
+    possible_values:
+      - label: registered last month
+        value: timestamp() - 1000*60*60*24*30
+        tags: null
+      - label: registered in last 3 months
+        value: timestamp() - 1000*60*60*24*90
+        tags: null
+      - label: registered in last 6 month
+        value: timestamp() - 1000*60*60*24*180
+        tags: null
+      - label: registered in last 1 year
+        value: timestamp() - 1000*60*60*24*365
+        tags: null
+      - label: registered in last 2 year
+        value: timestamp() - 1000*60*60*24*730
+        tags: null
+    supported_operators:
+      - is in
+      - is not in
+      - is greater than
+      - is less than
+    id: APP-017
+  - name: IdP status
+    description: Is the application identity provider or not.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC011
+      - UC013
+      - UC025
+      - UC026
+      - UC027
+      - UC028
+      - UC029
+      - UC030
+      - UC031
+      - UC032
+      - UC033
+      - UC034
+      - UC035
+      - UC036
+      - UC037
+      - UC038
+      - UC039
+      - UC040
+      - UC041
+      - UC042
+      - UC043
+      - UC044
+      - UC045
+      - UC303
+      - UC304
+    graph_property: has_idp IS NOT NULL
+    expected_datatype: boolean
+    extension_property: isIdp
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: true
+        value: true
+        tags: null
+      - label: false
+        value: false
+        tags: null
+    id: APP-018
+  - name: Name
+    description: Name of the application.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC012
+      - UC014
+      - UC029
+      - UC030
+      - UC031
+      - UC032
+      - UC033
+      - UC034
+      - UC035
+      - UC036
+      - UC037
+      - UC038
+      - UC039
+      - UC040
+      - UC041
+      - UC042
+      - UC045
+      - UC303
+      - UC304
+    graph_property: app.name
+    expected_datatype: string
+    extension_property: app.name
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    possible_values_query: MATCH (app:APPLICATION) WHERE NOT app.name IN ['','-'] AND toLower(app.name) =~ toLower('.*{search_text}.*') RETURN distinct(app.name)
+    is_searchable: true
+    id: APP-019
+  - name: login email
+    description: Name of the application.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC029
+      - UC030
+      - UC031
+      - UC032
+      - UC033
+      - UC034
+      - UC035
+      - UC036
+      - UC037
+      - UC038
+      - UC039
+      - UC040
+      - UC041
+      - UC042
+      - UC045
+      - UC303
+      - UC304
+    graph_property: app.isAppLoginSameWithPersona
+    expected_datatype: boolean
+    extension_property: checkOb.isAppLoginSameWithPersona
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: persona email 
+        value: "true"
+        tags: null
+      - label: persona email
+        value: "false"
+        tags: null
+    id: APP-020
+  - name: login domain
+    description: Name of the application.
+    duplicate_allowed: false
+    tags:
+      - UC029
+      - UC030
+      - UC033
+      - UC034
+      - UC035
+      - UC036
+      - UC037
+      - UC038
+      - UC039
+      - UC042
+      - UC045
+    graph_property: app.isAppLoginDomainSameWithPersona
+    expected_datatype: boolean
+    extension_property: checkOb.isAppLoginDomainSameWithPersona
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: persona domain 
+        value: "true"
+        tags: null
+      - label: persona domain
+        value: "false"
+        tags: null
+    id: APP-021
+  - name: is AI training
+    description: Name of the application.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC029
+      - UC030
+      - UC031
+      - UC032
+      - UC033
+      - UC034
+      - UC035
+      - UC036
+      - UC037
+      - UC038
+      - UC039
+      - UC042
+      - UC045
+      - UC303
+      - UC304
+    graph_property: COALESCE(size(app.AIModelTraining) > 0)
+    expected_datatype: boolean
+    extension_property: app.isAITraining
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: "yes"
+        value: "true"
+        tags: null
+      - label: "no"
+        value: "false"
+        tags: null
+    id: APP-022
+  - name: block status
+    description: block status of the application.
+    duplicate_allowed: false
+    tags:
+      - UC001
+      - UC002
+      - UC038
+      - UC039
+      - UC042
+      - UC045
+      - UC303
+      - UC304
+    graph_property: toLower(COALESCE(CASE WHEN app_settings.isBlocked <> '-' THEN app_settings.isBlocked END, 'no'))
+    expected_datatype: string
+    extension_property: has_app_settings.isBlocked
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: "yes"
+        value: "yes"
+        tags: null
+      - label: "no"
+        value: "no"
+        tags: null
+    id: APP-023
+  - name: Sub Category Name
+    description: Name of the application sub category.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.sub_category_name
+    expected_datatype: string
+    extension_property: app_intel.sub_category_name
+    is_searchable: true
+    supported_operators:
+      - is equal to
+      - is in
+      - is not equal to
+      - is not in
+    id: APP-028
+  - name: Business Category Name
+    description: Business category name of the application.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.business_category_name
+    expected_datatype: string
+    extension_property: app_intel.business_category_name
+    is_searchable: true
+    supported_operators:
+      - is equal to
+      - is in
+      - is not equal to
+      - is not in
+    id: APP-029
+  - name: Total Risk Level
+    description: Overall risk level of the application.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.total_risk_level
+    expected_datatype: string
+    extension_property: app_intel.total_risk_level
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-031
+  - name: Total Risk Description
+    description: Description of overall risk.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.total_risk_description
+    expected_datatype: string
+    extension_property: app_intel.total_risk_description
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-032
+  - name: Claimed Security Practices
+    description: Security practices claimed by the vendor.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.claimed_security_practices
+    expected_datatype: string
+    extension_property: app_intel.claimed_security_practices
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-035
+  - name: Authentication SSO
+    description: Authentication and SSO details.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.authentication_sso
+    expected_datatype: string
+    extension_property: app_intel.authentication_sso
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-036
+  - name: Headquarters
+    description: Vendor headquarters location.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.headquarters
+    expected_datatype: string
+    extension_property: app_intel.headquarters
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-037
+  - name: Compliance Certifications
+    description: Compliance certifications held by the app/vendor.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_certifications
+    expected_datatype: string
+    extension_property: app_intel.compliance_certifications
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-038
+  - name: Claimed Account Security
+    description: Account security controls claimed by the vendor.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.claimed_account_security
+    expected_datatype: string
+    extension_property: app_intel.claimed_account_security
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-039
+  - name: Tech Stack
+    description: Underlying technology stack.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.techstack
+    expected_datatype: string
+    extension_property: app_intel.techstack
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-040
+  - name: AI Stack
+    description: AI/ML stack or models used.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.aistack
+    expected_datatype: string
+    extension_property: app_intel.aistack
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-041
+  - name: Consent Patterns
+    description: Consent and privacy patterns.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.consent_patterns
+    expected_datatype: string
+    extension_property: app_intel.consent_patterns
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-042
+  - name: Customer Data Retention
+    description: Data retention policy for customer data.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.customer_data_retention
+    expected_datatype: string
+    extension_property: app_intel.customer_data_retention
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-044
+  - name: AI Model Training
+    description: Details about AI model training.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.ai_model_training
+    expected_datatype: string
+    extension_property: app_intel.ai_model_training
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-045
+  - name: Look Alike Count
+    description: Number of look-alike apps.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.look_alike_count
+    expected_datatype: int
+    extension_property: app_intel.look_alike_count
+    supported_operators:
+      - is greater than
+      - is less than
+    id: APP-043
+  - name: Total Breaches
+    description: Total number of recorded breaches.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.total_breaches
+    expected_datatype: int
+    extension_property: app_intel.total_breaches
+    supported_operators:
+      - is greater than
+      - is less than
+    id: APP-046
+  - name: Breach List
+    description: List of breaches impacting the app.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.breach_list
+    expected_datatype: string
+    extension_property: app_intel.breach_list
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-048
+  - name: Breach Risk Level
+    description: Risk level based on breaches.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.breach_risk_level
+    expected_datatype: string
+    extension_property: app_intel.breach_risk_level
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-049
+  - name: Breach Risk Description
+    description: Description of breach-related risk.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.breach_risk_description
+    expected_datatype: string
+    extension_property: app_intel.breach_risk_description
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-050
+  - name: Unique CVEs
+    description: Unique CVEs associated with the app.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.unique_cves
+    expected_datatype: string
+    extension_property: app_intel.unique_cves
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-051
+  - name: CVE Count
+    description: Number of CVEs associated with the app.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.cve_count
+    expected_datatype: int
+    extension_property: app_intel.cve_count
+    supported_operators:
+      - is greater than
+      - is less than
+    id: APP-047
+  - name: Infra Risk Level
+    description: Infrastructure risk level.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.infra_risk_level
+    expected_datatype: string
+    extension_property: app_intel.infra_risk_level
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-053
+  - name: Infra Risk Description
+    description: Description of infrastructure risk.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.infra_risk_description
+    expected_datatype: string
+    extension_property: app_intel.infra_risk_description
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-054
+  - name: Missing Security Headers
+    description: Missing HTTP security headers.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.missing_security_headers
+    expected_datatype: string
+    extension_property: app_intel.missing_security_headers
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-055
+  - name: Security Headers Risk Level
+    description: Risk level based on security headers.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_headers_risk_level
+    expected_datatype: string
+    extension_property: app_intel.security_headers_risk_level
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-056
+  - name: Security Headers Risk Description
+    description: Description of risk from security headers.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_headers_risk_description
+    expected_datatype: string
+    extension_property: app_intel.security_headers_risk_description
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-057
+  - name: TLS Protocol
+    description: Negotiated TLS protocol.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.tls_protocol
+    expected_datatype: string
+    extension_property: app_intel.tls_protocol
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-058
+  - name: TLS Cipher
+    description: Negotiated TLS cipher.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.tls_cipher
+    expected_datatype: string
+    extension_property: app_intel.tls_cipher
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-059
+  - name: TLS Risk Level
+    description: TLS configuration risk level.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.tls_risk_level
+    expected_datatype: string
+    extension_property: app_intel.tls_risk_level
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-060
+  - name: TLS Risk Description
+    description: Description of TLS configuration risk.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.tls_risk_description
+    expected_datatype: string
+    extension_property: app_intel.tls_risk_description
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-061
+  - name: Cookies Count
+    description: Number of cookies set by the app.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.cookies_count
+    expected_datatype: int
+    extension_property: app_intel.cookies_count
+    supported_operators:
+      - is greater than
+      - is less than
+    id: APP-062
+  - name: Good Practices
+    description: Good security or privacy practices observed.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.good_practices
+    expected_datatype: string
+    extension_property: app_intel.good_practices
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-063
+  - name: Recommendations
+    description: Recommendations to improve security posture.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.recommendations
+    expected_datatype: string
+    extension_property: app_intel.recommendations
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-064
+  - name: Web Security Risk Level
+    description: Overall web security risk level.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.web_security_risk_level
+    expected_datatype: string
+    extension_property: app_intel.web_security_risk_level
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-065
+  - name: Web Security Risk Description
+    description: Description of web security risk.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.web_security_risk_description
+    expected_datatype: string
+    extension_property: app_intel.web_security_risk_description
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-066
+  - name: Notable Findings
+    description: Other notable security findings.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.notable_findings
+    expected_datatype: string
+    extension_property: app_intel.notable_findings
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-067
+  - name: App Type
+    description: Type/category of the application.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.app_type
+    expected_datatype: string
+    extension_property: app_intel.app_type
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-068
+  - name: Aliases
+    description: Alternate names or aliases for the application.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.aliases
+    expected_datatype: string
+    extension_property: app_intel.aliases
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-069
+  - name: Authentication Supported
+    description: Whether additional authentication mechanisms are supported.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.authentication_supported
+    expected_datatype: boolean
+    extension_property: app_intel.authentication_supported
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-070
+  - name: Breach Is Malware
+    description: Indicates if the breach involved malware.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.breach_is_malware
+    expected_datatype: boolean
+    extension_property: app_intel.breach_is_malware
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-073
+  - name: Breach Is Retired
+    description: Indicates if the breach is retired.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.breach_is_retired
+    expected_datatype: boolean
+    extension_property: app_intel.breach_is_retired
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-074
+  - name: Breach Is Sensitive
+    description: Indicates if the breach contains sensitive data.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.breach_is_sensitive
+    expected_datatype: boolean
+    extension_property: app_intel.breach_is_sensitive
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-075
+  - name: Breach Is Spam List
+    description: Indicates if the breach is a spam list.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.breach_is_spam_list
+    expected_datatype: boolean
+    extension_property: app_intel.breach_is_spam_list
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-076
+  - name: Breach Is Verified
+    description: Indicates if the breach has been verified.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.breach_is_verified
+    expected_datatype: boolean
+    extension_property: app_intel.breach_is_verified
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-077
+  - name: Breach Status
+    description: Status of the breach record.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.breach_status
+    expected_datatype: string
+    extension_property: app_intel.breach_status
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-078
+  - name: Breach Title
+    description: Title of the breach.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.breach_title
+    expected_datatype: string
+    extension_property: app_intel.breach_title
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-079
+  - name: Domain Year
+    description: Year the domain was registered.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.domain_year
+    expected_datatype: int
+    extension_property: app_intel.domain_year
+    supported_operators:
+      - is greater than
+      - is less than
+    id: APP-080
+  - name: Security Password Policy Change Password Period
+    description: Password change period (days) as per security policy.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_password_policy_change_password_period
+    expected_datatype: int
+    extension_property: app_intel.security_password_policy_change_password_period
+    supported_operators:
+      - is greater than
+      - is less than
+    id: APP-090
+  - name: Security Password Policy Characters Combination
+    description: Character combination requirements for passwords.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_password_policy_characters_combination
+    expected_datatype: string
+    extension_property: app_intel.security_password_policy_characters_combination
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-097
+  - name: Security Password Policy Password History And Reuse
+    description: Password history/reuse policy (count).
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_password_policy_password_history_and_reuse
+    expected_datatype: int
+    extension_property: app_intel.security_password_policy_password_history_and_reuse
+    supported_operators:
+      - is greater than
+      - is less than
+    id: APP-092
+  - name: Security Password Policy Password Length Limit
+    description: Minimum or maximum password length requirement.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_password_policy_password_length_limit
+    expected_datatype: int
+    extension_property: app_intel.security_password_policy_password_length_limit
+    supported_operators:
+      - is greater than
+      - is less than
+    id: APP-093
+  - name: Security Password Policy Personal Information Use
+    description: Whether personal information may be used in passwords.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_password_policy_personal_information_use
+    expected_datatype: string
+    extension_property: app_intel.security_password_policy_personal_information_use
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-100
+  - name: Total Score
+    description: Overall total score for the application.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.total_score
+    expected_datatype: int
+    extension_property: app_intel.total_score
+    supported_operators:
+      - is greater than
+      - is less than
+    id: APP-098
+  - name: User Can Upload Data
+    description: Whether users can upload data to the application.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.user_can_upload_data
+    expected_datatype: boolean
+    extension_property: app_intel.user_can_upload_data
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-109
+  - name: Security Latest Breach
+    description: Timestamp of the latest known security breach.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_latest_breach
+    expected_datatype: datetime
+    extension_property: app_intel.security_latest_breach
+    supported_operators:
+      - is less than equal to
+    id: APP-126
+  - name: Security Data At Rest Encryption Method
+    description: Encryption method used for data at rest.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_data_at_rest_encryption_method
+    expected_datatype: string
+    extension_property: app_intel.security_data_at_rest_encryption_method
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-127
+  - name: Security Multi-Factor Authentication
+    description: Indicates whether MFA is supported/enforced.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_multi_factor_authentication
+    expected_datatype: boolean
+    extension_property: app_intel.security_multi_factor_authentication
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-128
+  - name: Security IP Address Restriction
+    description: Indicates whether IP address restrictions are supported.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_ip_address_restriction
+    expected_datatype: boolean
+    extension_property: app_intel.security_ip_address_restriction
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-129
+  - name: Security User Audit Trail
+    description: Availability of user activity audit trail.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_user_audit_trail
+    expected_datatype: boolean
+    extension_property: app_intel.security_user_audit_trail
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-130
+  - name: Security Admin Audit Trail
+    description: Availability of admin activity audit trail.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_admin_audit_trail
+    expected_datatype: boolean
+    extension_property: app_intel.security_admin_audit_trail
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-131
+  - name: Security Data Audit Trail
+    description: Availability of data access/change audit trail.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_data_audit_trail
+    expected_datatype: boolean
+    extension_property: app_intel.security_data_audit_trail
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-132
+  - name: Security User Can Upload Data
+    description: Whether users can upload data (security policy view).
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_user_can_upload_data
+    expected_datatype: boolean
+    extension_property: app_intel.security_user_can_upload_data
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-133
+  - name: Security Data Classification
+    description: Data classification scheme/level.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_data_classification
+    expected_datatype: string
+    extension_property: app_intel.security_data_classification
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-134
+  - name: Security Remember Password
+    description: Whether the app allows remembering passwords.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_remember_password
+    expected_datatype: boolean
+    extension_property: app_intel.security_remember_password
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-135
+  - name: Security User Roles Support
+    description: Support for role-based access control.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_user_roles_support
+    expected_datatype: boolean
+    extension_property: app_intel.security_user_roles_support
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-136
+  - name: Security File Sharing
+    description: Whether the app supports file sharing features.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_file_sharing
+    expected_datatype: boolean
+    extension_property: app_intel.security_file_sharing
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-137
+  - name: Security Valid Certificate Name
+    description: Valid certificate common name (CN) presented by the app.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_valid_certificate_name
+    expected_datatype: string
+    extension_property: app_intel.security_valid_certificate_name
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-138
+  - name: Security Trusted Certificate
+    description: Whether the certificate is trusted.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_trusted_certificate
+    expected_datatype: boolean
+    extension_property: app_intel.security_trusted_certificate
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-139
+  - name: Security Encryption Protocol
+    description: Encryption/TLS protocol used.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_encryption_protocol
+    expected_datatype: string
+    extension_property: app_intel.security_encryption_protocol
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-140
+  - name: Security Heartbleed Patched
+    description: Indicates whether Heartbleed vulnerability is patched.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_heartbleed_patched
+    expected_datatype: boolean
+    extension_property: app_intel.security_heartbleed_patched
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-141
+  - name: Security Supports SAML
+    description: Indicates whether SAML is supported (security view).
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_supports_saml
+    expected_datatype: boolean
+    extension_property: app_intel.security_supports_saml
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-142
+  - name: Security Protected Against DROWN
+    description: Indicates whether protected against DROWN attack.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_protected_against_drown
+    expected_datatype: boolean
+    extension_property: app_intel.security_protected_against_drown
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-143
+  - name: Security Penetration Testing
+    description: Indicates if regular penetration testing is performed.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_penetration_testing
+    expected_datatype: boolean
+    extension_property: app_intel.security_penetration_testing
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-144
+  - name: Security Requires User Authentication
+    description: Whether user authentication is required to access the app.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_requires_user_authentication
+    expected_datatype: boolean
+    extension_property: app_intel.security_requires_user_authentication
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-145
+  - name: Security HTTP Security Headers Content Security Policy
+    description: Content-Security-Policy header value.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_http_headers_content_security_policy
+    expected_datatype: string
+    extension_property: app_intel.security_http_headers_content_security_policy
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-146
+  - name: Security HTTP Security Headers Strict Transport Security
+    description: Strict-Transport-Security header value.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_http_headers_strict_transport_security
+    expected_datatype: string
+    extension_property: app_intel.security_http_headers_strict_transport_security
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-147
+  - name: Security HTTP Security Headers X-Content-Type-Options
+    description: X-Content-Type-Options header value.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_http_headers_x_content_type_options
+    expected_datatype: string
+    extension_property: app_intel.security_http_headers_x_content_type_options
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-148
+  - name: Security HTTP Security Headers X-Frame-Options
+    description: X-Frame-Options header value.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_http_headers_x_frame_options
+    expected_datatype: string
+    extension_property: app_intel.security_http_headers_x_frame_options
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-149
+  - name: Security HTTP Security Headers X-XSS-Protection
+    description: X-XSS-Protection header value.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.security_http_headers_x_xss_protection
+    expected_datatype: string
+    extension_property: app_intel.security_http_headers_x_xss_protection
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-150
+  - name: Compliance ISO27001
+    description: Whether the application/vendor is compliant with ISO 27001.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_iso27001
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_iso27001
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-151
+  - name: Compliance ISO27018
+    description: Whether compliant with ISO 27018.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_iso27018
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_iso27018
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-152
+  - name: Compliance ISO27017
+    description: Whether compliant with ISO 27017.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_iso27017
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_iso27017
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-153
+  - name: Compliance ISO27002
+    description: Whether compliant with ISO 27002.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_iso27002
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_iso27002
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-154
+  - name: Compliance FINRA
+    description: Whether compliant with FINRA.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_finra
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_finra
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-155
+  - name: Compliance FISMA
+    description: Whether compliant with FISMA.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_fisma
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_fisma
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-156
+  - name: Compliance GAAP
+    description: Whether compliant with GAAP.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_gaap
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_gaap
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-157
+  - name: Compliance HIPAA
+    description: Whether compliant with HIPAA.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_hipaa
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_hipaa
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-158
+  - name: Compliance ISAE3402
+    description: Whether compliant with ISAE 3402.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_isae3402
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_isae3402
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-159
+  - name: Compliance ITAR
+    description: Whether compliant with ITAR.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_itar
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_itar
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-160
+  - name: Compliance SOC1
+    description: Whether compliant with SOC 1.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_soc1
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_soc1
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-161
+  - name: Compliance SOC2
+    description: Whether compliant with SOC 2.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_soc2
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_soc2
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-162
+  - name: Compliance SOC3
+    description: Whether compliant with SOC 3.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_soc3
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_soc3
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-163
+  - name: Compliance SOX
+    description: Whether compliant with SOX.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_sox
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_sox
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-164
+  - name: Compliance SP800-53
+    description: Whether compliant with NIST SP 800-53.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_sp800_53
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_sp800_53
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-165
+  - name: Compliance SSAE18
+    description: Whether compliant with SSAE 18.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_ssae18
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_ssae18
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-166
+  - name: Compliance Safe Harbor
+    description: Whether adheres to Safe Harbor principles.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_safe_harbor
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_safe_harbor
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-167
+  - name: Compliance PCI DSS Version
+    description: PCI DSS version applicable to the app.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_pcidss_version
+    expected_datatype: string
+    extension_property: app_intel.compliance_pcidss_version
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-168
+  - name: Compliance GLBA
+    description: Whether compliant with GLBA.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_glba
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_glba
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-169
+  - name: Compliance FedRAMP Level
+    description: FedRAMP authorization level (compliance view).
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_fedramp_level
+    expected_datatype: string
+    extension_property: app_intel.compliance_fedramp_level
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-170
+  - name: Compliance CSA STAR Level
+    description: CSA STAR certification level.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_csa_star_level
+    expected_datatype: string
+    extension_property: app_intel.compliance_csa_star_level
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-171
+  - name: Compliance Privacy Shield
+    description: Participation in Privacy Shield framework.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_privacy_shield
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_privacy_shield
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-172
+  - name: Compliance FFIEC
+    description: Whether compliant with FFIEC.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_ffiec
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_ffiec
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-173
+  - name: Compliance GAPP
+    description: Whether compliant with GAPP.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_gapp
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_gapp
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-174
+  - name: Compliance COBIT
+    description: Whether compliant with COBIT.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_cobit
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_cobit
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-175
+  - name: Compliance COPPA
+    description: Whether compliant with COPPA.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_coppa
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_coppa
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-176
+  - name: Compliance FERPA
+    description: Whether compliant with FERPA.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_ferpa
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_ferpa
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-177
+  - name: Compliance HITRUST CSF
+    description: Whether compliant with HITRUST CSF.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_hitrust_csf
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_hitrust_csf
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-178
+  - name: Compliance Jericho Forum Commandments
+    description: Whether aligned with Jericho Forum Commandments.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.compliance_jericho_forum_commandments
+    expected_datatype: boolean
+    extension_property: app_intel.compliance_jericho_forum_commandments
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-179
+  - name: Legal Data Ownership
+    description: Data ownership policy summary or link.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.legal_data_ownership
+    expected_datatype: string
+    extension_property: app_intel.legal_data_ownership
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-180
+  - name: Legal DMCA
+    description: DMCA policy or process details.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.legal_dmca
+    expected_datatype: string
+    extension_property: app_intel.legal_dmca
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-181
+  - name: Legal Data Retention Policy
+    description: Data retention policy details.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.legal_data_retention_policy
+    expected_datatype: string
+    extension_property: app_intel.legal_data_retention_policy
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-182
+  - name: Legal GDPR Readiness Statement
+    description: GDPR readiness statement or link.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.legal_gdpr_readiness_statement
+    expected_datatype: string
+    extension_property: app_intel.legal_gdpr_readiness_statement
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-183
+  - name: Legal GDPR Right To Erasure
+    description: Support for GDPR right to erasure.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.legal_gdpr_right_to_erasure
+    expected_datatype: boolean
+    extension_property: app_intel.legal_gdpr_right_to_erasure
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-184
+  - name: Legal GDPR Report Data Breaches
+    description: Commitment to report data breaches per GDPR.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.legal_gdpr_report_data_breaches
+    expected_datatype: boolean
+    extension_property: app_intel.legal_gdpr_report_data_breaches
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-185
+  - name: Legal GDPR Data Protection Impact Assessments
+    description: Conducts DPIAs where required.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.legal_gdpr_data_protection_impact_assessments
+    expected_datatype: boolean
+    extension_property: app_intel.legal_gdpr_data_protection_impact_assessments
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-186
+  - name: Legal GDPR Data Protection Officers
+    description: Appoints Data Protection Officers (DPOs) where applicable.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.legal_gdpr_data_protection_officers
+    expected_datatype: boolean
+    extension_property: app_intel.legal_gdpr_data_protection_officers
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-187
+  - name: Legal GDPR Data Protection Secure Cross Border Data Transfer
+    description: Mechanisms for secure cross-border data transfer.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.legal_gdpr_secure_cross_border_data_transfer
+    expected_datatype: boolean
+    extension_property: app_intel.legal_gdpr_secure_cross_border_data_transfer
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-188
+  - name: Legal GDPR User Ownership Lawful Basis For Processing
+    description: Lawful basis for processing (summary).
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.legal_gdpr_lawful_basis_for_processing
+    expected_datatype: string
+    extension_property: app_intel.legal_gdpr_lawful_basis_for_processing
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+    id: APP-189
+  - name: Legal GDPR User Ownership Right To Access
+    description: Supports GDPR right to access.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.legal_gdpr_right_to_access
+    expected_datatype: boolean
+    extension_property: app_intel.legal_gdpr_right_to_access
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-190
+  - name: Legal GDPR User Ownership Right To Be Informed
+    description: Supports GDPR right to be informed.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.legal_gdpr_right_to_be_informed
+    expected_datatype: boolean
+    extension_property: app_intel.legal_gdpr_right_to_be_informed
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-191
+  - name: Legal GDPR User Ownership Right To Data Portability
+    description: Supports GDPR right to data portability.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.legal_gdpr_right_to_data_portability
+    expected_datatype: boolean
+    extension_property: app_intel.legal_gdpr_right_to_data_portability
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-192
+  - name: Legal GDPR User Ownership Right To Object
+    description: Supports GDPR right to object.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.legal_gdpr_right_to_object
+    expected_datatype: boolean
+    extension_property: app_intel.legal_gdpr_right_to_object
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-193
+  - name: Legal GDPR User Ownership Right To Rectification
+    description: Supports GDPR right to rectification.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.legal_gdpr_right_to_rectification
+    expected_datatype: boolean
+    extension_property: app_intel.legal_gdpr_right_to_rectification
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-194
+  - name: Legal GDPR User Ownership Right To Restriction Of Processing
+    description: Supports GDPR right to restrict processing.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.legal_gdpr_right_to_restriction_of_processing
+    expected_datatype: boolean
+    extension_property: app_intel.legal_gdpr_right_to_restriction_of_processing
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-195
+  - name: Legal GDPR User Ownership Rights Related To Automated Decision Making
+    description: Supports rights related to automated decision-making.
+    duplicate_allowed: false
+    tags: null
+    graph_property: app.legal_gdpr_rights_related_to_automated_decision_making
+    expected_datatype: boolean
+    extension_property: app_intel.legal_gdpr_rights_related_to_automated_decision_making
+    supported_operators:
+      - is equal to
+      - is not equal to
+    possible_values:
+      - label: 'True'
+        tags: 
+        value: 'true'
+      - label: 'False'
+        tags: 
+        value: 'false'
+    id: APP-196
+  - name: URL
+    description: Application URL.
+    duplicate_allowed: true
+    tags: null
+    discard_gp: true
+    graph_property: null
+    expected_datatype: string
+    extension_property: page.url
+    supported_operators:
+      - contains
+      - not contains
+    possible_values: null
+    id: APP-197
+  - name: Login User Domain
+    description: Domain used for user login.
+    duplicate_allowed: false
+    possible_values_query: MATCH (n:DOMAIN {tenant:$tenant, subscriber:$subscriber}) RETURN n.name
+    tags: null
+    graph_property: null
+    is_searchable: true
+    expected_datatype: string
+    extension_property: application.loggedInUserDomain
+    discard_gp: true
+    supported_operators:
+      - is in
+      - is not in
+    id: APP-198

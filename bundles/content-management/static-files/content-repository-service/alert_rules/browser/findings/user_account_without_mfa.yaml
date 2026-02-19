@@ -1,0 +1,79 @@
+id: e1894815-c56f-44fa-bbc4-8cf9f6c52f9c
+name: User Account Without MFA
+type: rule  #rule configs - type rule only
+version: 2.1
+active: false
+schedule: "10m" 
+historicalrecordduration: "10m"
+source:
+  type: query
+  config:
+    query: "MATCH (user:USER) - [has_email:HAS_EMAIL] - (email:EMAIL:PRIMARY)-[credsbased_account:CREDSBASED_ACCOUNT]-(account:ACCOUNT)-[using_app:USING_APP] - (app:APPLICATION)
+            WHERE credsbased_account.isMfaEnabled = false 
+                AND credsbased_account.timestamp >= $starttime
+                AND credsbased_account.timestamp <= $endtime
+            RETURN DISTINCT
+                user.id AS userId,
+                user.displayName AS userName,
+                user.mail AS userMail,
+                user.accountEnabled as userAccountEnabled,
+                user.department.name as userDepartment,
+                user.tenant as TENANT,               
+                user.subscriber AS SUBSCRIBER,
+                app.id_ as appId,
+                app.name AS appName,
+                app.Url AS appUrl,
+                app.domain AS appDomain,
+                user.mail+'_'+app.id_ AS userAppAccount,
+                credsbased_account.context_id as CONTEXTID"
+    type: knowledgegraph 
+    limit:
+    offset: 0
+destination:
+  type: stream 
+  topic: ruleEvaluator
+config:
+  expression: "def fn(message): return True if message.get('userName') else False" 
+  type: finding
+  subtype: status
+  code: Q103
+  status: open
+  sla: 1W
+  entity: userName
+  entitytype: user
+  tags:
+    - insecure_behaviour
+  sourceofalert: Quilr 
+  template: "Received an alert for the User: ${userName} on Application: ${appName}"
+  artifacts: 
+    - type: "ACCOUNT"
+      property: "id"
+      value: "$userAppAccount"
+      artifactproperties: 
+        artifactValue: $userName
+        displayInUI: enabled
+
+    - type: "APPLICATION" 
+      context: "global" 
+      property: id_
+      value: $appId
+      artifactproperties: 
+        artifactValue: $appName
+        displayInUI: enabled
+
+  properties:
+    userId: $userId  #FORMAT - findingattribute: variable from the top of this YAML
+    userName: $userName
+    userMail: $userMail
+    userAccountEnabled: $userAccountEnabled
+    userDepartment: $userDepartment
+    TENANT: $TENANT
+    SUBSCRIBER: $SUBSCRIBER
+    appName: $appName
+    appUrl: $appUrl
+    appId: $appId
+    appDomain: $appDomain
+    context_id: $CONTEXTID
+lambda: ""
+createdon: 1720396800000
+updatedon: 1720396800000

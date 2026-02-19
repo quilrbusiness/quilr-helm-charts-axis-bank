@@ -1,0 +1,17 @@
+name: approved_sso_apps
+#query: "MATCH (app:APPLICATION) WHERE app.disabledByMicrosoftStatus = $appStatus return DISTINCT app.appDisplayName as appName, app.firstSeen as appCreationDate, app.appUrl as appUrl"
+#parameters:
+#  # email: "{persona.email}"
+#  appStatus: "false"
+#  and ha.isSSOApproved = $ssoStatus
+query: "MATCH (app:APPLICATION)-[ha:HAS_USER]-(acc:ACCOUNT) WHERE acc.subscriber = $subscriber 
+OPTIONAL MATCH (app)-[:HAS_APP_CATEGORY]-(cat) return DISTINCT app.appDisplayName as appName, 
+app.firstSeen as appCreationDate, app.appUrl as appUrl, app.domain as appDomain, cat.id as 
+appCategory"
+parameters:
+  subscriber: "$.subscriber"
+#  ssoStatus: true
+datasource: "knowledgegraph"
+enablecache: false
+expireinmillis: 60000
+browser: true

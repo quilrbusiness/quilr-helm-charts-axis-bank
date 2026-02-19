@@ -1,0 +1,36 @@
+id: 836c95b6-7918-42b3-ad21-8463d060416f
+name: Executives
+type: ingestion-to-graph
+version: 2.1
+schedule: 1D
+historicalrecordduration: 1D
+source: 
+  type: query
+  config: 
+    query: "MATCH(user:USER)-[]-(department:DEPARTMENT)
+            WHERE department.name in ['Executive Team','Executive','Executives']
+                AND user.timestamp >= $starttime
+                AND user.timestamp <= $endtime
+            RETURN collect(DISTINCT user.id) as userids,
+                user.subscriber as SUBSCRIBER,
+                user.tenant as TENANT"
+    type: "knowledgegraph"
+    limit: 
+    offset: 0
+destination: 
+  type: "api"
+  headers: 
+    Internal: "true"
+  uri: "http://quilr-grouping-service:9071/group/create"
+config: 
+  groupname: "Executives"
+  userids: "$userids"
+  impact: veryhigh
+  likelihood: moderate
+  groupproperties:
+    mailEnabled: false
+    Description: 'This group comprises users holding executive positions, such as Executives, Board Members, and VPs.'
+lambda: ""
+active: true
+createdon: 1720396800000
+updatedon: 1720396800000

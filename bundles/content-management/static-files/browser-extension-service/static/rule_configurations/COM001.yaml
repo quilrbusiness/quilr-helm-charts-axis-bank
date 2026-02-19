@@ -1,0 +1,50 @@
+datatype: DICT
+defaultValue:
+  name: Internal Communications
+  description: Non-public organizational communications with moderate sensitivity
+  criticality: MEDIUM
+  sensitivity: Sensitive
+  examples:
+    - Internal Memo on Policy Changes
+    - Team Meeting Minutes with Project Updates
+    - Interdepartmental Email Discussions
+    - Internal Newsletter with Upcoming Events
+    - Employee Feedback Survey Results
+  indicators:
+    - Presence of internal-only content
+    - Discussions of ongoing projects or initiatives
+    - Information intended for employee consumption
+    - Moderate level of business process details
+  contentMarkers:
+    - Internal jargon or acronyms
+    - Employee names or departments
+    - Internal event dates or project deadlines
+    - References to internal systems or processes
+  impactSummary: >-
+    Potential for minor operational disruptions; slight competitive disadvantage
+    if disclosed
+  classificationRules:
+    positive: >-
+      Contains internal-only information; discusses ongoing projects or policies;
+      includes employee-specific content
+    negative: >-
+      Public communications; general company information; widely shared
+      organizational updates
+    resolution: >-
+      Assess the intended audience and potential impact of the information if
+      shared externally
+  relatedClasses:
+    - BCI001
+    - PPI001
+    - CTX001
+    - SYS001
+entityDescription: |-
+  Data Definition to classify and extract Internal Communications from text
+entityId: COM001
+entityMeta:
+  category: Data Protection Rule
+  source: default
+entityName: Internal Communications
+entityType: dlp_rule
+isDisabled: false
+isModifiable: true

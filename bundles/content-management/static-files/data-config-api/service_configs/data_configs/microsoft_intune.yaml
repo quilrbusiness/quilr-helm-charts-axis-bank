@@ -1,0 +1,41 @@
+id: 251fbdb5-128e-453e-a9a6-dce862fe58b1
+name: Microsoft Intune
+description: This connector integrates Microsoft Intune with the Quilr, allowing secure access to device information, application details, and device compliance policies.
+connection_config_id: ec1a7866-cc58-4a19-a887-a78541bd1ee8
+icon_url: https://staticcontent1.blob.core.windows.net/static-images-company-logos/entra_id.png
+login_enabled: false
+parent_org:
+  name: Microsoft
+  description: Effortlessly integrate your Microsoft's Intune MDM for gaining deeper insights in your environment.
+  icon_url: https://staticcontent1.blob.core.windows.net/static-images-company-logos/entra_id.png
+category: MDM
+version: 1.0.0
+updated_at: 1735908739241
+metadata:
+  type: oauth_integration
+  product: Intune
+  subProduct: /v1.0
+  vendor: Microsoft
+internal:
+  content_ids:
+    env_var: ""
+    default_value: "a163b434-483d-40e1-9bc6-103dbca351b1, 8e830726-83b7-4961-a99c-96489c0c50e1, b274c567-382e-4e21-bfc9-213ecf3415c2"
+inputSchema:
+  - id: scope_selection
+    type: multiselect
+    label: Intune Scopes
+    description: Select the scopes you want to give access to.
+    options:
+      - id: openid profile offline_access DeviceManagementManagedDevices.Read.All
+        label: Device Information
+        description: Allows Quilr to access device details in Microsoft Intune to help improve your organization’s security posture.
+      - id: DeviceManagementApps.Read.All
+        label: Device Applications
+        description: Allows Quilr to read application details from Microsoft Intune to help improve your organization’s security posture.
+      - id: DeviceManagementConfiguration.Read.All
+        label: Read the Devices Policy and Configuration
+        description: Allows Quilr to read device compliance policies and configuration from Microsoft Intune to help improve your organization's security posture.
+    default:
+      - openid profile offline_access
+outputSchema: {}
+is_active: true

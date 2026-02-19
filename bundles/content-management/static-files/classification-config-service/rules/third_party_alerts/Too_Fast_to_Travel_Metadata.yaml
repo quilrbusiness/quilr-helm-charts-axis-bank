@@ -1,0 +1,22 @@
+id: 2a201bb1-8552-4920-a389-401e7638c3a9
+version: 2.0
+code: Q099
+name: Too Fast to Travel
+description: This rule checks for user anomalous authentication.
+type: rule
+view: identity_protection
+impact: low
+likelihood: low
+createdon: 1718911069000
+updatedon: 1718911069000
+tags:
+  - Authentication Anomaly
+  - Authentication from new country
+  - Authentication Abnormality
+humanfactor: HFID_02
+behavior:
+  - BID_03
+examples:
+  - User might be on travel and authenticating on domain device.
+recommendations:
+  - template: "Too fast to travel can be an indicator of user compromise. Correlate account activities to investigate like any new device used for login, is user on travel?"

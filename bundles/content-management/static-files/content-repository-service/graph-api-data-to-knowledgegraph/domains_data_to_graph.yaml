@@ -1,0 +1,88 @@
+id: dbeb6cc0-5955-41dd-9ecf-a5046c4c7b35
+name: Domains Data To Knowledgegraph
+type: ingestion-to-graph
+version: 1.0.3
+schedule: "7D"
+historicalrecordduration: 6h
+source: 
+  type: query
+  config: 
+    query: "SELECT 
+                domain_name, domain_verified, domain_user_creation, quilr_tenantid, quilr_subscriberid,
+                domain_alias
+            FROM kafka_connect.snowdata_schema.transformeddata
+            WHERE domain_verified != false
+            AND RECORD_METADATA['CreateTime']::bigint > $starttime AND RECORD_METADATA['CreateTime']::bigint < $endtime"
+    type: datalake
+    limit: 
+    offset: 0
+destination: 
+  type: stream
+  topic: knowledgeGraph
+config: 
+  nodes: 
+    domain: 
+      type: DOMAIN
+      id: DOMAIN_NAME
+      properties:
+        name: DOMAIN_NAME
+        domainUserCreation: DOMAIN_USER_CREATION 
+        source: "@GraphAPI"
+    second_domain:
+      type: DOMAIN
+      id: $.DOMAIN_ALIAS.domainAliasName
+      properties:
+        name: $.DOMAIN_ALIAS.domainAliasName
+        parentDomainName: $.DOMAIN_ALIAS.parentDomainName
+    tenant:
+      type: TENANT
+      id: QUILR_TENANTID
+  edges:
+    - destination: tenant
+      direction: in
+      relation: HAS_DOMAIN
+      source: domain
+    - destination: tenant
+      direction: in
+      relation: HAS_DOMAIN
+      source: second_domain
+lambda: |
+  def fn(payload):
+  
+    from itertools import product
+    from typing import Any, Dict, List, Union
+
+    def flatten_lists(payload: List[Dict[str, Union[List, Any]]]) -> List[Dict[str, Any]]:
+      print("Inside flatten function..")
+      rows = []
+      for entry in payload:
+        
+        # Separate list and non-list items in each entry
+        list_items = {k: (v if v else [None]) for k, v in entry.items() if isinstance(v, list)}
+        non_list_items = {k: v for k, v in entry.items() if not isinstance(v, list)}
+
+        # Store keys for lists that were originally empty
+        empty_list_keys = [k for k, v in entry.items() if isinstance(v, list) and not v]
+        
+        if list_items:
+          list_keys = list(list_items.keys())
+          list_values = list(list_items.values())
+          
+          for combination in product(*list_values):
+            row = non_list_items.copy()
+            row.update({list_keys[i]: combination[i] for i in range(len(list_keys))})
+            for key in empty_list_keys:
+              row[key] = []
+      
+            rows.append(row)
+        else:
+          rows.append(non_list_items)
+    
+      return rows
+    if payload:
+      new_payload = flatten_lists(payload)
+      return new_payload
+    else:
+      return payload
+createdon: 1729884147
+updatedon: 1734348559

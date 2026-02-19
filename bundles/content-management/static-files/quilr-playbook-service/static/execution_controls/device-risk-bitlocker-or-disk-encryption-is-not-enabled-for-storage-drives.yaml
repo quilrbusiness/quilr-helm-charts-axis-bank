@@ -1,0 +1,36 @@
+version: 1.0.0
+criticality: 3
+control_name: Enabling BitLocker or disk encryption for storage drives
+control_description: This use case detects when BitLocker or any other disk encryption is not enabled for storage drives. It monitors compliance settings to identify devices where the encryption status is not marked as compliant.
+mode: monitor
+posture:
+  id: PID_05
+behavior:
+  id: BID_105
+use_case:
+  id: UC102
+schedule: '@every 5m'
+trigger_conditions:
+- operator: 
+  filter_condition:
+    attribute_type: ATTR_DEV_001
+    attribute_id: DEV-003
+    extension_property: split(compliancesetting.devicesettingname,".")[1]
+    condition: is_equal_to
+    value: BitLockerRequired
+  filter_group: 
+- operator: AND
+  filter_condition:
+    attribute_type: ATTR_DEV_001
+    attribute_id: DEV-004
+    extension_property: compliancesetting.devicesettingvalue
+    condition: is_not_equal_to
+    value: compliant
+  filter_group: 
+actions:
+- type:
+    id: ACTP_01
+  name:
+    id: ACT_100
+  meta:
+    prompt_frequency:

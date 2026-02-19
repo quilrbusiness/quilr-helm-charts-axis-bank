@@ -1,0 +1,36 @@
+widget_id: 30f4f0b5-d81b-42c7-abb7-08cae104c7c0
+template_id: RiskiestUsers
+active: true
+title: Riskiest Users
+components:
+  - name: Riskiest Users
+    type: table
+    data_source_type: knowledgegraph
+    lambda: |
+      def fn(client):
+        data_result = client.fetch_data(
+            query="MATCH (user:USER)-[r:HAS_EMAIL]-(email:EMAIL:PRIMARY)"
+                   " WHERE user.score IS NOT NULL AND user.subscriber = $subscriber AND user.tenant = $tenant"
+                   " WITH user,email"
+                   " MATCH (user)-[:HAS_DEPARTMENT]-(d:DEPARTMENT)"
+                   " MATCH (email)-[:CREDSBASED_ACCOUNT]->(acc:ACCOUNT)"
+                   " MATCH (user)-[:BELONGS_TO]->(g:GROUP)"
+                   " RETURN user.id AS userId,"
+                   " collect(distinct g.displayName) as group,"
+                   " user.displayName AS user,"
+                   " email.id AS email,"
+                   " d.id AS department,"
+                   " toInteger(user.score) as riskScore"
+        )
+        if data_result and isinstance(data_result, list) and data_result[0]:
+            total_record_count = 1
+            formatted_data = {"data": data_result,"total_record_count":total_record_count}
+            return formatted_data
+        else:
+            # Handle case where data_result is empty or doesn't contain expected structure
+            formatted_data = {
+                "data": [],
+                "total_record_count": 0
+            }
+            return formatted_data
+version: 1.0.2

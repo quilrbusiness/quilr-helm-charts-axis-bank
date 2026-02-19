@@ -1,0 +1,119 @@
+id: 834c9053-24aa-472f-9213-b88af93b86dd #UUID - 36 chars
+name: Login using OAuth Account on Breached Critical SaaS App
+type: rule  #rule configs - type rule only
+version: 2.1
+active: false
+schedule: "10m" 
+historicalrecordduration: "10m"
+source:
+  type: query
+  config:
+    query: "WITH date(datetime({epochSeconds:  timestamp()/1000})) AS current_date
+            MATCH (user:USER) - [has_email:HAS_EMAIL] - (email:EMAIL:PRIMARY)-[oauth_acc:OAUTH_ACCOUNT]-(account:ACCOUNT),
+                  (account:ACCOUNT)-[using_app:USING_APP]-(app:APPLICATION)-[has_grant:HAS_GRANT]-(grant:GRANT)-[has_scope:HAS_SCOPE]-(scope:SCOPE) 
+            OPTIONAL MATCH (tenant:TENANT)-[app_settings:HAS_APP_SETTINGS]-(app)
+            WHERE toLower(app_settings.criticality) = 'critical'
+            WITH user,has_email,email,oauth_acc,account,using_app,app,app_settings,tenant,grant,has_grant,has_scope,scope
+            WHERE oauth_acc.timestamp >= $starttime
+                AND oauth_acc.timestamp <= $endtime
+                AND app.breachIsRetired = false
+                AND app.breachIsSpamList = false
+                AND app.breachIsVerified = true
+                AND abs(duration.between(current_date, app.breachDate).years) <= 1
+            OPTIONAL MATCH (user) - [has_department:HAS_DEPARTMENT] - (department:DEPARTMENT)
+            OPTIONAL MATCH (app) - [has_app_category:HAS_APP_CATEGORY] - (app_category:APP_CATEGORY)           
+            RETURN DISTINCT
+                user.id AS userId,
+                user.displayName AS userName,
+                user.mail AS userMail,
+                user.accountEnabled as userAccountEnabled,
+                department.name as userDepartment,
+                user.tenant as TENANT,               
+                user.subscriber AS SUBSCRIBER,
+                app.id_ as appId,
+                app.name AS appName,
+                app.Url AS appUrl,
+                app.domain AS appDomain,
+                COLLECT(app_category.name) AS appCategory,
+                app.breachDesc AS breachDesc,
+                app.breachDate AS breachDate,
+                app.breachTitle AS breachTitle,
+                COALESCE(app_settings.criticality, app.criticality, 'NOT SET') AS appCriticality,
+                scope.id AS scope,
+                user.mail+'_'+app.id_ AS userAppAccount,
+                grant.id AS grantId, 
+                grant.consentBy AS consentBy"
+    type: knowledgegraph 
+    limit:
+    offset: 0
+destination:
+  type: stream 
+  topic: ruleEvaluator
+config:
+  expression: "def fn(message): return True if message.get('userName') else False " 
+  type: finding
+  subtype: status
+  code: Q045
+  status: open
+  sla: 1W
+  entity: userName
+  entitytype: user
+  tags:
+    - insecure_behaviour
+  sourceofalert: Quilr 
+  template: "Received an alert for the User: ${userName} on Application: ${appName}"
+  artifacts: 
+     - type: "ACCOUNT"
+       property: "id"
+       value: "$userAppAccount"
+       artifactproperties: 
+        artifactValue: $userName
+        displayInUI: enabled
+        artifactKey: "Account"
+
+     - type: "APPLICATION" 
+       context: "global" 
+       property: id_
+       value: $appId
+       artifactproperties: 
+        artifactValue: $appName
+        displayInUI: enabled
+        artifactKey: "Application"
+
+     - type: "IPADDRESS"
+       property: "id"
+       value: "$ipaddress"
+       artifactproperties: 
+        artifactValue: $ipaddress
+        displayInUI: enabled
+        artifactKey: "IpAddress"
+
+     - type: "SCOPE"
+       property: "id"
+       value: "$scope"
+       artifactproperties: 
+        artifactValue: $scope
+        displayInUI: enabled
+        artifactKey: "Scope Used"
+
+  properties:
+    userId: $userId  #FORMAT - findingattribute: variable from the top of this YAML
+    userName: $userName
+    userMail: $userMail
+    userAccountEnabled: $userAccountEnabled
+    userDepartment: $userDepartment
+    TENANT: $TENANT
+    SUBSCRIBER: $SUBSCRIBER
+    appName: $appName
+    appUrl: $appUrl
+    appId: $appId
+    appCriticality: $appCriticality
+    appCategory: $appCategory
+    breachDesc: $breachDesc
+    breachDate: $breachDate
+    breachTitle: $breachTitle
+    appDomain: $appDomain
+    grantConsentBy: $consentBy
+lambda: ""
+createdon: 1720396800000
+updatedon: 1720396800000

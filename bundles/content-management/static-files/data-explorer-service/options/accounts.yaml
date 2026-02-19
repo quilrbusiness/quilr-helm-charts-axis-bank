@@ -1,0 +1,10 @@
+version: 1.0.2
+screen_id: accounts
+title: Accounts
+tag: Accounts
+description: Accounts screen for managing accounts
+active: true
+type: options
+path: accounts
+iconUrl: "https://staticcontent1.blob.core.windows.net/quilrstatic/sidebar-icons/Human2.svg"
+order: 1

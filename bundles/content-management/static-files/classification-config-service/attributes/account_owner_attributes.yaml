@@ -1,0 +1,140 @@
+id: 616e784c-c8aa-4fca-87e2-795c7fc9bead
+version: 10.0.28
+category: Account Owner
+code: ATTR_ACOW_001
+tags:
+  - UC008
+type: attributes
+attributes:
+  - name: Department
+    description: Provide user department.
+    duplicate_allowed: false
+    tags:
+      - UC008
+      - UC006
+      - UC027
+      - UC028
+    graph_property: source_user_department.name
+    extension_property: check.userDetails.department
+    expected_datatype: string
+    possible_values_query:  MATCH (department:DEPARTMENT) WHERE department.name <> '-' AND department.subscriber = $subscriber AND department.tenant = $tenant AND toLower(department.name) =~ toLower('.*{search_text}.*') RETURN distinct(department.name)
+    is_searchable: true
+    supported_operators:
+      - is not in
+      - is in
+    id: ACOW-001
+  - name: Smart Group
+    description: User belongs to which user group.
+    duplicate_allowed: false
+    tags:
+      - UC008
+      - UC006
+      - UC027
+      - UC028
+    graph_property: COALESCE(source_group.displayName, '')
+    extension_property: check.userDetails.groups
+    expected_datatype: string
+    possible_values_query: "MATCH (group:GROUP {userDefined: true}) WHERE group.displayName <> '-' AND group.subscriber = $subscriber AND group.tenant = $tenant AND toLower(group.displayName) =~ toLower('.*{search_text}.*') RETURN distinct(group.displayName)"
+    is_searchable: true
+    supported_operators:
+      - is not in
+      - is in
+    id: ACOW-002
+  - name: Status
+    description: Define if user is active or inactive in organization.
+    duplicate_allowed: false
+    tags:
+      - UC008
+      - UC006
+      - UC027
+      - UC028
+    graph_property: source_user.accountEnabled
+    extension_property: check.userDetails.user.accountEnabled
+    expected_datatype: string
+    possible_values:
+      - label: Active
+        value: ACTIVE
+        tags:
+          - UC008
+          - UC006
+      - label: Inactive
+        value: INACTIVE
+        tags:
+          - UC008
+          - UC006
+    supported_operators:
+      - is equal to
+      - is not equal to
+    id: ACOW-003
+  - name: Risk Level
+    description: Define what risk user belongs to.
+    duplicate_allowed: false
+    tags:
+      - UC008
+      - UC006
+      - UC027
+      - UC028
+    graph_property: source_user.risk_metric
+    extension_property: check.userDetails.user.risk_level
+    expected_datatype: string
+    possible_values:
+      - label: Very High
+        value: Very High
+        tags:
+          - UC008
+          - UC006
+      - label: High
+        value: High
+        tags:
+          - UC008
+          - UC006
+      - label: Medium
+        value: Medium
+        tags:
+          - UC008
+          - UC006
+      - label: Low
+        value: Low
+        tags:
+          - UC008
+          - UC006
+      - label: Very Low
+        value: Very Low
+        tags:
+          - UC008
+          - UC006
+    supported_operators:
+      - is equal to
+      - is not equal to
+    id: ACOW-004
+  - name: Title
+    description: Define what title user should have.
+    duplicate_allowed: false
+    tags:
+      - UC008
+      - UC006
+      - UC027
+      - UC028
+    graph_property: source_user.jobTitle
+    extension_property: check.userDetails.user.jobTitle
+    expected_datatype: string
+    possible_values_query: MATCH (user:USER) WHERE user.jobTitle <> '-' AND user.subscriber = $subscriber AND user.tenant = $tenant AND toLower(user.jobTitle) =~ toLower('.*{search_text}.*') RETURN distinct(user.jobTitle)
+    is_searchable: true
+    supported_operators:
+      - is equal to
+      - is not equal to
+    id: ACOW-005
+  - name: Location
+    description: Define user location.
+    duplicate_allowed: false
+    tags:
+      - UC027
+      - UC028
+    graph_property: source_user_location.id
+    extension_property: check.userDetails.user.location
+    expected_datatype: string
+    possible_values_query: "MATCH (user:USER) WHERE user.country <> '-' AND toLower(user.country) =~ toLower('.*{search_text}.*') RETURN distinct(user.country)"
+    supported_operators:
+      - is equal to
+      - is not equal to
+    id: ACOW-006

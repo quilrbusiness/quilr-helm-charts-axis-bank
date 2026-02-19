@@ -1,0 +1,17 @@
+id: 56a65341-acf4-44c2-abda-3250ecd6126b
+version: 1.0
+code: DP001
+name: Sensitive data shared over Generative AI Applications
+description: A user has uploaded sensitive information in AI apps.
+type: rule
+view: data_leak_prevention
+impact: high
+likelihood: high
+createdon: 1720396800000
+updatedon: 1720396800000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_01
+examples: []
+recommendations: []

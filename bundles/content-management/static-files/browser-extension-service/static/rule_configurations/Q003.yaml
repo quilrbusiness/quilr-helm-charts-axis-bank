@@ -1,0 +1,21 @@
+datatype: DICT
+defaultValue:
+  message: |-
+    This is a very critical app, please change this password - its weak and easily guessable. Will only take 2 mins. 
+  mode: Ask
+entityDescription: |-
+  Login with a weak password on centralized login or authentication services such as IdP or SSO.
+entityId: Q003
+entityMeta:
+  behavior: Weak Password
+  category: ISPM
+  posture: Password Hygiene
+  check_id:
+    form_check_ids:
+      - CH-FORM-LOGIN
+      - CH-FORM-WEAK-PASSWORD
+      - CH-APP-IDP
+entityName: Login with Weak Password on IDP/SSO
+entityType: rule
+isDisabled: false
+isModifiable: true

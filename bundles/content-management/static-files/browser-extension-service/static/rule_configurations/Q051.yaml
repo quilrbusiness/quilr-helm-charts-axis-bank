@@ -1,0 +1,19 @@
+datatype: DICT
+defaultValue:
+  message: "This app is critical, please enable MFA right away. Only using passwords is the easiest way for someone to get into your account."
+  mode: Ask
+  resolution_channel: browser
+entityDescription: ""
+entityId: Q051
+entityMeta:
+  behavior: No MFA
+  category: ISPM
+  posture: MFA Usage
+  check_id:
+    form_check_ids:
+      - CH-MFA
+      - CH-APP-CRITICAL
+entityName: Not using MFA on business critical App
+entityType: rule
+isDisabled: false
+isModifiable: true

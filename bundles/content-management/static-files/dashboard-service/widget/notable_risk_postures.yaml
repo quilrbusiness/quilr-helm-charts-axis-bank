@@ -1,0 +1,43 @@
+widget_id: b7794644-db41-44d2-919e-b116268a654f
+template_id: NotableRiskPostures
+active: true
+title: Notable Risk Postures
+components:
+  - name: radio_buttons
+    type: radio
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          return {"radio_1": "Probability",
+                  "radio_2": "Trends"}
+  - name: description1
+    type: html
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          result={"series": {
+                    "data": [{
+                              "error": True,
+                              "heading": "Success",
+                              "percentage": 74
+                            },
+                            {
+                              "error": True,
+                              "heading": "Social Engineering",
+                              "percentage": 25
+                            },
+                            {
+                              "error": False,
+                              "heading": "Data Handling",
+                              "percentage": 18
+                            },
+                            {
+                              "error": False,
+                              "heading": "Cloud Identity and Access",
+                              "percentage": 12
+                            }
+                          ]
+                        }
+                      }
+          return result
+version: 7.0

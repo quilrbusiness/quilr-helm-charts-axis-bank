@@ -1,0 +1,20 @@
+id: 9e0f1a2b-3c4d-5e6f-9a0b-1c2d3e4f9041
+version: 1.0
+code: ACT_249
+name: Justification for pasting sensitive data
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: templatized
+    message_template: justify-pasting-sensitive-data
+    execution_type: tool
+    execution_module: send_templated_user_message
+    browser_action: Justify
+tags:
+  - UC041
+behavior:
+  - BID_201
+createdon: 1755648000000
+updatedon: 1755648000000

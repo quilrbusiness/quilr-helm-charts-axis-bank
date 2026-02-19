@@ -1,0 +1,17 @@
+type: message
+content:
+  header: Data Transfer Blocked!
+  justification_list:
+    - Needed for current project
+    - This app is approved for my team
+    - Manager approved this workflow
+    - Testing/development work
+    - One-time urgent need
+  title: "Pasting data to this app is not allowed by company policy. <br />Provide a business reason for moving this data:"
+  description: '*Specify business justification?*'
+  acknowledgedButtons: []
+channel: Browser
+rendered_content_type: application/json
+name: Justify pasting data
+is_active: true
+

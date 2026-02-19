@@ -1,0 +1,20 @@
+id: 5e0305a4-0f52-4fcf-93e8-ebcfa6db5720
+version: 4.5
+code: ACT_28
+name: Prompt admin user to enable MFA
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: "templatized"
+    message_template: "prompt-admin-user-to-enable-mfa"
+    execution_type: "tool"
+    execution_module: "send_templated_user_message"
+    browser_action: Ask
+tags:
+  - UC005
+behavior:
+  - BID_06
+createdon: 1710504494000
+updatedon: 1710504494000

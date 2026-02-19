@@ -1,0 +1,31 @@
+id: 2adf397e-6b70-4728-8ce9-cfaf6b353528
+name: security updates are outdated
+updatedon: 1739372899198
+condition:
+- filter_condition:
+    condition: is equal to
+    value: SignatureOutOfDate
+    attribute_id: DEV-003
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: 
+  editable: false
+- filter_condition:
+    condition: is not equal to
+    value: compliant
+    attribute_id: DEV-004
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: AND
+  editable: false
+createdon: 1739372899198
+version: 1.4
+description: The security signatures on this device are outdated, reducing its ability to detect and prevent threats such as malware, viruses, and unauthorized software. This increases the risk of security breaches and system compromise.
+posture:
+- PID_05
+code: UC114
+disabled: false
+type: use-case
+behavior:
+- BID_101
+

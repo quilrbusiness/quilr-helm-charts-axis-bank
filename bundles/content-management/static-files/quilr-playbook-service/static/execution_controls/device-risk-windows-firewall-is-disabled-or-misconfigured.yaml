@@ -1,0 +1,37 @@
+version: 1.0.0
+criticality: 4
+mode: monitor
+control_name: Enabling or correctly configuring a Windows firewall for a device
+control_description: This control detects when Windows Firewall is either disabled or misconfigured. It monitors compliance settings to identify devices where the firewall status is not marked as compliant.
+posture:
+  id: PID_05
+behavior:
+  id: BID_104
+use_case:
+  id: UC105
+trigger_conditions:
+- operator: 
+  filter_condition:
+    attribute_type: ATTR_DEV_001
+    attribute_id: DEV-003
+    extension_property: split(compliancesetting.devicesettingname,".")[1]
+    condition: is_equal_to
+    value: ActiveFirewallRequired
+  filter_group: 
+- operator: AND
+  filter_condition:
+    attribute_type: ATTR_DEV_001
+    attribute_id: DEV-004
+    extension_property: compliancesetting.devicesettingvalue
+    condition: is_not_equal_to
+    value: compliant
+  filter_group: 
+actions:
+- type:
+    id: ACTP_01
+  name:
+    id: ACT_106
+  description: 
+  meta:
+    prompt_frequency: 
+    

@@ -1,0 +1,503 @@
+id: human-security-screen
+name: Human Security
+type: screen
+enabled: true
+version: 1.1.2
+icon_url: https://staticcontent1.blob.core.windows.net/quilrstatic/profile/findings.svg
+widgets:
+  - id: humanSecurityIndexRiskScore
+    name: Human Security Index (HSI)
+    label: Widget
+    allowed_params: true
+    dataSourceType: datalake
+    enabled: true
+    type: analytical data
+    className: col-span-6
+    query_id: ""
+    input_params:
+      x: ""
+    queryFilters: []
+    query: "
+            WITH latest_date AS (
+            SELECT MAX(TO_DATE(CONCAT(us.year, '-', LPAD(us.monthofyear::TEXT, 2, '0'), '-', LPAD(us.dayofmonth::TEXT, 2, '0')), 'YYYY-MM-DD')) AS new_date
+            FROM kafka_connect.snowdata_schema.userscoresnapshotaggregated us
+            WHERE 
+                  us.agg_type = 'organization'
+                  AND us.agg_subtype IS NULL
+                  AND us.subscriber = $subscriber
+                  AND us.tenant = $tenant
+            ),
+            date_30_days_ago AS (
+                SELECT DATEADD(DAY, -30, new_date) AS old_date
+                FROM latest_date
+            ),
+            latest_data AS (
+                SELECT
+                    us.agg_type_name,
+                    us.subscriber,
+                    us.tenant,
+                    us.risk_score,
+                    TO_DATE(CONCAT(us.year, '-', us.monthofyear, '-', us.dayofmonth), 'YYYY-MM-DD') AS new_date
+                FROM kafka_connect.snowdata_schema.userscoresnapshotaggregated us
+                WHERE TO_DATE(CONCAT(us.year, '-', LPAD(us.monthofyear::TEXT, 2, '0'), '-', LPAD(us.dayofmonth::TEXT, 2, '0')), 'YYYY-MM-DD') = (SELECT new_date FROM latest_date)
+                      AND us.agg_type = 'organization'
+                      AND us.agg_subtype IS NULL
+                      AND us.subscriber = $subscriber
+                      AND us.tenant = $tenant
+            ),
+            old_data AS (
+                SELECT
+                    us.agg_type_name,
+                    us.subscriber,
+                    us.tenant,
+                    us.risk_score,
+                    TO_DATE(CONCAT(us.year, '-', us.monthofyear, '-', us.dayofmonth), 'YYYY-MM-DD') AS old_date
+                FROM kafka_connect.snowdata_schema.userscoresnapshotaggregated us
+                WHERE TO_DATE(CONCAT(us.year, '-', LPAD(us.monthofyear::TEXT, 2, '0'), '-', LPAD(us.dayofmonth::TEXT, 2, '0')), 'YYYY-MM-DD') = (SELECT old_date FROM date_30_days_ago)
+                    AND us.agg_type = 'organization'
+                    AND us.agg_subtype IS NULL
+                    AND us.subscriber = $subscriber
+                    AND us.tenant = $tenant
+            )
+            select 
+              ld.subscriber AS \"subscriber_id\",
+              ld.tenant AS \"tenant_id\",
+              ld.risk_score AS \"risk_score\",
+              CASE
+              WHEN COALESCE(ld.risk_score, 0) <=20 THEN 'Very Low'
+              WHEN (ld.risk_score > 20 AND ld.risk_score <= 40) THEN 'Low'
+              WHEN (ld.risk_score > 40 AND ld.risk_score <= 60) THEN 'Medium'
+              WHEN (ld.risk_score > 60 AND ld.risk_score <= 80) THEN 'High'
+              WHEN (ld.risk_score > 80) THEN 'Very High'
+              END AS \"risk_level\",
+              CASE
+              WHEN od.risk_score IS NOT NULL AND od.risk_score <> 0 THEN
+              ROUND(((COALESCE(ld.risk_score, 0) - COALESCE(od.risk_score, 0)) / COALESCE(od.risk_score, 0)) * 100, 2)
+              END AS \"risk_percentile_change\",
+              ld.new_date AS \"date_calculated_on\",
+              FROM
+              latest_data ld
+              LEFT JOIN old_data od ON ld.agg_type_name = od.agg_type_name
+        "
+  - id: humanSecurityIndexRiskTrend
+    name: Human Security Index (HSI)
+    label: Widget
+    allowed_params: true
+    dataSourceType: datalake
+    enabled: true
+    type: analytical data
+    className: col-span-6
+    query_id: ""
+    input_params:
+      x: ""
+    queryFilters: []
+    query: "
+        WITH range_details AS (
+          SELECT 
+              MIN(TO_DATE(CONCAT(usa.year, '-', usa.monthofyear, '-', usa.dayofmonth), 'YYYY-MM-DD')) AS start_date,
+              MAX(TO_DATE(CONCAT(usa.year, '-', usa.monthofyear, '-', usa.dayofmonth), 'YYYY-MM-DD')) AS end_date,
+              DATEDIFF(
+                  day, 
+                  MIN(TO_DATE(CONCAT(usa.year, '-', usa.monthofyear, '-', usa.dayofmonth), 'YYYY-MM-DD')),
+                  MAX(TO_DATE(CONCAT(usa.year, '-', usa.monthofyear, '-', usa.dayofmonth), 'YYYY-MM-DD'))
+              ) AS dates_difference
+          FROM kafka_connect.snowdata_schema.userscoresnapshotaggregated usa 
+          WHERE 
+              usa.agg_type = 'organization'
+              AND usa.agg_subtype IS NULL
+              AND usa.subscriber = $subscriber
+              AND usa.tenant = $tenant
+      ),
+      date_range AS (
+          SELECT start_date AS date FROM range_details
+          UNION ALL
+          SELECT
+              DATEADD(DAY, 1, date)
+          FROM date_range dr, range_details
+          WHERE dr.date < range_details.end_date
+      ),
+      result_set AS (
+          select 
+              usa.subscriber,
+              usa.tenant,
+              usa.risk_score AS risk_score,
+              dr.date AS date_calculated_on,
+              ROW_NUMBER() OVER (PARTITION BY dr.date ORDER BY dr.date ASC) AS rn
+          from kafka_connect.snowdata_schema.userscoresnapshotaggregated usa
+          RIGHT JOIN 
+              date_range dr ON TO_DATE(CONCAT(usa.year, '-', usa.monthofyear, '-', usa.dayofmonth)) = dr.date
+              AND usa.agg_type = 'organization'
+                AND usa.agg_subtype IS NULL
+                AND usa.subscriber = $subscriber
+                AND usa.tenant = $tenant
+          ORDER BY dr.date ASC
+      ),
+      prev_risk_scores AS (
+          SELECT 
+              rs.risk_score AS risk_score,
+              rs.date_calculated_on AS date_calculated_on
+          FROM result_set rs WHERE rs.risk_score is NOT NULL
+      ),
+      final_result AS (
+          select 
+              COALESCE(rs.subscriber, '$subscriber') AS \"subscriber\",
+                   COALESCE(rs.tenant, '$tenant') AS \"tenant\",
+                   COALESCE(rs.risk_score, prs.risk_score) AS \"risk_score\",
+                   rs.date_calculated_on AS \"date_calculated_on\"
+                   from result_set rs
+          LEFT JOIN prev_risk_scores prs
+          ON prs.date_calculated_on = (
+          SELECT MAX(prs2.date_calculated_on)
+          FROM prev_risk_scores prs2
+          WHERE prs2.date_calculated_on <= rs.date_calculated_on
+          )
+          WHERE
+          rn = 1 ORDER BY prs.date_calculated_on, rs.date_calculated_on ASC
+        )
+        select DISTINCT *,
+        EXTRACT(DOW FROM \"date_calculated_on\") AS \"day_of_week\",
+        TO_CHAR(\"date_calculated_on\", 'DD') AS \"day_of_month\"
+        from final_result
+        WHERE
+        ((SELECT dates_difference FROM range_details) < 60)
+        OR
+        ((SELECT dates_difference FROM range_details) > 60 AND (SELECT dates_difference FROM range_details) <= 180 AND EXTRACT(DOW FROM \"date_calculated_on\") = 1
+        )
+        OR
+        ((SELECT dates_difference FROM range_details) > 180 AND TO_CHAR(\"date_calculated_on\", 'DD') = '01')
+        ORDER BY \"date_calculated_on\" ASC
+       "
+  - id: riskyBehaviors
+    name: Risky Behaviors
+    label: Widget
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    enabled: true
+    type: analytical data
+    className: col-span-6
+    query_id: ""
+    input_params:
+      x: ""
+    queryFilters: []
+    query: "
+        MATCH (posture:POSTURE)-[:BELONGS_TO]-(behavior:BEHAVIOR)
+        WHERE posture.id IN ['PID_01', 'PID_02','PID_03','PID_04','PID_05','PID_06']
+        OPTIONAL MATCH (posture)-[metricRelation:HAS_METRIC]-(tenant:TENANT {tenant: $tenant, subscriber: $subscriber})
+        OPTIONAL MATCH (posture)-[:BELONGS_TO]-(behavior)
+        OPTIONAL MATCH (behavior)-[:BELONGS_TO]-(rule)-[:EVALUATED_TO]-(finding:FINDING {tenant: $tenant, subscriber: $subscriber})-[:HAS_FINDING]-(account:ACCOUNT)-[]-(email:EMAIL:PRIMARY)-[:HAS_EMAIL]-(user:USER)
+        WITH
+            posture.id AS posture_id,
+            posture.name AS posture_name,
+            behavior.id AS behavior_id,
+            behavior.name AS behavior_name,
+            finding.status AS finding_status,
+            finding.subscriber AS subscriber,
+            finding.tenant AS tenant,
+            CASE
+                WHEN metricRelation.lastMonthPostureProfile IS NOT NULL AND metricRelation.lastMonthPostureProfile <> 0
+                    THEN ROUND(((COALESCE(metricRelation.currentPostureProfile, 0) - metricRelation.lastMonthPostureProfile) / metricRelation.lastMonthPostureProfile) * 100, 2)
+            END AS posture_percentile_change,
+            ROUND((COALESCE(metricRelation.currentPostureProfile, 0) * 4) + 1) AS posture_risk_score,
+            CASE ROUND((COALESCE(metricRelation.currentPostureProfile, 0) * 4) + 1)
+                WHEN 1 THEN 'Very Low'
+                WHEN 2 THEN 'Low'
+                WHEN 3 THEN 'Medium'
+                WHEN 4 THEN 'High'
+                WHEN 5 THEN 'Very High'
+            END AS posture_risk_level,
+            COLLECT(DISTINCT finding) AS findings
+        WITH
+            posture_id,
+            posture_name,
+            behavior_id,
+            behavior_name,
+            findings,
+            subscriber,
+            tenant,
+            posture_percentile_change,
+            posture_risk_score,
+            posture_risk_level
+        WITH
+            posture_id,
+            posture_name,
+            behavior_id,
+            behavior_name,
+            subscriber,
+            tenant,
+            posture_percentile_change,
+            posture_risk_score,
+            posture_risk_level,
+            SIZE([f IN findings WHERE f.status = 'open']) AS open_count,
+            SIZE([f IN findings WHERE f.status = 'in-progress']) AS in_progress_count,
+            SIZE([f IN findings WHERE f.status = 'resolved']) AS resolved_count
+        RETURN
+            posture_id,
+            posture_name,
+            posture_percentile_change,
+            posture_risk_score,
+            posture_risk_level,
+            COLLECT(DISTINCT {
+                behavior_id: behavior_id,
+                behavior_name: behavior_name,
+                finding_details: [
+                    {finding_status: 'Open', finding_count: COALESCE(open_count, 0)},
+                    {finding_status: 'Acknowledged', finding_count: COALESCE(in_progress_count, 0)},
+                    {finding_status: 'Resolved', finding_count: COALESCE(resolved_count, 0)}
+                ]
+            }) AS details ORDER BY posture_name ASC
+        "
+  - id: riskDistrubutionUser
+    name: Risk Distrubution User
+    label: Widget
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    template: Posture
+    enabled: true
+    type: packedbubble
+    className: col-span-3
+    query_id: ""
+    input_params:
+      x: ""
+    queryFilters: []
+    query: "
+        WITH [
+          {id: 'very_high', label: 'Very High', colorCode: '#EC5D5E'},
+          {id: 'high', label: 'High', colorCode: '#FFC53D'},
+          {id: 'medium', label: 'Medium', colorCode:'#FFFF57'},
+          {id: 'low', label: 'Low', colorCode: '#BDEE63'},
+          {id: 'very_low', label: 'Very Low', colorCode: '#1FD8A4'}
+      ] AS risk_metrics
+      OPTIONAL MATCH (user:USER {subscriber: $subscriber, tenant: $tenant})
+      WITH
+      risk_metrics,
+      CASE 
+          WHEN user.score <= 20 THEN 'Very Low'
+          WHEN user.score > 20 AND user.score <= 40 THEN 'Low'
+          WHEN user.score > 40 AND user.score <= 60 THEN 'Medium'
+          WHEN user.score > 60 AND user.score <= 80 THEN 'High'
+          WHEN user.score > 80 THEN 'Very High'
+      END AS risk_level,
+      user
+      WITH risk_metrics, risk_level, COUNT(DISTINCT user.id) AS user_count
+      UNWIND risk_metrics AS risk
+      RETURN 
+      risk, 
+      COALESCE(SUM(CASE WHEN risk.label = risk_level THEN user_count ELSE 0 END), 0) AS user_count
+      "
+  - id: riskDistrubutionDepartment
+    name: Risk Distrubution Department
+    label: Widget
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    template: Posture
+    enabled: true
+    type: packedbubble
+    className: col-span-3
+    query_id: ""
+    input_params:
+      x: ""
+    queryFilters: []
+    query: "
+      WITH [
+            {id: 'very_high', label: 'Very High', colorCode: '#EC5D5E'},
+            {id: 'high', label: 'High', colorCode: '#FFC53D'},
+            {id: 'medium', label: 'Medium', colorCode: '#FFFF57'},
+            {id: 'low', label: 'Low', colorCode: '#BDEE63'},
+            {id: 'very_low', label: 'Very Low', colorCode: '#1FD8A4'}
+        ] AS risk_metrics
+        OPTIONAL MATCH (department:DEPARTMENT {subscriber: $subscriber, tenant: $tenant})
+        WITH
+            risk_metrics, department,
+            CASE 
+                WHEN department.score <= 20 THEN 'Very Low'
+                WHEN department.score > 20 AND department.score <= 40 THEN 'Low'
+                WHEN department.score > 40 AND department.score <= 60 THEN 'Medium'
+                WHEN department.score > 60 AND department.score <= 80 THEN 'High'
+                WHEN department.score > 80 THEN 'Very High'
+            END AS risk_level
+        WITH risk_metrics, risk_level, COUNT(DISTINCT department.id) AS department_count
+        UNWIND risk_metrics AS risk
+        RETURN 
+            risk, 
+            COALESCE(SUM(CASE WHEN risk.label = risk_level THEN department_count ELSE 0 END), 0) AS department_count
+     "
+  - id: riskDistrubutionGroup
+    name: Risk Distrubution Group
+    label: Widget
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    template: Posture
+    enabled: true
+    type: packedbubble
+    className: col-span-3
+    query_id: ""
+    input_params:
+      x: ""
+    queryFilters: []
+    query: "
+        WITH [
+            {id: 'very_high', label: 'Very High', colorCode: '#EC5D5E'},
+            {id: 'high', label: 'High', colorCode: '#FFC53D'},
+            {id: 'medium', label: 'Medium', colorCode: '#FFFF57'},
+            {id: 'low', label: 'Low', colorCode: '#BDEE63'},
+            {id: 'very_low', label: 'Very Low', colorCode: '#1FD8A4'}
+          ] AS risk_metrics
+          OPTIONAL MATCH (group:GROUP{userDefined: true, subscriber: $subscriber, tenant: $tenant})
+          WITH
+            risk_metrics,
+            group,
+            CASE 
+                WHEN group.score <= 20 THEN 'Very Low'
+                WHEN group.score > 20 AND group.score <= 40 THEN 'Low'
+                WHEN group.score > 40 AND group.score <= 60 THEN 'Medium'
+                WHEN group.score > 60 AND group.score <= 80 THEN 'High'
+                WHEN group.score > 80 THEN 'Very High'
+            END AS risk_level
+          WITH risk_metrics, risk_level, COUNT(DISTINCT group) AS group_count
+          UNWIND risk_metrics AS risk
+          RETURN 
+          risk, 
+          COALESCE(SUM(CASE WHEN risk.label = risk_level THEN group_count ELSE 0 END), 0) AS group_count
+      "
+view_by:
+  - id: users
+    query: "
+        MATCH (user:USER {accountEnabled: 'ACTIVE', tenant: $tenant, subscriber: $subscriber})
+        OPTIONAL MATCH (user)-[:HAS_EMAIL]-(email:EMAIL:PRIMARY)
+        OPTIONAL MATCH (user)-[:HAS_DEPARTMENT]-(dept:DEPARTMENT)
+          OPTIONAL MATCH (user)-[:BELONGS_TO]-(groups:GROUP {userDefined: true})
+        RETURN DISTINCT
+        user.id AS user_id,
+        user.displayName AS user_name,
+        user.profilePicUrl AS profile_pic,
+        user.jobTitle AS job_title,
+        email.id AS email_address,
+        COLLECT (DISTINCT groups.displayName) AS groups,
+        dept.name AS department_name,
+        COALESCE(user.score, 0) AS risk_score,
+        CASE
+        WHEN (COALESCE(user.score, 0) <=20) THEN 'Very Low'
+        WHEN (user.score > 20 AND user.score <= 40) THEN 'Low'
+        WHEN (user.score > 40 AND user.score <= 60) THEN 'Medium'
+        WHEN (user.score > 60 AND  user.score <= 80) THEN 'High'
+        WHEN (user.score > 80 AND user.score <= 100) THEN 'Very High'
+        END AS risk_level
+        ORDER BY risk_score DESC
+     "
+    defaultValue: users
+    allowed_params: true
+    name: Users
+    pagination_query:
+        "
+          MATCH (user:USER {accountEnabled: 'ACTIVE', tenant: $tenant, subscriber: $subscriber})
+          OPTIONAL MATCH (user)-[:HAS_EMAIL]-(email:EMAIL:PRIMARY)
+          OPTIONAL MATCH (user)-[:HAS_DEPARTMENT]-(dept:DEPARTMENT)
+          OPTIONAL MATCH (user)-[:BELONGS_TO]-(groups:GROUP {userDefined: true})
+          RETURN COUNT(DISTINCT user.id) AS totalCount
+        "
+    input_params:
+      x: ""
+    type: button
+    dataSourceType: knowledgegraph
+    active: true
+  - id: departments
+    query: "
+        MATCH (department:DEPARTMENT {tenant: $tenant, subscriber: $subscriber})
+        OPTIONAL MATCH (department)-[:HAS_DEPARTMENT]-(user:USER)-[:BELONGS_TO]-(groups:GROUP {userDefined: true})
+        RETURN DISTINCT
+            department.id as department_id,
+            department.name AS department_name,
+            COUNT(DISTINCT user) as user_count,
+            COLLECT (DISTINCT groups.displayName) AS groups,
+            COALESCE(department.score, 0) AS risk_score,
+            CASE 
+                WHEN (COALESCE(department.score, 0) <=20) THEN 'Very Low'
+                WHEN (department.score > 20 AND department.score <= 40) THEN 'Low'
+                WHEN (department.score > 40 AND department.score <= 60) THEN 'Medium'
+                WHEN (department.score > 60 AND  department.score <= 80) THEN 'High'
+                WHEN (department.score > 80 AND department.score <= 100) THEN 'Very High'
+            END AS risk_level
+        ORDER BY risk_score DESC
+      "
+    defaultValue: users
+    allowed_params: true
+    name: Departments
+    pagination_query:
+      "
+        MATCH (department:DEPARTMENT {tenant: $tenant, subscriber: $subscriber})
+        OPTIONAL MATCH (department)-[:HAS_DEPARTMENT]-(user:USER)-[:BELONGS_TO]-(groups:GROUP {userDefined: true})
+        RETURN COUNT(DISTINCT department.id) AS totalCount
+      "
+    input_params:
+      x: ""
+    type: button
+    dataSourceType: knowledgegraph
+    active: true
+  - id: groups
+    query: "
+        MATCH (group:GROUP {userDefined: true, tenant: $tenant, subscriber: $subscriber})
+        OPTIONAL MATCH (group)-[:BELONGS_TO]-(user:USER)-[:HAS_DEPARTMENT]-(department:DEPARTMENT)
+        RETURN DISTINCT
+            group.internalId as group_id,
+            group.displayName AS group_name,
+            COUNT(DISTINCT user) AS user_count,
+            COLLECT(DISTINCT department.name) AS department_names,
+            COALESCE(group.score, 0) AS risk_score,
+            CASE 
+                WHEN (COALESCE(group.score, 0) <=20) THEN 'Very Low'
+                WHEN (group.score > 20 AND group.score <= 40) THEN 'Low'
+                WHEN (group.score > 40 AND group.score <= 60) THEN 'Medium'
+                WHEN (group.score > 60 AND  group.score <= 80) THEN 'High'
+                WHEN (group.score > 80 AND group.score <= 100) THEN 'Very High'
+            END AS risk_level
+        ORDER BY risk_score DESC
+      "
+    defaultValue: users
+    allowed_params: true
+    name: Groups
+    pagination_query:
+      "
+       MATCH (group:GROUP {userDefined: true, tenant: $tenant, subscriber: $subscriber})
+        OPTIONAL MATCH (group)-[:BELONGS_TO]-(user:USER)-[:HAS_DEPARTMENT]-(department:DEPARTMENT)
+        RETURN COUNT(DISTINCT group.internalId) AS totalCount
+      "
+    input_params:
+      x: ""
+    type: button
+    dataSourceType: knowledgegraph
+    active: true
+table_filters: []
+table_render:
+  detailedWidgets:
+    accounts:
+      queries: []
+pagination_query:
+  query: ""
+  dataSourceType: knowledgegraph
+detailed_widget: []
+table_widget: []
+table_query:
+  id: 82f39be8-e23d8-4a2e-bee3-5ecb6bd420a2
+  name: Display Table Data
+  queryString: ""
+  type: merge
+  allowed_params: true
+  allowed_body: true
+  input_params:
+    Users: AND u.displayName = $Users
+    Department: AND u.department = $Department
+    App: AND application.appDisplayName = $App
+    status: AND status = $status
+    actionTaken: AND action.name = $actionTaken
+    Behaviours: AND b.name = $Behaviours
+    Posture: AND p.name = $Posture
+    Finding: AND r.name = $Finding
+    behaviorFilter: AND b.name = $behaviorFilter
+    # starttime: AND finding.generationTime >= $starttime
+    # endtime: AND finding.generationTime <= $endtime
+  input_body: null
+  dataSourceType: knowledgegraph
+  sortOrder: DESC
+  sortColumn: alertTime
+  limit: 10
+  offset: 0

@@ -1,0 +1,21 @@
+version: 1.0.0
+criticality: 3
+mode: monitor
+control_name: Enforcing enrollment of device in Mobile Device Management
+control_description: Detects devices that are not enrolled in the organization's Mobile Device Management (MDM) system as required by security policies, which may indicate non-compliance or unauthorized access risks.
+posture:
+  id: PID_05
+behavior:
+  id: BID_101
+use_case:
+  id: UC107
+trigger_conditions:
+- operator: 
+  filter_condition:
+    attribute_type: ATTR_DEV_001
+    attribute_id: DEV-011
+    extension_property: device.enrollmentProfileName
+    condition: is_equal_to
+    value: "null"
+  filter_group: 
+actions: []

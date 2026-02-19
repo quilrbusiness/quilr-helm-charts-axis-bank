@@ -1,0 +1,9 @@
+version: 1.0.1
+screen_id: human-security-screen
+title: Human
+tag: Human Screen
+description: Monitor your organization's dashboard 
+active: false
+type: options
+path: human
+iconUrl: "-"

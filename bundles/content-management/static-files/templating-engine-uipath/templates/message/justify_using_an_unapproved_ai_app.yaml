@@ -1,0 +1,45 @@
+type: message
+content:
+  acknowledgedButtons:
+  - id: 7586c635-3859-4a9e-bff5-ab1166fd4807
+    account: true
+    isPrimary: true
+    name: Acknowledge warning
+    whitelist: false
+  - id: 30a25aee-d7bf-41ec-ade7-abb469d5495e
+    account: true
+    isPrimary: false
+    name: App is company-approved
+    whitelist: false
+  - id: f4b0d769-3cdf-4ac7-a889-9f4ae23e820a
+    account: true
+    isPrimary: false
+    name: Have Prior Approval
+    whitelist: false
+  - id: d0f1986b-d1b0-4cf3-aaee-f4c241eb64d6
+    account: true
+    isPrimary: false
+    name: Urgent for critical task
+    whitelist: false
+  justification_list:
+  - It’s blocking my productivity.
+  - I can’t do my job without this.
+  - This is an industry-standard app, why is it blocked?
+  - I have approval from my manager to use this app.
+  - The official app doesn't support what I need.
+  - I didn't know it wasn't allowed.
+  - It is just a one-time thing.
+  - We are racing against a deadline.
+  - Everyone else in the team is using it.
+  - Something else.
+  header: Quick Check!
+  description: ""
+  title: |
+    It looks like you're using an unapproved AI app. Can you let us know why you're choosing this one? Just making sure we're keeping things secure!
+
+    <br />Your actions matter — help keep your organization safe!
+channel: Browser
+rendered_content_type: application/json
+name: Justify using an unapproved AI app
+is_active: true
+

@@ -1,0 +1,31 @@
+id: 8d2c5a7c-9f4f-4fa8-a34f-332df9c02678
+name: code integrity is disabled
+updatedon: 1739372567710
+condition:
+- filter_condition:
+    condition: is equal to
+    value: CodeIntegrityEnabled
+    attribute_id: DEV-003
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: 
+  editable: false
+- filter_condition:
+    condition: is not equal to
+    value: compliant
+    attribute_id: DEV-004
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: AND
+  editable: false
+createdon: 1739372567710
+version: 1.4
+description: Code integrity enforcement is disabled on this device, increasing the risk of running unauthorized or compromised code, which may lead to security vulnerabilities and system instability.
+posture:
+- PID_05
+code: UC113
+disabled: false
+type: use-case
+behavior:
+- BID_101
+

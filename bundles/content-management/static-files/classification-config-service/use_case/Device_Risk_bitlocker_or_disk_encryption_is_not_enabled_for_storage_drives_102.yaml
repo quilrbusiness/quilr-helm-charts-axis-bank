@@ -1,0 +1,31 @@
+id: a2a9fe43-e212-4a60-bde8-105fa31fa564
+name: bitlocker or disk encryption is disabled for storage drives
+updatedon: 1710504494000
+condition:
+- filter_condition:
+    condition: is not equal to
+    value: BitLockerRequired
+    attribute_id: DEV-003
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: 
+  editable: false
+- filter_condition:
+    condition: is not equal to
+    value: compliant
+    attribute_id: DEV-004
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: AND
+  editable: false
+createdon: 1710504494000
+version: 1.10
+description: This use case detects when BitLocker or any other disk encryption is not enabled for storage drives. It monitors compliance settings to identify devices where the encryption status is not marked as compliant.
+posture:
+- PID_05
+code: UC102
+disabled: false
+type: use-case
+behavior:
+- BID_105
+

@@ -1,0 +1,159 @@
+id: 0637570f-7a07-4128-bc9c-26f647b9822b
+name: Installed Browser Extension Listing Data To Knowledge Graph
+type: ingestion-to-graph
+version: 1.0.11
+schedule: 2m
+historicalrecordduration: 2h
+source:
+  type: query
+  config:
+    query: "SELECT RECORD_METADATA['CreateTime']::bigint AS datetime, USER_PRINCIPALNAME, USER_HOSTNAME, USER_IPADDRESS, 
+                  USER_BROWSER_NAME, USER_BROWSER_VERSION, QUILR_MATCHED_APP_ID, APPLICATION_LOGINURL, APPLICATION_ROOT_DOMAIN, 
+                  APPLICATION_DOMAIN, APPLICATION_DISPLAYNAME, IS_NEWLY_INTRODUCED_APP, USER_AI_APP_ACCOUNTS_EXIST,
+                  APPLICATION_AUTHENTICATION_TYPE AS AUTHTYPE, USER_BROWSER_EVENTPROPERTIES, USER_BROWSER_EVENT_DATA,
+                  QUILR_SUBSCRIBERID, QUILR_TENANTID, USER_EMAIL_LABEL, USER_BROWSER_RELATED_EVENT, EVENT_TIME, USER_BROWSER_EVENTNAME
+            FROM KAFKA_CONNECT.SNOWDATA_SCHEMA.TRANSFORMEDDATA 
+            WHERE QUILR_INTEGRATION_TYPE = 'extensionBrowser'
+                  AND USER_BROWSER_EVENTNAME IN ('extension-listing')
+                  AND RECORD_METADATA['CreateTime']::bigint >= $starttime 
+                  AND RECORD_METADATA['CreateTime']::bigint <= $endtime"
+    type: datalake
+    limit:
+    offset: 0
+destination:
+  type: stream
+  topic: knowledgeGraph
+config:
+  nodes:
+    persona:
+      type: PERSONA
+      merge:
+        property: emailaddress
+        attribute: USER_PRINCIPALNAME
+    extension:
+      context: global
+      id: $.USER_BROWSER_EVENTPROPERTIES.id
+      type: EXTENSION
+      when: USER_BROWSER_EXTENSION_EVENT != 'uninstall'
+      properties:
+        name: $.USER_BROWSER_EVENTPROPERTIES.name
+        description: $.USER_BROWSER_EVENTPROPERTIES.description
+        # icons: $.USER_BROWSER_EVENTPROPERTIES.icons
+        homepageUrl: $.USER_BROWSER_EVENTPROPERTIES.homepageUrl
+        optionsUrl: $.USER_BROWSER_EVENTPROPERTIES.optionsUrl
+        shortName: $.USER_BROWSER_EVENTPROPERTIES.shortName
+    uninstalled_extension:
+      context: global
+      id: $.USER_BROWSER_EVENTPROPERTIES.id
+      type: EXTENSION
+      when: USER_BROWSER_EXTENSION_EVENT == 'uninstall'
+    permission:
+      context: global
+      id: $.USER_BROWSER_EVENTPROPERTIES.permissions
+      type: PERMISSION
+    browser:
+      context: global
+      id: USER_BROWSER_NAME
+      type: BROWSER
+    application:
+      type: APPLICATION
+      when: USER_BROWSER_EXTENSION_EVENT != 'uninstall'
+      merge:
+        property: id_
+        attribute: QUILR_MATCHED_APP_ID
+      context: global
+      immutableproperties:
+        globalSyncAllowed: globalSyncAllowed
+        domain: APPLICATION_DOMAIN
+        name: APPLICATION_DISPLAYNAME
+        aliases: ALIASES
+        newApp: newApp
+  edges:
+    - destination: extension
+      direction: out
+      relation: IS_USING
+      source: persona
+      when: USER_BROWSER_EXTENSION_EVENT != 'uninstall'
+      properties:
+        event: $.USER_BROWSER_EVENTPROPERTIES.event_type
+        status: $.USER_BROWSER_EXTENSION_STATUS
+        warnings: $.USER_BROWSER_EVENTPROPERTIES.warnings
+        version: $.USER_BROWSER_EVENTPROPERTIES.version
+        offlineEnabled: $.USER_BROWSER_EVENTPROPERTIES.offlineEnabled
+        installType: $.USER_BROWSER_EVENTPROPERTIES.installType
+        isApp: $.USER_BROWSER_EVENTPROPERTIES.isApp
+        mayDisable: $.USER_BROWSER_EVENTPROPERTIES.mayDisable
+        enabled: $.USER_BROWSER_EVENTPROPERTIES.enabled
+        incognitoEnabled: $.USER_BROWSER_EVENTPROPERTIES.incognitoEnabled
+        type: $.USER_BROWSER_EVENTPROPERTIES.type
+        updateUrl: $.USER_BROWSER_EVENTPROPERTIES.updateUrl
+        # permissions: $.USER_BROWSER_EVENTPROPERTIES.permissions
+        hostPermissions: $.USER_BROWSER_EVENTPROPERTIES.hostPermissions
+        lastSyncTime: $.EVENT_TIME
+    - destination: uninstalled_extension
+      direction: out
+      relation: IS_USING
+      source: persona
+      when: USER_BROWSER_EXTENSION_EVENT == 'uninstall'
+      properties:
+        event: $.USER_BROWSER_EVENTPROPERTIES.event_type
+        status: $.USER_BROWSER_EXTENSION_STATUS
+        lastSyncTime: $.EVENT_TIME
+    - destination: permission
+      direction: out
+      relation: HAS_PERMISSION
+      source: extension
+    - destination: browser
+      direction: out
+      relation: ON_BROWSER
+      source: extension
+      properties:
+        version: $.USER_BROWSER_VERSION
+    - destination: application
+      direction: out
+      relation: TO_ACCESS
+      source: extension
+lambda: |
+  def fn(payload):
+      for item in payload:
+          import time
+          item["CURRENT_TIMESTAMP"] = int(time.time()) * 1000
+
+          item["ALIASES"] = [item.get("APPLICATION_ROOT_DOMAIN")]
+  
+          if item.get("APPLICATION_DISPLAYNAME") and item.get("APPLICATION_DISPLAYNAME") not in item["ALIASES"]:
+              item["ALIASES"] += [item.get("APPLICATION_DISPLAYNAME")]
+
+          user_email_label = item.get("USER_EMAIL_LABEL")
+  
+          if not user_email_label:
+              item["USER_EMAIL_LABEL"] = "Not Set"
+
+          item["globalSyncAllowed"] = True
+          item["newApp"] = True
+  
+          if item.get("USER_BROWSER_EVENTPROPERTIES"):
+              properties = item["USER_BROWSER_EVENTPROPERTIES"]
+              event_type = properties.get("event_type")
+              item["USER_BROWSER_EXTENSION_EVENT"] = event_type
+  
+              if event_type in ["enable", "disable", "uninstall"]:
+                  item["USER_BROWSER_EXTENSION_STATUS"] = event_type
+              else:
+                  item["USER_BROWSER_EXTENSION_STATUS"] = "enable" if properties.get("enabled") else "disable"
+  
+              formatted_properties = {}
+
+              for key, value in properties.items():
+                  if isinstance(value, dict):
+                      for sub_key, sub_value in value.items():
+                          new_key = f"{key}_{sub_key}"
+                          formatted_properties[new_key] = sub_value
+                  else:
+                      formatted_properties[key] = value
+  
+              item["USER_BROWSER_EVENTPROPERTIES"] = formatted_properties
+
+      return payload
+createdon: 1707315500
+updatedon: 1707315500

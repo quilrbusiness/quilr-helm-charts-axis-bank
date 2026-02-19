@@ -1,0 +1,41 @@
+version: 1.0.0
+control_name: saas application blocked by organisation
+criticality: 4
+control_description: This control detects and blocks user attempts to visit into SaaS applications by organisation.
+mode: action
+use_case:
+  id: UC039
+posture:
+  id: PID_04
+behavior:
+  id: BID_22
+trigger_conditions:
+  - operator: null
+    filter_condition:
+      attribute_type: ATTR_Browser_001
+      attribute_id: BROWSER-002
+      condition: is_equal_to
+      value: visit
+    filter_group: null
+  - operator: AND
+    filter_condition:
+      attribute_type: ATTR_APP_001
+      attribute_id: APP-001
+      condition: is_not_equal_to
+      value: generative ai
+    filter_group: null
+  - operator: AND
+    filter_condition:
+      attribute_type: ATTR_APP_001
+      attribute_id: APP-023
+      condition: is_equal_to
+      value: "yes"
+    filter_group: null
+actions:
+- type:
+    id: ACTP_02
+  name:
+    id: ACT_237
+  meta:
+    prompt_frequency:
+is_internal: true

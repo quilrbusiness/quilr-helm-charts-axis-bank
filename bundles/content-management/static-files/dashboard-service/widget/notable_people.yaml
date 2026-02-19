@@ -1,0 +1,40 @@
+widget_id: 7162f0dd-87cf-4dc3-a94e-42318f9f5551
+template_id: NotablePeople
+active: true
+title: Notable People
+components:
+  - name: Notable People Table
+    type: table
+    data_source_type: knowledgegraph
+    lambda: |
+      def fn(client):
+          data_result = client.fetch_data(
+             "MATCH (user:USER)-[hac:HAS_ACCOUNT]-(acc:ACCOUNT:PRIMARY) "
+             "WHERE user.score IS NOT NULL "
+                    "AND toLower(user.displayName) =~ '.*' + toLower($search_text) + '.*' "
+             "RETURN user.id AS userId, "
+                     "user.displayName AS name, "
+                     "acc.id AS email, "
+                     "user.jobTitle AS jobTitle, "
+                     "user.department AS department, "
+                     "toInteger(toFloat(user.score) * 100) as userScore")
+      
+               
+          count_result = client.total_record_count(
+             "MATCH (user:USER)-[hac:HAS_ACCOUNT]-(acc:ACCOUNT:PRIMARY) "
+             "WHERE user.score IS NOT NULL "
+                    "AND toLower(user.displayName) =~ '.*' + toLower($search_text) + '.*' "
+             "WITH count(DISTINCT user) as count "
+             "RETURN count"
+          )
+      
+          total_record_count = 0
+          if count_result:
+              total_record_count = count_result[0].get('count')
+          
+          formatted_data = {"data": data_result, "total_record_count": total_record_count}
+          return formatted_data
+version: 26.0
+
+#                    "AND user.lastgenerationtime >= toString($starttime) "
+#                    "AND user.lastgenerationtime <= toString($endtime) "

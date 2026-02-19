@@ -1,0 +1,61 @@
+# Inactive yaml
+id: b706f3b9-5982-4a29-a000-1a55e6b8928e
+name: Too Fast to Travel
+type: rule 
+version: 2.0
+schedule: 10m 
+historicalrecordduration: 10m
+active: false
+source:
+  type: query 
+  config:
+    query: "select ALERT_NAME,alert_status,alert_description,QUILR_INTEGRATION_VENDOR_NAME,QUILR_INTEGRATION_VENDOR_PRODUCT,QUILR_TENANTID AS TENANT,QUILR_SUBSCRIBERID 
+      AS SUBSCRIBER,ALERT_SEVERITY,ALERT_TYPE,ALERT_TENANTID,ALERT_LASTUPDATETIME,ALERT_LASTACTIVITYTIME,ALERT_ID,ALERT_SOURCE,ALERT_RECOMMENDEDACTIONS,ALERT_CATEGORY
+      ALERT_MITRETECHNIQUE,ALERT_CREATETIME, evidence.value:userAccount.accountName::string as alert_accountname, evidence.value:remediationStatus::string as alert_remediationstatus,
+      evidence.value:userAccount.displayName::string as alert_userdisplayname, evidence.value:userAccount.userPrincipalName::string as alert_userprincipalname, 
+      evidence.value:userAccount.domainName::string as alert_domainname,evidence.value:userAccount.userSid::string as alert_usersid, evidence.value:verdict::string as alert_verdict,
+      evidence.value:appId::string as alert_appid, evidence.value:ipAddress::string as alert_ipaddress,evidence.value:location::string as alert_iplocation, 
+      evidence.value:displayName::string as alert_metadata from kafka_connect.snowdata_schema.transformeddata, 
+      TABLE(FLATTEN(kafka_connect.snowdata_schema.transformeddata.alert_evidence, OUTER => FALSE)) AS evidence where (contains(alert_name,'travel')
+      or contains(alert_name,'country')) AND \"RECORD_METADATA\":CreateTime > $starttime  AND \"RECORD_METADATA\":CreateTime < $endtime"
+    type: datalake
+    limit:
+    offset: 0 
+destination:
+  type: stream 
+  topic: ruleEvaluator
+config:
+  expression: "def fn(message): return True if message.get('ALERT_ACCOUNTNAME') else False" # condition to evaluate the rule
+  type: finding 
+  subtype: status 
+  code: Q099 
+  findingcode: Q099
+  status: open 
+  sla: 3D 
+  entity: ALERT_ACCOUNTNAME
+  entitytype: user 
+  tags:
+    - Insecure Human Behavior
+  sourceofalert: Microsoft Defender
+  template: "Impossible time travel for user : ${ALERT_ACCOUNTNAME}"
+  artifacts:
+    Description: ALERT_DESCRIPTION
+    Category: ALERT_CATEGORY
+    Status: ALERT_STATUS
+    Name: ALERT_NAME
+    Alerttime: ALERT_CREATETIME
+    Domain: ALERT_DOMAINNAME 
+    MitreTechnique: ALERT_MITRETECHNIQUE 
+    Recommendations: ALERT_RECOMMENDEDACTIONS
+    LastTime: ALERT_LASTACTIVITYTIME
+    Severity: ALERT_SEVERITY
+    LastUpdate: ALERT_LASTUPDATETIME
+    LastActivity: ALERT_LASTACTIVITYTIME
+    Account: ALERT_ACCOUNTNAME
+    IPaddress : ALERT_IPADDRESS
+    Source: ALERT_SOURCE
+    ID: ALERT_ID
+
+lambda: ""
+createdon: 1709547181
+updatedon: 1709547181

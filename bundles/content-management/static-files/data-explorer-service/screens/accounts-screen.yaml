@@ -1,0 +1,725 @@
+id: accounts
+name: Accounts
+type: screen
+enabled: true
+version: 1.0.10
+icon_url: https://staticcontent1.blob.core.windows.net/finding-icons/apps-svgrepo-com-2.svg
+table_query:
+  id: 745c143e-0853-4975-9817-c004ec43cf8c
+  name: Display Table Data
+  queryString: "
+    MATCH (u:USER)-[:HAS_EMAIL]-(email:EMAIL)
+    MATCH (email)-[AUTH_TYPE]->(account:ACCOUNT)
+    MATCH (account)-[:USING_APP]->(app:APPLICATION)
+    OPTIONAL MATCH (app)-[:HAS_APP_CATEGORY]->(category:APP_CATEGORY)
+    OPTIONAL MATCH (app)<-[hs:HAS_APP_SETTINGS]-(tenant:TENANT)
+    WHERE u.subscriber = $subscriber
+    AND u.tenant = $tenant
+    WITH app, category, hs, TYPE(AUTH_TYPE) AS authType, COUNT(DISTINCT account.id) AS accounts, MAX(COALESCE(AUTH_TYPE.last_access_time, null)) AS lastAccessTime
+    CALL {
+        WITH app
+        OPTIONAL MATCH (account1)-[:USING_APP]->(app)
+        OPTIONAL MATCH (account1)-[:HAS_FINDING]->(f:FINDING)
+        OPTIONAL MATCH (f)-[:TRIGGERED]-(a:ACTION)
+        WHERE a.state IN ['open', 'inprogress']
+        RETURN
+            app AS app1,
+            COUNT(DISTINCT f) AS findingCount1,
+            COLLECT(DISTINCT a) AS actions1
+    }
+    CALL {
+        WITH app
+        OPTIONAL MATCH (account2)-[:USING_APP]->(app)
+        OPTIONAL MATCH (account2)-[:HAS_FINDING]->(fin:FINDING_HISTORY)
+        OPTIONAL MATCH (fin)-[:TRIGGERED]-(a:ACTION)
+        WHERE a.state IN ['open', 'inprogress']
+        RETURN
+            app AS app2,
+            COUNT(DISTINCT fin) AS findingHistoryCount2,
+            COLLECT(DISTINCT a) AS historyActions2
+    }
+    CALL {
+        WITH app
+        OPTIONAL MATCH (account3)-[:USING_APP]->(app)
+        OPTIONAL MATCH (account3)-[:HAS_FINDING]->(f:FINDING)
+        OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(f)
+        OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+        WHERE b.name IS NOT NULL
+        WITH app, b, COUNT(f) AS findingsCount
+        RETURN
+            app AS app3,
+            b.name AS behaviour,
+            findingsCount
+    }
+    WITH
+        app,
+        category,
+        hs,
+        authType,
+        accounts,
+        findingCount1,
+        findingHistoryCount2,
+        behaviour,
+        findingsCount,
+        lastAccessTime
+
+    WHERE toLower(COALESCE(app.name, app.domain,app.id)) =~ toLower('.*{searchText}.*')
+    {placeholder}
+
+    WITH
+        app,
+        COLLECT(DISTINCT category.name) AS categories,
+        COLLECT(authType) AS authTypes,
+        authType,
+        hs,
+        lastAccessTime,
+        accounts,
+        findingCount1 + findingHistoryCount2 AS findingCount,
+        [b IN COLLECT(DISTINCT {behaviour: behaviour, findings: findingsCount}) WHERE b.behaviour IS NOT NULL AND b.findings IS NOT NULL] AS behavioursAggregated
+
+    WITH app, categories, hs, accounts, findingCount, behavioursAggregated, authTypes, COLLECT(DISTINCT authType) AS distinctAuthTypes,lastAccessTime
+    WITH app, categories, hs, accounts, findingCount, behavioursAggregated, authTypes, distinctAuthTypes,lastAccessTime,
+        REDUCE(acc = [], authType IN distinctAuthTypes | 
+            acc + {
+                type: authType,
+                count: SIZE([at IN authTypes WHERE at = authType])
+            }
+        ) AS authTypesCount
+    RETURN
+        COALESCE(app.id_, app.internalId) AS id,
+        COALESCE(app.name, app.domain, app.id) AS app,
+        categories,
+        COALESCE(hs.logoUrl, app.logoUrl) AS logo,
+        accounts,
+        lastAccessTime,
+        COALESCE(app.breachDate, '') AS breachDate,
+        COALESCE(hs.approval_status, app.approval_status, 'NEEDS REVIEW') AS status,
+        COALESCE(hs.criticality, app.criticality, 'NOT SET') AS criticality,
+        authTypesCount,
+        behavioursAggregated,
+        findingCount"
+  type: merge
+  allowed_params: true
+  allowed_body: true
+  input_params:
+    status: AND COALESCE(hs.approval_status,app.approval_status, 'NEEDS REVIEW') = $status
+    category: AND category.name = $category
+    behaviour: AND behaviour = $behaviour
+    starttime: AND app.timestamp >= $starttime
+    endtime: AND app.timestamp <= $endtime
+  input_body: null
+  dataSourceType: knowledgegraph
+  sortOrder: desc
+  sortColumn: accounts
+  limit: 10
+  offset: 0
+detailed_widget:
+  - id: c0cc98da-e08c-43b8-a48c-ddd1091810cd
+    name: Findings_drill_down
+    position: main
+    template: findings_detailed_view
+  - id: 02747005-c25f-494a-868f-715da9f0ccef
+    name: user_view
+    position: offset
+    template: users_view
+view_by:
+  - id: accounts
+    api: /v1/account
+    query: ""
+    defaultValue: account
+    allowed_params: true
+    name: Account
+    pagination_query: ""
+    input_params:
+      x: ""
+    type: button
+    dataSourceType: knowledgegraph
+    active: true
+table_filters:
+  - id: status
+    name: Status
+    defaultValue: All
+    active: true
+    dataSourceType: knowledgegraph
+    allowed_params: true
+    type: select
+    input_params:
+      starttime: ""
+    query: " MATCH (u:USER)-[:HAS_EMAIL]-(email:EMAIL)
+      MATCH (email)-[]->(account:ACCOUNT)
+      OPTIONAL MATCH (account)-[:HAS_FINDING]->(f:FINDING)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(f)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      MATCH (account)-[:USING_APP]->(app:APPLICATION)
+      OPTIONAL MATCH (app)-[:HAS_APP_CATEGORY]->(category:APP_CATEGORY)
+      OPTIONAL MATCH (email)-[:CREDSBASED_ACCOUNT]->(credsAcc:ACCOUNT)
+      OPTIONAL MATCH (email)-[:SAML_ACCOUNT]->(sso:ACCOUNT)
+      OPTIONAL MATCH (email)-[:OAUTH_ACCOUNT]->(oauth:ACCOUNT)
+      OPTIONAL MATCH (app)-[:HAS_ADMIN]-(adminAccount:ACCOUNT)
+      OPTIONAL MATCH (adminAccount)<-[]-(:EMAIL)<-[:HAS_EMAIL]-(ad:USER)
+      OPTIONAL MATCH (idp:INSTANCE)-[:HAS_IDP]->(idpApp:APPLICATION)
+      OPTIONAL MATCH (app)<-[hs:HAS_APP_SETTINGS]-(tenant:TENANT)
+
+      WITH
+      collect(distinct {id: 'status_' + apoc.util.md5(['All']), label: 'All', value: 'All'}) +
+      collect(distinct {id: 'status_' + apoc.util.md5(['Approved']), label: 'Approved', value: 'APPROVED'}) +
+      collect(distinct {id: 'status_' + apoc.util.md5(['Unapproved']), label: 'Unapproved', value: 'Unapproved'}) +
+      collect(distinct {id: 'status_' + apoc.util.md5(['Tolerated']), label: 'Tolerated', value: 'TOLERATED'}) +
+      collect(distinct {id: 'status_' + apoc.util.md5(['Needs Review']), label: 'Needs Review', value: 'NEEDS REVIEW'}) as filters
+      RETURN filters"
+  - id: category
+    name: Category
+    active: true
+    input_params:
+      starttime: ""
+    defaultValue: All
+    dataSourceType: knowledgegraph
+    allowed_params: true
+    type: select
+    query: "
+      MATCH (u:USER)-[:HAS_EMAIL]-(email:EMAIL)
+      MATCH (email)-[]->(account:ACCOUNT)
+      MATCH (account)-[:USING_APP]->(app:APPLICATION)
+      OPTIONAL MATCH (app)-[:HAS_APP_CATEGORY]->(category:APP_CATEGORY)
+      WHERE u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      WITH
+      collect(distinct {id: 'category_' + apoc.util.md5(['All']), label: 'All', value: 'All'}) +
+      [category in collect(distinct {id: 'category_' + apoc.util.md5([category.name]), label: category.name, value: category.name}) where category.value is not null] as filters
+      UNWIND filters AS filter
+      WITH filter
+      ORDER BY filter.value
+      WITH collect(filter) AS sortedFilters
+      RETURN sortedFilters AS filters"
+  - id: behaviour
+    name: Findings
+    type: select
+    active: true
+    dataSourceType: knowledgegraph
+    allowed_params: true
+    input_params:
+      starttime: AND finding.timestamp >= $starttime
+      endtime: AND finding.timestamp <= $endtime
+    defaultValue: All
+    query:
+      "
+      MATCH (u:USER { subscriber: $subscriber, tenant: $tenant })-[:HAS_EMAIL]->(email:EMAIL)
+      OPTIONAL MATCH (email)-[rel]->(acc:ACCOUNT)
+      OPTIONAL MATCH (acc)-[:USING_APP]->(app:APPLICATION)
+      MATCH (acc)-[:HAS_FINDING]->(f:FINDING)
+      OPTIONAL MATCH (acc)-[:HAS_FINDING]->(fh:FINDING_HISTORY)
+      WHERE toLower(f.status) IN ['open', 'inprogress'] AND toLower(fh.status) IN ['closed']
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(f)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      
+      WITH COLLECT(DISTINCT b.name) AS behList
+      WITH 
+          [{id: 'behavior_' + apoc.util.md5(['All']), label: 'All', value: 'All'}] +
+          [beh IN behList WHERE beh IS NOT NULL | 
+              {id: 'behavior_' + apoc.util.md5([beh]), label: beh, value: beh}
+          ] AS filters
+      RETURN filters"
+  - id: loginMethods
+    name: Get various login methods of accounts
+    type: multi_select
+    active: true
+    dataSourceType: knowledgegraph
+    allowed_params: false
+    input_params: null
+    defaultValue: All
+    query:
+      "
+      WITH [
+      {id: 'OAUTH_ACCOUNT', label: 'OAuth'},
+      {id: 'CREDSBASED_ACCOUNT', label: 'Creds'},
+      {id: 'SAML_ACCOUNT', label: 'SSO'},
+      {id: 'UNKNOWN' , label : 'Unknown'}
+      ] AS login_types
+      UNWIND login_types AS login_type
+      MATCH (user:USER{subscriber: $subscriber, tenant: $tenant})-[:HAS_EMAIL]->(email:EMAIL)-[accountEmailRelation]->(account:ACCOUNT)-[:USING_APP]->(application:APPLICATION)
+      WHERE application.domain IS NOT NULL 
+      AND NOT application.domain IN ['','-']
+      AND toLower(user.accountEnabled) = 'active'
+      AND login_type.id = TYPE(accountEmailRelation)
+      WITH login_type, COUNT(DISTINCT accountEmailRelation) AS accounts_count
+      RETURN 
+            login_type.id AS id,
+            login_type.label AS label"
+widgets:
+  - id: accountWidget
+    name: "Account"
+    label: Widget
+    template: this_template
+    enabled: true
+    type: detailed
+    dataSourceType: datalake
+    allowed_params: true
+    className: col-span-6
+    query_id: ""
+    input_params:
+      starttime: $starttime
+      endtime: $endtime
+    queryFilters: []
+    limit: 1
+    offset: 0
+    query: "
+      select DISTINCT
+        COALESCE(doa.total_accounts, 0) AS \"total_accounts\",
+        COALESCE(doa.total_accounts_change, 0) AS \"total_accounts_change\",
+        COALESCE(doa.new_account_count, 0) AS \"total_new_accounts\",
+        COALESCE(doa.total_ununsed_account_count, 0) AS \"total_unused_accounts\",
+        COALESCE(doa.total_unused_account_count_change, 0) AS \"total_unused_accounts_change\",
+        COALESCE(doa.total_users, 0) AS \"total_users\",
+        TO_DATE(CONCAT(doa.year, '-', LPAD(doa.monthofyear::TEXT, 2, '0'), '-', LPAD(doa.dayofmonth::TEXT, 2, '0')), 'YYYY-MM-DD') AS \"crated_on\"
+      from kafka_connect.snowdata_schema.daily_org_analytics doa
+      WHERE doa.subscriber = $subscriber AND doa.tenant = $tenant ORDER BY \"crated_on\" DESC
+    "
+  - id: accountsData
+    name: Accounts information
+    label: Widget
+    template: null
+    enabled: true
+    dataSourceType: knowledgegraph
+    allowed_params: false
+    type: null
+    className: null
+    query_id: ""
+    input_params: null
+    queryFilters: []
+    query: "
+        MATCH (account:ACCOUNT{subscriber: $subscriber, tenant: $tenant})-[usingAppRelation:USING_APP]->(application:APPLICATION)
+        MATCH (email:EMAIL)-[]->(account)
+        OPTIONAL MATCH (user:USER)-[:HAS_EMAIL]-(email)
+        WITH COLLECT(DISTINCT user) AS users, COLLECT(DISTINCT CASE WHEN user.mail = email.id THEN user END) as matched_user, email, account, application
+        WITH CASE WHEN SIZE(matched_user) > 0 THEN matched_user[0] ELSE HEAD(users) END as user, email, account, application
+        WITH DISTINCT user, email, account, application
+        MATCH (email)-[accountRelations]->(account)-[usingAppRelation:USING_APP]->(application)
+        WHERE toLower(COALESCE(CASE WHEN user.accountEnabled <> '-' THEN user.accountEnabled ELSE NULL END, 'ACTIVE')) = 'active'
+        AND application.domain IS NOT NULL
+        AND NOT application.domain IN ['','-']
+        AND TYPE(accountRelations) IN ['OAUTH_ACCOUNT','CREDSBASED_ACCOUNT','SAML_ACCOUNT','UNKNOWN']
+        OPTIONAL MATCH (account)-[:HAS_FINDING]->(finding:FINDING)<-[:EVALUATED_TO]-(rule:RULE)-[:BELONGS_TO]->(behavior:BEHAVIOR)-[:BELONGS_TO]->(posture:POSTURE)
+        WHERE
+            finding.status <> 'closed'
+        OPTIONAL MATCH (whitelisted_behavior:BEHAVIOR)
+        WHERE EXISTS((account)-[:WHITELISTED_FOR]->(whitelisted_behavior))
+            OR EXISTS((application)-[:WHITELISTED_FOR]->(whitelisted_behavior))
+        WITH
+            toLower(account.id) AS account_id,
+            head(COLLECT(user.id)) AS user_id,
+            head(COLLECT(user.displayName)) AS user_name,
+            COLLECT({user_mail : toLower(user.mail), account_mail: toLower(account.mail) ,profilePicUrl : user.profilePicUrl}) AS user_profile_object,
+            user.accountEnabled AS user_status,
+            toLower(email.id) AS account_email,
+            application.id_ AS application_id,
+            COALESCE(application.name, application.domain) AS application_name,
+            application.logoUrl AS application_logo_url,
+            [type(accountRelations)] AS account_relations,
+            CASE WHEN accountRelations.last_access_time IS NOT NULL THEN accountRelations.last_access_time ELSE NULL END AS account_last_used,
+            CASE
+                WHEN accountRelations.last_access_time IS NOT NULL THEN
+                    (datetime().epochMillis - toInteger(accountRelations.last_access_time)) / 3600000
+                ELSE NULL
+            END AS last_used_duration,
+            COALESCE (accountRelations.creationTime, NULL) as first_created,
+            behavior,
+            posture,
+            COUNT(DISTINCT finding.id) AS finding_count,
+            usingAppRelation.creationTime AS accountCreatedOn,
+            accountRelations
+        WITH
+            user_id as user_id,
+            user_name as user_name,
+            user_profile_object,
+            CASE
+                WHEN size(user_profile_object) > 0 THEN
+                    COALESCE(
+                        head([x IN user_profile_object WHERE x.user_mail = x.account_mail]).profilePicUrl,
+                        head(user_profile_object).profilePicUrl
+                    )
+                ELSE NULL
+            END AS user_profile_image_url,
+            account_email,
+            application_id,
+            application_name,
+            application_logo_url,
+            account_relations,
+            apoc.agg.first(account_id) AS account_id,
+            MAX(account_last_used) AS account_last_used,
+            MIN(first_created) AS first_created,
+            MAX(accountCreatedOn) AS accountCreatedOn,
+            posture,
+            COLLECT(DISTINCT CASE WHEN behavior.name IS NOT NULL AND finding_count > 0 THEN {
+                behavior_id: behavior.id,
+                behavior_name: behavior.name,
+                finding_count: finding_count
+            } END) AS behavior_details
+        
+        WITH DISTINCT
+            account_id,
+            user_id,
+            user_name,
+            user_profile_image_url,
+            account_email,
+            application_id,
+            application_name,
+            application_logo_url,
+            account_relations,
+            MAX(account_last_used) AS account_last_used,
+            MIN(first_created) AS first_created,
+            MAX(accountCreatedOn) AS accountCreatedOn,
+            COLLECT(DISTINCT CASE WHEN posture.name IS NOT NULL AND size([x IN behavior_details WHERE x IS NOT NULL]) > 0 THEN {
+                posture_name: posture.name,
+                behavior_details: behavior_details
+            } END) AS posture_result
+        
+        WITH 
+            account_id,
+            user_id,
+            accountCreatedOn,
+            posture_result,
+            CASE WHEN accountCreatedOn > (timestamp() - 1000*60*60*24*30) THEN 1 ELSE 0 END AS is_new_account,
+            CASE WHEN size([pr IN posture_result WHERE size([bd IN pr.behavior_details WHERE bd.behavior_id = 'BID_15']) > 0]) > 0 THEN 1 ELSE 0 END AS has_unused_behavior
+        
+        RETURN 
+            COUNT(*) AS total_accounts,
+            COUNT(DISTINCT user_id) AS total_users,
+            SUM(is_new_account) AS total_new_accounts,
+            SUM(has_unused_behavior) AS unused_account_count"
+  - id: loginMethods
+    name: Login Methods
+    label: Widget
+    template: loginMethod
+    enabled: true
+    dataSourceType: knowledgegraph
+    allowed_params: false
+    type: bar_chart_with_icon
+    className: col-span-3
+    query_id:
+    input_params: null
+    queryFilters: []
+    query: "WITH [
+      {id: 'OAUTH_ACCOUNT', label: 'OAuth', userCount: 0},
+      {id: 'CREDSBASED_ACCOUNT', label: 'Creds', userCount: 0},
+      {id: 'SAML_ACCOUNT', label: 'SSO', userCount: 0}
+      ] AS login_types
+      UNWIND login_types AS login_type
+      MATCH (user:USER{subscriber: $subscriber, tenant: $tenant})-[:HAS_EMAIL]-(email:EMAIL)-[accountEmailRelation]-(account:ACCOUNT)-[:USING_APP]-(application:APPLICATION)
+      WHERE application.domain IS NOT NULL 
+      AND NOT application.domain IN ['','-']
+      AND toLower(user.accountEnabled) = 'active'
+      AND login_type.id = TYPE(accountEmailRelation)
+      OPTIONAL MATCH (user)-[]-(i:INSTANCE)-[]-(idpApp:APPLICATION)
+      WITH login_type, COUNT(DISTINCT accountEmailRelation) AS accounts_count, COLLECT(DISTINCT idpApp.logoUrl)[0] AS app_logo
+      RETURN 
+      login_type.id AS id,
+      login_type.label AS label,
+      COALESCE(accounts_count, 0) AS accounts_count,
+      CASE WHEN login_type.id = 'CREDSBASED_ACCOUNT' THEN null ELSE app_logo END AS app_logo"
+
+table_render:
+  table_additional_data:
+    no_hover: true
+    row_border: true
+    min_row_height: "h-[80px]" 
+    alternate_row_colors: true
+    no_table_padding: true
+    table_heading_bg: "bg-dark-300"
+    no_calendar: true
+    no_drilldown: true
+  widgets:
+    status:
+      id: status
+      map:
+        Approved:
+          color: "#8AC926"
+        Tolerated:
+          color: "#1982C4"
+        Unapproved:
+          color: "#FF595E"
+        "Needs Review":
+          color: "#FFCA3A"
+    loginMethods:
+      map:
+        SSO:
+          color: "#6A4C93"
+          logo: https://staticcontent1.blob.core.windows.net/static-images-company-logos/okta.png
+        OAuth:
+          color: "#6A4C93"
+          logo: https://staticcontent1.blob.core.windows.net/static-images-company-logos/microsoft.png
+        Creds:
+          color: "#6A4C93"
+          imageClasses: invert
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/credential-icon-white.svg
+  table:
+    app:
+      id: app
+      type: multi_icon
+      label: App
+      sortable: false
+      valuePath: app
+      groupByKey: app
+      order: 1
+    category:
+      id: category
+      type: categoryCell
+      extraClasses: text-center
+      label: Category
+      # bgColor: "#"
+      valuePath: Category
+      width: w-[8%]
+      sortable: false
+      groupByKey: Category
+      order: 2
+    criticality:
+      id: criticality
+      type: select
+      label: Criticality
+      valuePath: criticality
+      sortable: false
+      groupByKey: criticality
+      order: 3
+      onChange:
+        apiCall: /browser-extension/browser/activity/modify/appSettings
+        method: POST
+        args:
+          query:
+            - name: app_id
+              position: query
+              value: "$id"
+          body:
+            - name: criticality
+              position: body
+              value: "{val}"
+      options:
+        - id: criticality-not-available
+          label: Not Set
+          value: "NOT SET"
+        - id: criticality-select-yes
+          label: "Critical"
+          value: "CRITICAL"
+        - id: criticality-select-no
+          label: "Not Critical"
+          value: "NOT CRITICAL"
+    status:
+      id: appStatus
+      type: coloredDropDown
+      label: Status
+      valuePath: Status
+      sortable: false
+      groupByKey: Status
+      onChange:
+        apiCall: /browser-extension/browser/activity/modify/appSettings
+        method: POST
+        args:
+          query:
+            - name: app_id
+              position: query
+              value: "$id"
+          body:
+            - name: approval_status
+              position: body
+              value: "{val}"
+      order: 4
+      options:
+        - id: status-not-available
+          label: Needs Review
+          value: "NEEDS REVIEW"
+        - id: status-select-approved
+          label: Approved
+          value: APPROVED
+          color: "#75FC72BE"
+        - id: status-select-tolerated
+          label: Tolerated
+          value: TOLERATED
+        - id: status-select-not-approved
+          label: Unapproved
+          value: UNAPPROVED
+          color: "#FC7272BE"
+    accounts:
+      id: accounts
+      type: text
+      extraClasses: text-center
+      label: Accounts
+      sortable: false
+      width: w-[8%]
+      valuePath: Accounts
+      groupByKey: Accounts
+      order: 5
+    login_methods:
+      id: login_method
+      type: loginMethod
+      label: Login Method
+      valuePath: App
+      sortable: false
+      groupByKey: App
+      order: 6
+      map:
+        SSO:
+          logo: https://staticcontent1.blob.core.windows.net/static-images-company-logos/okta.png
+          color: "#383838"
+        OAuth:
+          logo: https://staticcontent1.blob.core.windows.net/static-images-company-logos/microsoft.png
+          color: "#383838"
+        "User & Pass":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/credential-icon-white.svg
+          color: "#D5C0C0"
+    # owners:
+    #   id: admin
+    #   type: userIcon
+    #   width: w-[10%]
+    #   label: Owners
+    #   valuePath: Owners
+    #   sortable: false
+    #   order: 7
+    last_breached:
+      id: last_breached
+      width: w-[10%]
+      type: USFormattedDate
+      emptyValue: Never
+      extraClasses: text-center
+      label: Last Accessed
+      valuePath: last_breached
+      sortable: false
+      order: 8
+    findings:
+      id: findings
+      type: findingsCell
+      label: Findings
+      valuePath: findings
+      sortable: false
+      order: 9
+      map:
+        "Password Hygiene":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-password-hygiene.svg
+          color: "#2B2B2B"
+        "SaaS Usage":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-saas-usage.svg
+          color: "#2B2B2B"
+        "MFA usage":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-mfa-usage.svg
+          color: "#2B2B2B"
+        "Human Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-human-risk.svg
+          color: "#2B2B2B"
+        "Data Handling":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-data-handling.svg
+          color: "#2B2B2B"
+        "AI Usage":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-ai-usage.svg
+          color: "#2B2B2B"
+        "Social Engineering":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-social-engineering.svg
+          color: "#2B2B2B"
+        "Web Browsing":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-web-browsing.svg
+          color: "#2B2B2B"
+        "Workstation Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-workstation-risks.svg
+          color: "#2B2B2B"
+
+pagination_query:
+  query: "MATCH (u:USER)-[:HAS_EMAIL]-(email:EMAIL)
+    MATCH (email)-[AUTH_TYPE]->(account:ACCOUNT)
+    MATCH (account)-[:USING_APP]->(app:APPLICATION)
+    OPTIONAL MATCH (app)-[:HAS_APP_CATEGORY]->(category:APP_CATEGORY)
+    OPTIONAL MATCH (app)<-[hs:HAS_APP_SETTINGS]-(tenant:TENANT)
+    WHERE u.subscriber = $subscriber
+    AND u.tenant = $tenant
+    WITH app, category, hs, TYPE(AUTH_TYPE) AS authType, COUNT(DISTINCT account.id) AS accounts
+    CALL {
+        WITH app
+        OPTIONAL MATCH (account1)-[:USING_APP]->(app)
+        OPTIONAL MATCH (account1)-[:HAS_FINDING]->(f:FINDING)
+        OPTIONAL MATCH (f)-[:TRIGGERED]-(a:ACTION)
+        WHERE a.state IN ['open', 'inprogress']
+        RETURN
+            app AS app1,
+            COUNT(DISTINCT f) AS findingCount1,
+            COLLECT(DISTINCT a) AS actions1
+    }
+    CALL {
+        WITH app
+        OPTIONAL MATCH (account2)-[:USING_APP]->(app)
+        OPTIONAL MATCH (account2)-[:HAS_FINDING]->(fin:FINDING_HISTORY)
+        OPTIONAL MATCH (fin)-[:TRIGGERED]-(a:ACTION)
+        WHERE a.state IN ['open', 'inprogress']
+        RETURN
+            app AS app2,
+            COUNT(DISTINCT fin) AS findingHistoryCount2,
+            COLLECT(DISTINCT a) AS historyActions2
+    }
+    CALL {
+        WITH app
+        OPTIONAL MATCH (account3)-[:USING_APP]->(app)
+        OPTIONAL MATCH (account3)-[:HAS_FINDING]->(f:FINDING)
+        OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(f)
+        OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+        WHERE b.name IS NOT NULL
+        WITH app, b, COUNT(f) AS findingsCount
+        RETURN
+            app AS app3,
+            b.name AS behaviour,
+            findingsCount
+    }
+    WITH
+        app,
+        category,
+        hs,
+        authType,
+        accounts,
+        findingCount1,
+        findingHistoryCount2,
+        behaviour,
+        findingsCount
+
+    WHERE toLower(COALESCE(app.name, app.domain,app.id)) =~ toLower('.*{searchText}.*')
+    {placeholder}
+
+    WITH
+        app,
+        COLLECT(DISTINCT category.name) AS categories,
+        COLLECT(authType) AS authTypes,
+        authType,
+        hs,
+        accounts,
+        findingCount1 + findingHistoryCount2 AS findingCount,
+        [b IN COLLECT(DISTINCT {behaviour: behaviour, findings: findingsCount}) WHERE b.behaviour IS NOT NULL AND b.findings IS NOT NULL] AS behavioursAggregated
+    RETURN
+        COUNT(COALESCE(app.id_, app.internalId)) AS totalCount"
+  dataSourceType: knowledgegraph
+table_widget:
+  - id: 324b1443-e4ed-4a16-87ef-94afd92c05a8
+    name: Finding Status
+    label: Widget
+    template: status
+    enabled: true
+    type: polar_graph
+    className: col-span-3
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      starttime: AND f.timestamp >= {starttime} AND fh.timestamp >= {starttime}
+      endtime: AND f.timestamp <= {endtime} AND fh.timestamp <= {endtime}
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: "MATCH (u:USER)-[hv:HAS_VIOLATION]->(f:FINDING)
+      OPTIONAL MATCH (u)-[hv1:HAS_VIOLATION]->(fh:FINDING_HISTORY)
+      WHERE
+      u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      {placeholder}
+      WITH
+      COUNT(DISTINCT CASE WHEN f.status = 'open' THEN f END) AS openCount,
+      COUNT(DISTINCT CASE WHEN fh.status = 'closed' THEN fh END) AS closedCount,
+      COUNT(DISTINCT CASE WHEN f.status = 'inprogress' THEN f END) AS inprogressCount
+
+      RETURN [
+      { value: closedCount, name: 'Closed' },
+      { value: inprogressCount, name: 'In Progress' },
+      { value: openCount, name: 'Open' }
+      ] AS results"

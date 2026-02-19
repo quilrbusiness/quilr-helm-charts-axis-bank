@@ -1,0 +1,63 @@
+widget_id: 0e57c05c-d387-4a6c-bd3d-c96e51cfbfe6
+template_id: RiskAverted
+active: true
+title: Risk Averted
+components:
+  - name: High Risk
+    type: bubble
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          # Combine redundant queries and use descriptive variable name:
+          data = {"viewMoreLink": "",
+                  "chartData": [
+                      [
+                          1699920000000,
+                          79.25693268446066
+                      ],
+                      [
+                          1700006400000,
+                          28.48813797833273
+                      ],
+                      [
+                          1700092800000,
+                          55.71303207862741
+                      ],
+                      [
+                          1700179200000,
+                          39.15545307835187
+                      ],
+                      [
+                          1700265600000,
+                          50.50555872350333
+                      ]
+                  ],
+                  "onSearch": {
+                      "url": "",
+                      "headers": {},
+                      "body": {}
+                  },
+                  "cardData":[{
+                                "heading": "12 Payment Frauds Prevented",
+                                "text": "Compromised vendor emails reached a user mailbox but we prevented them from acting on it.",
+                                "riskNumber": 12
+                              },
+                              {
+                                "heading": "Stronger MFA Implementations",
+                                "text": "Employees moved from weak SMS based MFA to App based MFA",
+                                "riskNumber": 32
+                              },
+                                        {
+                                "heading": "Unapproved Apps Prevented",
+                                "text": "Employees chose to use approved apps when presented the option at account creation. ",
+                                "riskNumber": 15
+                              },
+                                   {
+                                "heading": "breached passwords changed",
+                                "text": "Employees decided to change password present in recent breaches when nudged at the right time.",
+                                "riskNumber": 35
+                              }
+                            ]
+                  }
+          return data
+version: 10.0

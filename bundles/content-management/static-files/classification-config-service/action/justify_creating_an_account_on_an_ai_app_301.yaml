@@ -1,0 +1,20 @@
+id: b703d752-e6b6-4e8c-aff6-c389ec64fdfd
+version: 1.0
+code: ACT_301
+name: Justify creating an account on an AI app
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: templatized
+    message_template: justify-creating-an-account-on-an-ai-app
+    execution_type: tool
+    execution_module: send_templated_user_message
+    browser_action: Justify
+tags:
+  - UC002
+behavior:
+  - BID_02
+createdon: 1710504494000
+updatedon: 1710504494000

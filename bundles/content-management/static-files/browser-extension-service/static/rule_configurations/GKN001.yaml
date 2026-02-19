@@ -1,0 +1,48 @@
+datatype: DICT
+defaultValue:
+  name: General Knowledge
+  description: Common information or widely known facts
+  criticality: LOW
+  sensitivity: Non-Sensitive
+  examples:
+    - Basic Historical Facts
+    - General Scientific Principles
+    - Common Geographic Information
+    - Widely Reported Current Events
+    - Basic Mathematical Concepts
+  indicators:
+    - Presence of commonly known information
+    - Educational content found in general curricula
+    - Facts reported in multiple public sources
+    - Information in the public domain
+  contentMarkers:
+    - Common historical dates and figures
+    - Basic scientific terminology
+    - Country names and capital cities
+    - Current event keywords
+    - Mathematical symbols and basic formulas
+  impactSummary: No privacy or security risk; information is widely known and freely available
+  classificationRules:
+    positive: >-
+      Contains information found in general encyclopedias; widely reported facts;
+      common educational content
+    negative: >-
+      Specialized or advanced knowledge; unpublished research; personal
+      interpretations of facts
+    resolution: >-
+      Assess whether the information is widely known and easily verifiable through
+      public sources
+  relatedClasses:
+    - PBI001
+    - UGC001
+    - RES001
+entityDescription: |-
+  Data Definition to classify and extract General Knowledge from text
+entityId: GKN001
+entityMeta:
+  category: Data Protection Rule
+  source: default
+entityName: General Knowledge
+entityType: dlp_rule
+isDisabled: false
+isModifiable: true

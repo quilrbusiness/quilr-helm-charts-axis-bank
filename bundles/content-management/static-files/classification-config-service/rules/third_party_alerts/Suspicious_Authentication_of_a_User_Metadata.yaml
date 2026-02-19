@@ -1,0 +1,21 @@
+id: af917318-51ff-40e5-a717-310b23bd0308
+version: 2.0
+code: Q100
+name: Suspicious Authentication of a User
+description: This rule identifies suspicious authentication for an account.
+type: rule
+view: identity_protection
+impact: moderate
+likelihood: moderate
+createdon: 1718911069000
+updatedon: 1718911069000
+tags:
+  - Suspicious Authentication
+  - Authentication from suspicious browser
+humanfactor: HFID_02
+behavior:
+  - BID_03
+examples:
+  - User authenticating from suspicious browser, malicious IP.
+recommendations:
+  - template: "Investigate user for suspicious activities"

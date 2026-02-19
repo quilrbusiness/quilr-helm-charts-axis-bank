@@ -1,0 +1,46 @@
+id: 5c345728-95d8-4da0-a572-e9b575882768
+name: User Score History To Knowledgegraph
+type: ingestion-to-graph
+version: 1.1
+schedule: "24h"
+historicalrecordduration: "24h"
+source:
+  type: query
+  config:
+    query: "MATCH (user:USER) 
+            WHERE user.displayName IS NOT NULL 
+                  AND user.score IS NOT NULL
+            RETURN user.id as userId, 
+                   user.score AS userScore, 
+                   user.lastgenerationtime AS lastGenerationTime,
+                   user.subscriber AS `PRODUCT.SUBSCRIBER`,
+                   user.tenant AS `PRODUCT.TENANT`,
+                   timestamp() AS currentTimestamp"
+    type: knowledgegraph
+    limit:
+    offset: 0
+destination:
+  type: stream
+  topic: knowledgeGraph
+config:
+  nodes:
+    user:
+      id: userId
+      type: USER
+    history:
+      id: currentTimestamp
+      type: HISTORY
+      timetravel: false
+      ttl: 90D
+      properties:
+        score: userScore
+  edges:
+    - destination: history
+      direction: out
+      relation: HAS_HISTORY
+      source: user
+      timetravel: false
+      ttl: 90D
+lambda: ""
+createdon: 1711006734
+updatedon: 1711006734

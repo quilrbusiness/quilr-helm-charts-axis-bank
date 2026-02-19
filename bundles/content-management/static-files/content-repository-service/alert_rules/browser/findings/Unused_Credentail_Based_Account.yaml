@@ -1,0 +1,89 @@
+id: f176a118-f69d-443b-b253-a72e0f89609d
+name: Unused Credential Based Account
+type: rule  #rule configs - type rule only
+version: 2.1
+active: false
+schedule: "2m" 
+historicalrecordduration: "10m"
+source:
+  type: query
+  config:
+    query: "MATCH (user:USER)-[:HAS_EMAIL]->(email:EMAIL:PRIMARY),
+                  (email)-[credsbased_account:CREDSBASED_ACCOUNT]->(account:ACCOUNT),
+                  (account)-[:USING_APP]->(app:APPLICATION)
+            WHERE credsbased_account.last_access_time IS NOT NULL
+              AND duration.between(datetime({epochMillis: credsbased_account.last_access_time}), datetime({epochSeconds: timestamp()/1000})).months >= 3
+            OPTIONAL MATCH (user)-[:HAS_DEPARTMENT]->(department:DEPARTMENT)
+            OPTIONAL MATCH (app)-[:HAS_APP_CATEGORY]->(app_category:APP_CATEGORY)
+            OPTIONAL MATCH (account)-[:HAS_CRED_FINGERPRINT]->(cred_fingerprint:CRED_FINGERPRINT)
+            RETURN DISTINCT 
+                user.id AS userId,
+                user.displayName AS userName,
+                user.mail AS userMail,
+                user.accountEnabled AS userAccountEnabled,
+                department.name AS userDepartment,
+                user.tenant AS TENANT,
+                user.subscriber AS SUBSCRIBER,
+                app.id_ AS appId,
+                app.name AS appName,
+                app.Url AS appUrl,
+                app.domain AS appDomain,
+                COLLECT(app_category.name) AS appCategory,
+                user.mail + '_' + app.id_ AS userAppAccount,
+                credsbased_account.context_id AS CONTEXTID,
+                credsbased_account.last_access_time AS EVENTTIME"
+    type: knowledgegraph 
+    limit:
+    offset: 0
+destination:
+  type: stream 
+  topic: ruleEvaluator
+config:
+  expression: "def fn(message): return True if message.get('userName') else False " 
+  type: finding
+  subtype: status
+  code: Q078
+  status: open
+  sla: 1W
+  entity: userName
+  entitytype: user
+  tags:
+    - insecure_behaviour
+  sourceofalert: Quilr 
+  template: "Received an alert for the User: ${userName} on Application: ${appName}"
+  artifacts: 
+    - type: "ACCOUNT"
+      property: "id"
+      value: "$userAppAccount"
+      artifactproperties: 
+        artifactValue: $userName
+        displayInUI: enabled
+        artifactKey: "Account"
+
+    - type: "APPLICATION" 
+      context: "global" 
+      property: id_
+      value: $appId
+      artifactproperties: 
+        artifactValue: $appName
+        displayInUI: enabled
+        artifactKey: "Application"
+
+  properties:
+    userId: $userId  #FORMAT - findingattribute: variable from the top of this YAML
+    userName: $userName
+    userMail: $userMail
+    userAccountEnabled: $userAccountEnabled
+    userDepartment: $userDepartment
+    TENANT: $TENANT
+    SUBSCRIBER: $SUBSCRIBER
+    appName: $appName
+    appUrl: $appUrl
+    appId: $appId
+    appCategory: $appCategory 
+    appDomain: $appDomain
+    context_id: $CONTEXTID
+    time: $EVENTTIME
+lambda: ""
+createdon: 1720396800000
+updatedon: 1720396800000

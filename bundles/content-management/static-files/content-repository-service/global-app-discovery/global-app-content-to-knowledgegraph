@@ -1,0 +1,97 @@
+id: 1326528c-4ea3-4767-817a-f98b34949a7c
+name: Global App Discovery To Knowledge Graph
+type: global-app-content-ingestion-to-graph
+version: 1.0.0
+schedule: r
+context: global
+source:
+  type: stream
+  topic: newlyDiscoveredApps
+destination:
+  type: stream
+  topic: knowledgeGraph
+config:
+  nodes:
+    appcategory:
+      context: global
+      id: "$.app_category_data.id_"
+      type: APP_CATEGORY
+      properties:
+        name: "$.app_category_data.name"
+        requiredUpdate_: "$.app_category_data.requiredUpdate_"
+        new: "$.app_category_data.new"
+        createdAt: "$.app_category_data.createdAt"
+        timestamp: "$.app_category_data.timestamp"
+    app:
+      id: "$.app_data.id_"
+      type: APPLICATION
+      context: global
+      properties:
+        name: "$.app_data.name"
+        url: "$.app_data.url"
+        alias: "$.app_data.alias"
+        authenticationSupported: "$.app_data.authenticationSupported"
+        alternativeApps: "$.app_data.alternativeApps"
+        domain: "$.app_data.domain"
+        homePageUrl: "$.app_data.homePageUrl"
+        hostingLocation: "$.app_data.hostingLocation"
+        hostingPlatform: "$.app_data.hostingPlatform"
+        headquarter: "$.app_data.headquarter"
+        isMfaSupported: "$.app_data.isMfaSupported"
+        logoUrl: "$.app_data.logoUrl"
+        mfaTypeSupported: "$.app_data.mfaTypeSupported"
+        new: "$.app_data.new"
+        orgId: "$.app_data.orgId"
+        oAuthDetails: "$.app_data.oAuthDetails"
+        privacyPolicy: "$.app_data.privacyPolicy"
+        securityPage: "$.app_data.securityPage"
+        serviceTerms: "$.app_data.serviceTerms"
+        signInUrl: "$.app_data.signInUrl"
+        signUpUrl: "$.app_data.signUpUrl"
+        statusPage: "$.app_data.statusPage"
+        subDomain: "$.app_data.subDomain"
+        supplyChain: "$.app_data.supplyChain"
+        createdAt: "$.app_data.createdAt"
+        tags: "$.app_data.tags"
+        timestamp: "$.app_data.timestamp"
+        requiredUpdate_: "$.app_data.requiredUpdate_"
+        breachStatus: "$.app_data.breach_status"
+        breachDate: "$.app_data.breach_date"
+        breachTitle: "$.app_data.breach_title"
+        breachDesc: "$.app_data.breach_desc"
+        breachIsVerified: "$.app_data.breach_isVerified"
+        breachIsFabricated: "$.app_data.breach_isFabricated"
+        breachIsSensitive: "$.app_data.breach_isSensitive"
+        breachIsRetired: "$.app_data.breach_isRetired"
+        breachIsSpamList: "$.app_data.breach_isSpamList"
+        breachIsMalware: "$.app_data.breach_isMalware"
+    apporganization:
+      context: global
+      id: "$.org_data.id_"
+      type: ORGANIZATION
+      properties:
+        name: "$.org_data.name"
+        alias: "$.org_data.alias"
+        city: "$.org_data.city"
+        country: "$.org_data.country"
+        headquarters: "$.org_data.headquarters"
+        new: "$.org_data.new"
+        domain: "$.org_data.domain"
+        postalCode: "$.org_data.postalCode"
+        state: "$.org_data.state"
+        website: "$.org_data.website"
+        createdAt: "$.org_data.createdAt"
+        timestamp: "$.org_data.timestamp"
+        requiredUpdate_: "$.org_data.requiredUpdate_"
+  edges:
+  - destination: apporganization
+    direction: out
+    relation: HAS_PARENT_ORG
+    source: app
+  - destination: appcategory
+    direction: out
+    relation: HAS_APP_CATEGORY
+    source: app
+lambda: ""
+createdon: 1720371933000
+updatedon: 1720371933000

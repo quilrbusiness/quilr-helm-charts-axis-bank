@@ -1,0 +1,9 @@
+version: 1.0.5
+screen_id: issues-screen
+title: Issues
+tag: Issues Screen
+description: Monitor your organization's security posture
+active: false
+type: options
+path: issues
+iconUrl: "https://staticcontent1.blob.core.windows.net/quilrstatic/sidebar-icons/Issues2.svg"

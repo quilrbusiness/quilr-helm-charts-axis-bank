@@ -1,0 +1,25 @@
+id: 7066a865-4ec9-4658-87f9-409dbebf502e
+name: Continue with Microsoft
+description: Microsoft Entra ID (formerly Azure AD) secures identities and access enhanced by Quilr's exclusive, advanced Identity Security Checks.
+connection_config_id: 54069193-31f8-4dbd-97de-30fe4039b329
+icon_url: https://staticcontent1.blob.core.windows.net/static-images-company-logos/entra_id.png
+login_enabled: true
+parent_org:
+  name: Microsoft
+  description: Effortlessly integrate your Microsoft's Entra Identity Management for gaining deeper insights in your environment.
+  icon_url: https://staticcontent1.blob.core.windows.net/static-images-company-logos/entra_id.png
+category: Identity
+version: 1.0.1
+updated_at: 1729595384000
+metadata:
+  type: oauth_integration
+  product: microsoft
+  subProduct: /v1.0
+  vendor: Microsoft
+internal:
+  content_ids:
+    env_var: ""
+    default_value: "sample"
+inputSchema: []
+outputSchema: {}
+is_active: true

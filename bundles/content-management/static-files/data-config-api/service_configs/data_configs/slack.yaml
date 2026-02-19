@@ -1,0 +1,78 @@
+id: 6085b310-5601-4536-9171-776ea58cd8c9
+name: Slack
+description: Integrate Slack with Quilr to streamline team communication, improve collaboration, and enhance productivity
+connection_config_id: 42ab2cac-6098-4b0c-903d-5d9d3611470b
+icon_url: https://staticcontent1.blob.core.windows.net/static-images-company-logos/slack.png
+login_enabled: false
+version: 1.1.4
+updated_at: 1738665243000
+parent_org:
+  name: Slack
+  description: Placeholder for Slack parent organization description.
+  icon_url: https://staticcontent1.blob.core.windows.net/static-images-company-logos/slack.png
+category: Communication
+metadata:
+  type: integrations
+  product: slack
+  subProduct: /v1.0
+  vendor: slack
+internal:
+  content_ids:
+    env_var: ""
+    default_value: "ddc6815b-0fae-4170-82c0-9d53198762f8"
+inputSchema:
+  - id: scope_selection
+    type: multiselect
+    label: Slack Scopes
+    description: Select the Slack scopes you want to give access to.
+    options:
+      - id: app_mentions:read
+        label: App Mentions Read
+        description: Allows the app to read messages where it is mentioned.
+      - id: channels:history channels:write.invites channels:read
+        label: Channels Access
+        description: Allows the app to read public channels, access message history, and manage invitations.
+      - id: chat:write chat:write.customize chat:write.public
+        label: Chat Permissions
+        description: Allows the app to send messages, customize them, and post messages in public channels.
+      - id: files:read
+        label: Files Read
+        description: Allows the app to read files shared in Slack.
+      - id: groups:read groups:write
+        label: Groups Read
+        description: Allows the app to read and manage private channel (group) information.
+      - id: im:history im:read im:write im:write.topic
+        label: Direct Messages (IM)
+        description: Allows the app to read direct messages, send messages, and set topics in direct message conversations.
+      - id: mpim:write
+        label: MPIM Write
+        description: Allows the app to send messages to multi-party direct messages.
+      - id: team:read
+        label: Team Read
+        description: Allows the app to read team information.
+      - id: users:read users:write users:read.email
+        label: User Profile Management
+        description: Allows the app to read and update user profiles, including accessing email addresses.
+      - id: metadata.message:read
+        label: Metadata Message Read
+        description: Allows the app to read metadata for messages.
+      - id: conversations.connect:read conversations.connect:write
+        label: Conversations Connect
+        description: Allows the app to read and write conversations with other apps.
+      - id: reminders:read reminders:write
+        label: Reminders Read/Write
+        description: Allows the app to read and write reminders.
+    default:
+      - app_mentions:read
+      - channels:history channels:write.invites channels:read
+      - chat:write chat:write.customize chat:write.public
+      - files:read
+      - groups:read groups:write
+      - im:history im:read im:write im:write.topic
+      - mpim:write
+      - team:read
+      - users:read users:write users:read.email
+      - metadata.message:read
+      - reminders:read reminders:write
+outputSchema: {}
+is_active: true

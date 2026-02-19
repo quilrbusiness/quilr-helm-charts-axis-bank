@@ -1,0 +1,21 @@
+id: f0f14b69-238e-4072-aa32-f045067d29f3
+name: Google Workspace Users Data Fabric Pipeline Scheduler
+type: fabric
+version: 2.0
+schedule: "5m"
+historicalrecordduration: "4h"
+istrackable: true
+source:
+  type: api
+  config:
+    uri: http://data-fabric-core-service:9031/fabric/start?fabricid=7f6d6238-1ada-494e-abc6-401921cc2619
+    method: POST
+    headers: {}
+    body: {}
+destination:
+  type: stream
+  topic: pipelineTracking
+config: {}
+lambda: ""
+createdon: 1715780400
+updatedon: 1715780400

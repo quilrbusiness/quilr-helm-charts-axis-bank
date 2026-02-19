@@ -1,0 +1,93 @@
+id: 7c1b6c2e-3f2d-4bd5-9d9a-2a6f3b9d4e21
+version: 1.0
+code: BID_203
+name: Users Uploading Data
+type: behavior
+createdon: 1755216000000
+updatedon: 1755216000000
+posture:
+  - PID_06
+browser_enabled: true
+description: These are the applications where data was uploaded
+query: "MATCH (user:USER {subscriber: $subscriber, tenant: $tenant})-[has_email:HAS_EMAIL]->(email:EMAIL),
+        (email)-[credsbased_account]->(account:ACCOUNT)-[has_initiated:INITIATED]->(browser_event:BROWSER_EVENT),
+        (account)-[using_app:USING_APP]->(app:APPLICATION)
+        OPTIONAL MATCH (app)-[has_app_category:HAS_APP_CATEGORY]->(app_category:APP_CATEGORY)
+        OPTIONAL MATCH (account)-[using_browser:HAS_BROWSER]->(browser:BROWSER)
+        OPTIONAL MATCH (user)-[:HAS_DEPARTMENT]->(department:DEPARTMENT)
+        OPTIONAL MATCH (user)-[:BELONGS_TO]->(group:GROUP {userDefined: true})
+        OPTIONAL MATCH (tenant:TENANT {id: $tenant})-[:HAS_INSTANCE]-(instance:INSTANCE)-[has_idp:HAS_IDP]-(app:APPLICATION)
+        WITH user, has_email, email, credsbased_account, has_initiated, browser_event, app, account, using_app, app_category, group, department, instance, has_idp
+        WHERE browser_event.event_name = 'upload'
+              AND has_initiated.timestamp >= $starttime
+              AND has_initiated.timestamp <= $endtime
+        WITH user, has_email, email, credsbased_account, has_initiated, browser_event, app, account, using_app, app_category, group, department, instance, has_idp
+        RETURN DISTINCT
+        user.displayName AS userName,
+        user.tenant as TENANT,               
+        user.subscriber AS SUBSCRIBER,
+        app.id_ as appId,
+        COALESCE(CASE WHEN NOT app.name IN ['', '-'] THEN app.name ELSE NULL END, app.domain) AS appName,
+        user.id AS userId,
+        user.mail AS userMail,
+        user.accountEnabled as userAccountEnabled,
+        app.Url AS appUrl,
+        COLLECT(app_category.name) AS appCategory,
+        account.id AS userAppAccount,
+        account.id + '_' + browser_event.event_name AS browserEventId,
+        app.domain AS appDomain,
+        browser_event.context_id as CONTEXTID,
+        browser_event.timestamp as EVENTTIME,
+        browser_event.event_name as eventName"
+config:
+  expression: "def fn(message): return True if message.get('userName') else False "
+  type: finding
+  subtype: status
+  status: open
+  sla: 1W
+  entity: userName
+  entitytype: user
+  tags:
+    - insecure_behavior
+  sourceofalert: Quilr
+  template: "Received an alert for the User: ${userName} on Application: ${appName}"
+  artifacts: 
+    - type: "ACCOUNT"
+      property: "id"
+      value: "$userAppAccount"
+      artifactproperties: 
+        artifactValue: $userName
+        displayInUI: enabled
+        artifactKey: "User"
+    - type: "APPLICATION" 
+      context: "global" 
+      property: id_
+      value: "$appId"
+      artifactproperties: 
+        artifactValue: $appName
+        displayInUI: enabled
+        artifactKey: "Application"
+    - type: "BROWSER_EVENT"
+      property: "id"
+      value: "$browserEventId"
+      artifactproperties: 
+        artifactValue: $eventName
+        displayInUI: enabled
+        artifactKey: "Event"
+  properties:
+    userId: $userId
+    userName: $userName
+    userMail: $userMail
+    userAccountEnabled: $userAccountEnabled
+    TENANT: $TENANT
+    SUBSCRIBER: $SUBSCRIBER
+    appName: $appName
+    appUrl: $appUrl
+    appId: $appId
+    accountId: $userAppAccount
+    browserEventId: $browserEventId
+    appCategory: $appCategory 
+    appDomain: $appDomain
+    context_id: $CONTEXTID
+    time: $EVENTTIME
+lambda: ""

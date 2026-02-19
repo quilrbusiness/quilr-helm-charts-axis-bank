@@ -1,0 +1,20 @@
+datatype: DICT
+defaultValue:
+  message: |-
+    You are reusing an admin password, Please change this password urgently.Will only take 2 mins.
+  mode: Monitor
+entityDescription: Admin reusing a password on applications.
+entityId: Q019
+entityMeta:
+  behavior: Password Reuse
+  category: ISPM
+  posture: Password Hygiene
+  check_id:
+    form_check_ids:
+      - CH-FORM-LOGIN
+      - CH-FORM-REUSED-PASSWORD
+      - CH-FORM-ADMIN
+entityName: Reusing Admin Password
+entityType: rule
+isDisabled: false
+isModifiable: true

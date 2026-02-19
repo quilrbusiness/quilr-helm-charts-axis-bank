@@ -1,0 +1,31 @@
+id: ee5f4a3c-16fb-4a27-8597-934be8cee1ca
+name: windows updates are either missing or not installed
+updatedon: 1738303392855
+condition:
+- filter_condition:
+    condition: is equal to
+    value: Windows
+    attribute_id: DEV-001
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: 
+  editable: false
+- filter_condition:
+    condition: is less than
+    value: 10.0.26100.2605
+    attribute_id: DEV-002
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: AND
+  editable: true
+createdon: 1738303392855
+version: 1.7
+description: Detects devices running outdated or missing Windows updates, which may expose systems to security vulnerabilities and performance issues.
+posture:
+- PID_05
+code: UC106
+disabled: false
+type: use-case
+behavior:
+- BID_102
+

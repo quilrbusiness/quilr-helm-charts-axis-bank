@@ -1,0 +1,21 @@
+code: ACT_217
+id: 5d04b232-9946-40c5-8de0-afa073387e98
+version: 1.4
+name: Block copy-paste between applications
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: templatized
+    message_template: block-when-user-is-copy-pasting-data-from-one-app-to-another
+    execution_type: tool
+    execution_module: send_templated_user_message
+    browser_action: Block
+    blocked: false
+tags:
+  - UC031
+behavior:
+  - BID_200
+createdon: 1710504494000
+updatedon: 1758018676721

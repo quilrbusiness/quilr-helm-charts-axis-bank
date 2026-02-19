@@ -1,0 +1,44 @@
+id: settings-screen
+name: settings
+type: screen
+enabled: true
+version: 1.0.1
+icon_url: https://staticcontent1.blob.core.windows.net/quilrstatic/profile/findings.svg
+table_query:
+  id: 82f39be8-e238-4a2e-bee3-5ecb6bd420a2
+  name: Display Table Data
+  queryString: ""
+  type: merge
+  allowed_params: true
+  allowed_body: true
+  input_params:
+    x: ""
+  input_body: null
+  dataSourceType: knowledgegraph
+  sortOrder: desc
+  sortColumn: riskScore
+  limit: 10
+  offset: 0
+detailed_widget: []
+view_by: []
+table_filters: []
+widgets:
+  - id: roles
+    name: smart group roles
+    label: Widget
+    template: status
+    enabled: true
+    type: polar_graph
+    className: col-span-3
+    query_id: ""
+    allowed_params: false
+    dataSourceType: knowledgegraph
+    input_params: null
+    queryFilters: []
+    query: "MATCH (n:ROLE{subscriber: $subscriber , tenant: $tenant}) WHERE n.isroleprivileged = true RETURN distinct n.id as id , n.rolename as name , n.roledescription as description"
+table_render:
+  sample: value
+pagination_query:
+  query: ""
+  dataSourceType: knowledgegraph
+table_widget: []

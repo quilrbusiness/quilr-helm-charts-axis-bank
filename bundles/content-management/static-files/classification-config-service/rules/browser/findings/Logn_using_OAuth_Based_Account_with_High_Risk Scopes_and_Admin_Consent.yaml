@@ -1,0 +1,17 @@
+id: 035ee501-34c0-42e9-8880-04c5425553ba
+version: 3.0
+code: Q048
+name: Login using OAuth Based Account with High Risk Scopes and Admin Consent
+description: Login using oauth account with high risk scopes and admin consent to an application.
+type: rule
+view: identity_protection
+impact: veryhigh
+likelihood: verylow
+createdon: 1720396800000
+updatedon: 1720396800000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_06
+examples: []
+recommendations: []

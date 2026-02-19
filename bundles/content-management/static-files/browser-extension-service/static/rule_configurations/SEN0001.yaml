@@ -1,0 +1,84 @@
+datatype: DICT
+defaultValue:
+  name: Sensitive Research Information
+  criticality: HIGH
+  description: |2-
+    Description:
+    Sensitive Research Data refers to intellectual property that is currently under development and has not been made public. This type of data includes information generated during the research process that could have significant value, such as unpublished findings, experimental designs, proprietary methodologies, and confidential project details. The data is highly confidential and is typically protected by non-disclosure agreements and other security measures until it is ready for public release or commercialization.
+
+    Mandatory Data:
+
+    1. Research Findings:
+       - Typical Formats:
+         - Raw Data: Numerical data, qualitative observations, experimental results.
+         - Drafts and Manuscripts: Unpublished papers, reports, or articles.
+       - Variations: Data may be presented in tables, charts, or narrative formats.
+       - Exclusions: Publicly available or published data should not be classified as sensitive.
+       - Contextual Clues: Often found in documents labeled as "Draft", "Confidential", "Preliminary Results".
+       - False Positive Examples: Data summaries that have been publicly disclosed or are part of a published abstract should not be classified as sensitive.
+
+    2. Proprietary Methodologies:
+       - Typical Formats:
+         - Protocols: Step-by-step procedures for experiments, algorithms, or processes.
+         - Designs: Schematics, models, or blueprints for equipment, software, or systems.
+       - Variations: May include detailed descriptions, flowcharts, or pseudocode.
+       - Exclusions: Standardized methods that are publicly known or published in open-access journals should not be classified as sensitive.
+       - Contextual Clues: Often found in internal documents, lab notebooks, or proprietary software code.
+       - False Positive Examples: General methods that are widely known and used in the industry without proprietary elements should not be considered sensitive.
+
+    3. Confidential Project Details:
+       - Typical Formats:
+         - Project Proposals: Grant applications, internal funding requests, or research plans.
+         - Meeting Notes: Minutes from project meetings, internal presentations.
+       - Variations: May include timelines, budgets, or resource allocations.
+       - Exclusions: Publicly available information about the project, such as basic descriptions found on university or company websites, should not be classified as sensitive.
+       - Contextual Clues: Often marked as "Confidential", "For Internal Use Only", or accompanied by non-disclosure agreements (NDAs).
+       - False Positive Examples: Project overviews or summaries that have been shared in public forums or press releases should not be classified as sensitive.
+
+    4. Unpublished Experimental Data:
+       - Typical Formats:
+         - Lab Results: Data from ongoing experiments, including control data.
+         - Simulation Data: Results from computer models or simulations that have not been verified or published.
+       - Variations: Data can be raw (e.g., direct measurements) or processed (e.g., analyzed data).
+       - Exclusions: Data that has been peer-reviewed and accepted for publication or is part of public databases should not be classified as sensitive.
+       - Contextual Clues: Often labeled with project names, experiment dates, or specific research codes.
+       - False Positive Examples: Data that has been de-identified or aggregated for public sharing, even if part of ongoing research, should not be classified as sensitive.
+
+    Supplementary Data:
+
+    1. Collaborator Communications:
+       - Formats:
+         - Emails and Messages: Correspondence between research team members or external collaborators.
+         - Shared Documents: Drafts of collaborative work, comments, or revisions.
+       - Variations: Can include discussion of methodologies, findings, or strategies.
+       - Exclusions: Communications that have been de-identified or are non-confidential in nature should not be classified as sensitive.
+       - Contextual Clues: Often found in threads marked "Confidential", "Do Not Distribute", or under an NDA.
+       - False Positive Examples: General discussions or communications unrelated to sensitive research details should not be considered sensitive.
+
+    2. Funding and Resource Allocation:
+       - Formats:
+         - Budgets: Detailed financial plans for research projects, including funding sources.
+         - Resource Plans: Allocation of lab space, equipment, or personnel.
+       - Variations: May include funding breakdowns, grant applications, or resource sharing agreements.
+       - Exclusions: Publicly available information about grants or resources, such as acknowledgment in published papers, should not be classified as sensitive.
+       - Contextual Clues: Often found in grant proposals, internal funding requests, or resource management documents.
+       - False Positive Examples: Summary budget information included in public reports or presentations should not be classified as sensitive.
+
+    3. Ethical and Regulatory Approvals:
+       - Formats:
+         - IRB/IEC Approvals: Institutional Review Board or Independent Ethics Committee documentation.
+         - Compliance Reports: Documentation of compliance with regulatory standards.
+       - Variations: May include detailed protocols, consent forms, or audit reports.
+       - Exclusions: Publicly available summaries or reports on ethical standards and approvals should not be classified as sensitive.
+       - Contextual Clues: Often labeled with project codes, approval numbers, or regulatory compliance statements.
+       - False Positive Examples: General statements on ethical compliance or summaries in public domains should not be considered sensitive.
+entityDescription: |-
+  Data Definition to classify and extract Sensitive Research Information from text
+entityId: SEN0001
+entityMeta:
+  category: Data Protection Rule
+  source: default
+entityName: Sensitive Research Information
+entityType: dlp_rule_v3
+isDisabled: false
+isModifiable: true

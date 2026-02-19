@@ -1,0 +1,21 @@
+datatype: DICT
+defaultValue:
+  message: |-
+    Please change this password - it was recently found in a breach. Will only take 2 mins.
+  mode: Ask
+entityDescription: |-
+  Login with a compromised password on applications that do handle sensitive data.
+entityId: Q010
+entityMeta:
+  behavior: Compromised Password
+  category: ISPM
+  posture: Password Hygiene
+  check_id:
+    form_check_ids:
+      - CH-FORM-LOGIN
+      - CH-FORM-WEAK-PASSWORD
+      - CH-FORM-COMPROMISED-PASSWORD
+entityName: Login with Compromised Password on Non Critical Apps
+entityType: rule
+isDisabled: false
+isModifiable: true

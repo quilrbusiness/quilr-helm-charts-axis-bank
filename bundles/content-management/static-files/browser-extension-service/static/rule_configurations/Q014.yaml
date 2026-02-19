@@ -1,0 +1,23 @@
+datatype: DICT
+defaultValue:
+  message: |-
+    Cannot allow you to use a recently compromised password as this is critical app. Please use a different password.  
+  mode: Block
+entityDescription: |-
+  A new account was created with a compromised password on an application that does handle sensitive data or is critical to business operations.
+entityId: Q014
+entityMeta:
+  behavior: Compromised Password
+  category: ISPM
+  posture: Password Hygiene
+  check_id:
+    form_check_ids:
+      - CH-FORM-SIGNUP
+      - CH-FORM-COMPROMISED-PASSWORD
+      - CH-FORM-WEAK-PASSWORD
+      - CH-APP-CRITICAL
+entityName: |-
+  New Account created with Compromised Password on Critical Apps
+entityType: rule
+isDisabled: false
+isModifiable: true

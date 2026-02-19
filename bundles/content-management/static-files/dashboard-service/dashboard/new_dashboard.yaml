@@ -1,0 +1,116 @@
+dashboard_id: eb6aacfe-1be1-4719-9388-700a409e1cab
+title: New DashBoard Overview
+description: Monitor overall security status and drill down widget view.
+active: true
+widgets_list:
+  - widget_id: 58e6194e-82ef-4d8d-9b0b-1c4660bd0f92
+    template_id: HSI
+    dimensions:
+      x_cord: 0
+      y_cord: 0
+      width: 6
+      height: 11
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: 2358855a-6494-4c13-a502-4446b1f2324f
+    template_id: QuilrCopilotImpactSummary
+    dimensions:
+      x_cord: 6
+      y_cord: 0
+      width: 6
+      height: 11
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: 8394d252-4a8c-4ff3-89a1-07271aa80f1a
+    template_id: PostureRiskLevels
+    dimensions:
+      x_cord: 0
+      y_cord: 11
+      width: 6
+      height: 11
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: 8f8c6c40-49de-4658-8d9e-53a43de29fd3
+    template_id: MostCRB
+    dimensions:
+      x_cord: 6
+      y_cord: 11
+      width: 6
+      height: 11
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: 30f4f0b5-d81b-42c7-abb7-08cae104c7c0
+    template_id: RiskiestUsers
+    dimensions:
+      x_cord: 0
+      y_cord: 22
+      width: 3
+      height: 13
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: 790774aa-172d-4efc-a214-6aabe2fb69d2
+    template_id: RiskiestDepartments
+    dimensions:
+      x_cord: 3
+      y_cord: 22
+      width: 3
+      height: 13
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: 24fb0fb6-5831-46d8-8652-485102406e36
+    template_id: RiskiestLocations
+    dimensions:
+      x_cord: 6
+      y_cord: 22
+      width: 3
+      height: 13
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: 18b071b9-f9d3-42e5-8e78-8b5a125f9d39
+    template_id: RiskiestGroups
+    dimensions:
+      x_cord: 9
+      y_cord: 22
+      width: 3
+      height: 13
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: 9430dede-a5cf-450e-ad11-f8c229e50bc6
+    template_id: DistributionOfRisk
+    dimensions:
+      x_cord: 0
+      y_cord: 35
+      width: 12
+      height: 5
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: 18cebd1c-120e-44d1-8ef7-612c2a4c705b
+    template_id: Issues
+    dimensions:
+      x_cord: 0
+      y_cord: 40
+      width: 6
+      height: 8
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: 9a4805db-74ae-427c-862d-0b1c54672380
+    template_id: ResolutionPlan
+    dimensions:
+      x_cord: 6
+      y_cord: 40
+      width: 6
+      height: 8
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+version: 1.0.11

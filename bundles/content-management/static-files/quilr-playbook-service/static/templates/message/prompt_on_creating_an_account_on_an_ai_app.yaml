@@ -1,0 +1,17 @@
+name: Warn on visiting an AI app for the first time
+type: message
+channel: Browser
+content:
+  header: "Hey! Just be careful!"
+  title: |
+    Looks like you are probably a new AI user. No doubt AI's awesome, but it's not perfect. Make sure no data that is private to you or company is leaked. Be careful with personal data, and keep an eye out for any biases. Always trust your judgment along with AI. Have fun exploring!
+       
+    <br />Your actions matter — help keep your organization safe!
+  description: ""
+  acknowledgedButtons:
+    - id: 34e8126d-3a73-4b16-a2af-c55858f319c8
+      isPrimary: true
+      name: "Acknowledge warning"
+      whitelist: false
+rendered_content_type: application/json
+is_active: true

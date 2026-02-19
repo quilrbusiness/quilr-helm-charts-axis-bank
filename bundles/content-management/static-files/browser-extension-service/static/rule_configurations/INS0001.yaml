@@ -1,0 +1,96 @@
+datatype: DICT
+defaultValue:
+  name: Insurance Information
+  criticality: HIGH
+  description: |2-
+    Description:
+    Insurance claims data refers to information associated with requests for compensation or coverage under an insurance policy. This data includes details about the claimant, the incident, the insurance policy, and any supporting documentation necessary to process the claim. The data is typically confidential and may involve sensitive personal, financial, and legal information related to the claim.
+
+    Mandatory Data:
+
+    1. Claimant Information:
+       - Typical Formats:
+         - Full Name: First name + Last name, Full name including middle name.
+         - Contact Information: Address, phone number, email address.
+       - Variations: May include only partial contact details or be accompanied by other identifying information like a policy number.
+       - Exclusions: Generic names or contact details not tied to a specific claim should not be classified as sensitive.
+       - Contextual Clues: Often found in sections labeled "Claimant Information", "Insured Party", or "Policyholder".
+       - False Positive Examples: Publicly available contact information or names not linked to a specific claim should not be classified as sensitive.
+
+    2. Policy Details:
+       - Typical Formats:
+         - Policy Number: Unique alphanumeric identifier associated with the insurance policy.
+         - Policy Type: Descriptions such as "Auto", "Health", "Life", "Property".
+         - Coverage Details: Specifics on what is covered under the policy, limits, and deductibles.
+       - Variations: Policy numbers may include hyphens, spaces, or be in a continuous string.
+       - Exclusions: Generic policy descriptions or sample policy numbers used in training materials should not be classified as sensitive.
+       - Contextual Clues: Often found in sections labeled "Policy Information", "Coverage Details", or "Policy Summary".
+       - False Positive Examples: Example or placeholder policy numbers and descriptions not linked to actual claims.
+
+    3. Claim Information:
+       - Typical Formats:
+         - Claim Number: Unique identifier for the specific claim.
+         - Date of Claim: Typically in the format DD/MM/YYYY, MM/DD/YYYY, or YYYY-MM-DD.
+         - Type of Claim: Descriptions such as "Accident", "Theft", "Fire", "Medical".
+       - Variations: The type of claim might include more specific subcategories.
+       - Exclusions: Sample claim numbers or generic claim descriptions not tied to actual events should not be classified as sensitive.
+       - Contextual Clues: Found in sections labeled "Claim Details", "Incident Report", or "Claim Summary".
+       - False Positive Examples: Generic or example claim types and numbers used in non-sensitive contexts (e.g., training examples).
+
+    4. Incident Description:
+       - Typical Formats:
+         - Description of Incident: Narrative detailing the event leading to the claim, including date, time, and location.
+         - Supporting Documentation: Police reports, medical reports, repair estimates.
+       - Variations: Incident descriptions may vary in detail and format (e.g., bullet points, paragraphs).
+       - Exclusions: Hypothetical scenarios or publicly reported incidents not tied to specific claims should not be classified as sensitive.
+       - Contextual Clues: Often found in sections labeled "Incident Description", "Event Details", or "Loss Description".
+       - False Positive Examples: Fictional scenarios used in training or examples should not be classified as sensitive.
+
+    5. Financial Details:
+       - Typical Formats:
+         - Claim Amount: The amount of money being claimed, typically in a specific currency format (e.g., "$10,000").
+         - Settlement Details: Final settlement amounts, payment methods, and dates.
+       - Variations: Amounts might be represented in different currencies or formats.
+       - Exclusions: Estimated amounts or examples not linked to actual claims should not be classified as sensitive.
+       - Contextual Clues: Found in sections labeled "Financial Summary", "Settlement Details", or "Claim Amount".
+       - False Positive Examples: Placeholder amounts or training examples not tied to actual financial transactions.
+
+    Supplementary Data:
+
+    1. Adjuster and Legal Information:
+       - Formats:
+         - Adjuster Name: Full name of the claims adjuster handling the case.
+         - Adjuster Notes: Detailed notes on the claim assessment.
+         - Legal Documents: Contracts, litigation details, or dispute resolutions.
+       - Variations: Legal documents may vary in format (e.g., agreements, letters, court filings).
+       - Exclusions: Generic names or notes not tied to specific cases should not be classified as sensitive.
+       - Contextual Clues: Often found in sections labeled "Adjuster Notes", "Legal Information", or "Dispute Resolution".
+       - False Positive Examples: Example names or notes used for training or hypothetical cases.
+
+    2. Beneficiary Information (if applicable):
+       - Formats:
+         - Beneficiary Name: Full name of the individual or entity receiving benefits.
+         - Relationship to Policyholder: Descriptions such as "Spouse", "Child", "Estate".
+       - Variations: May include details on multiple beneficiaries or specific beneficiary allocations.
+       - Exclusions: Generic or placeholder beneficiary details should not be classified as sensitive.
+       - Contextual Clues: Often found in sections labeled "Beneficiary Information", "Payout Details", or "Distribution of Benefits".
+       - False Positive Examples: Hypothetical or training beneficiary details.
+
+    3. Communication Records:
+       - Formats:
+         - Emails and Letters: Correspondence related to the claim, including approvals, denials, and follow-ups.
+         - Phone Call Logs: Records of communication between the claimant, adjuster, and other parties.
+       - Variations: May include internal memos, formal letters, or summaries of phone calls.
+       - Exclusions: Generic communications not tied to specific claims should not be classified as sensitive.
+       - Contextual Clues: Often found in sections labeled "Correspondence", "Communication Log", or "Claim Interaction".
+       - False Positive Examples: Example letters or logs used in non-sensitive contexts (e.g., training).
+entityDescription: |-
+  Data Definition to classify and extract Insurance Information from text
+entityId: INS0001
+entityMeta:
+  category: Data Protection Rule
+  source: default
+entityName: Insurance Information
+entityType: dlp_rule_v3
+isDisabled: false
+isModifiable: true

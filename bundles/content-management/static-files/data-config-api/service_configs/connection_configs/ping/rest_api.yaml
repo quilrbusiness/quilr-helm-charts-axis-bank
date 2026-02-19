@@ -1,0 +1,47 @@
+id: 54e94126-0573-4dab-a009-b76f259162c3
+vendor: Ping Identity
+product: PingFederate
+slug: Ping_identity_api
+description: Set of parameters essential to authenticate API client
+tests:
+  - id: 4f8a19c5-7e34-4b92-9d36-e17498c31b5d
+    type: token_authentication
+    description: Authentication test to retrieve access token
+    priority: high
+    version: 1.0
+    endpoint: https://auth.pingone.com/{environment_id}/as/token
+    request_type: POST
+    required_headers:
+      Content-Type: application/x-www-form-urlencoded
+    required_query_params: {}
+    required_body_params:
+      grant_type: client_credentials
+      client_id: ${PING_CLIENT_ID}
+      client_secret: ${PING_CLIENT_SECRET}
+    response_status_code: 200
+    response_attribute: access_token
+    exception_details:
+      message: Invalid client credentials or authorization failed.
+inputSchema:
+  - id: client_id
+    type: text
+    title: Client ID
+    description: The Client ID issued by Ping Identity for API authentication.
+    location: body
+    required: true
+    obscure: yes
+  - id: client_secret
+    type: text
+    title: Client Secret
+    description: The Client Secret issued by Ping Identity for API authentication.
+    location: body
+    required: true
+    obscure: yes
+  - id: environment_id
+    type: text
+    title: Environment ID
+    description: The PingOne environment ID (e.g., f2f35d28-c35f-46b4-aa36-6655d61b3bb3).
+    location: path
+    required: true
+    obscure: yes
+    url_substitution_rank: 1

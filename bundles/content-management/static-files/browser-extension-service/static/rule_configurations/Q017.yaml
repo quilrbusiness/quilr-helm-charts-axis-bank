@@ -1,0 +1,19 @@
+datatype: DICT
+defaultValue:
+  message: ''
+  mode: Monitor
+entityDescription: |-
+  Reusing the password on applications that do not handle sensitive data.
+entityId: Q017
+entityMeta:
+  behavior: Password Reuse
+  category: ISPM
+  posture: Password Hygiene
+  check_id:
+    form_check_ids:
+      - CH-FORM-LOGIN
+      - CH-FORM-REUSED-PASSWORD
+entityName: Reusing Password on Non Critical Apps
+entityType: rule
+isDisabled: false
+isModifiable: true

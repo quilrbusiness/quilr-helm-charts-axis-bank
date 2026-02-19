@@ -1,0 +1,46 @@
+widget_id: 63cfc9a8-9c78-4e15-bab1-6284003c55f0
+template_id: NotableRiskIndicators
+active: true
+title: Notable Risk Indicators
+components:
+  - name: Notable Risk Indicators Table
+    type: table
+    data_source_type: knowledgegraph
+    lambda: |
+      def fn(client):
+          data_result = client.fetch_data(
+             "MATCH (user:USER)-[has_violated_rule:HAS_VIOLATED_RULE]->(rule:RULE)-[:BELONGS_TO]->(riskIndicator:RISKINDICATOR) "
+             "WHERE has_violated_rule.timestamp >= $starttime AND has_violated_rule.timestamp <= $endtime "
+             "WITH riskIndicator.name AS riskIndicatorName, " 
+                   "rule.severity AS severity, "
+                   "COUNT(rule) AS ruleCount "
+             "ORDER BY riskIndicatorName, ruleCount DESC "
+             "WITH riskIndicatorName, "
+                   "COLLECT({severity: severity, count: ruleCount}) AS severityCounts, "
+                   "sum(ruleCount) as totalRuleCount "
+             "WITH riskIndicatorName, "
+                   "REDUCE(s = [], x IN severityCounts | CASE WHEN SIZE(s) > 0 AND s[-1].count > x.count THEN s ELSE s + x END) AS modeSeverity, "
+                   "totalRuleCount "
+             "WITH riskIndicatorName, "
+                   "modeSeverity, "
+                   "modeSeverity[-1].count AS modeSeverityCount, "
+                   "totalRuleCount "
+             "RETURN riskIndicatorName, "
+                   "REDUCE(acc = '', x IN modeSeverity | acc + CASE WHEN acc = '' THEN '' ELSE ', ' END + x.severity) AS modeSeverity, "
+                   "modeSeverityCount, "
+                   "totalRuleCount")
+      
+          count_result = client.total_record_count(
+             "MATCH (user:USER)-[has_violated_rule:HAS_VIOLATED_RULE]->(rule:RULE)-[:BELONGS_TO]->(riskInidicator:RISKINDICATOR) "
+             "WHERE has_violated_rule.timestamp >= $starttime AND has_violated_rule.timestamp <= $endtime "
+             "WITH COUNT(DISTINCT riskInidicator) AS count "
+             "RETURN count"
+          )
+      
+          total_record_count = 0
+          if count_result:
+              total_record_count = count_result[0].get('count')
+      
+          formatted_data = {"data": data_result, "total_record_count": total_record_count}
+          return formatted_data
+version: 16.0

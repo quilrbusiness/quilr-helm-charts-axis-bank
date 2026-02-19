@@ -1,0 +1,65 @@
+version: 1.0.0
+control_name: Logging into critical SaaS applications without Multi-Factor
+  Authentication (MFA)
+criticality: 3
+control_description: This control applies when users sign into SaaS applications
+  without Multi-Factor Authentication (MFA). The base criteria applied are that
+  the activity must be application logins, the applications are MFA-enabled, and
+  users are not using MFA as an additional step for secure login. The additional
+  criterion considered is that of application criticality.
+mode: monitor
+use_case:
+  id: UC005
+behavior:
+  id: BID_06
+posture:
+  id: PID_02
+trigger_conditions:
+  - operator: null
+    filter_group: null
+    filter_condition:
+      value: "false"
+      condition: is_equal_to
+      attribute_id: BROWSER-001
+      attribute_type: ATTR_Browser_001
+      extension_property: checkOb.check.properties.signup
+  - operator: AND
+    filter_group: null
+    filter_condition:
+      value: "True"
+      condition: is_equal_to
+      attribute_id: APP-005
+      attribute_type: ATTR_APP_001
+      extension_property: application.isMfaSupported
+  - operator: AND
+    filter_group: null
+    filter_condition:
+      value: "false"
+      condition: is_equal_to
+      attribute_id: ACC-002
+      attribute_type: ATTR_ACC_001
+      extension_property: checkOb.check.properties.be_mfa_enabled
+  - operator: AND
+    filter_group: null
+    filter_condition:
+      value: Critical
+      condition: is_equal_to
+      attribute_id: APP-003
+      attribute_type: ATTR_APP_001
+      extension_property: has_app_settings.criticality
+actions:
+  - type:
+      id: ACTP_02
+    name:
+      id: ACT_29
+    meta:
+      custom_conversation_params:
+        is_urgent: false
+        tone: null
+        cc_manager: false
+        sla: null
+        sla_duration_unit: null
+        reminder_count: null
+        custom_message: null
+      message_template: null
+    outcomes: []

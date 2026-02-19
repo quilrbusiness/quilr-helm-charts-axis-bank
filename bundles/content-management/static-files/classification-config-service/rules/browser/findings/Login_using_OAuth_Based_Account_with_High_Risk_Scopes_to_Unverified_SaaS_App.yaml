@@ -1,0 +1,17 @@
+id: 5052010f-9d44-4472-8e4f-4fa238da665d
+version: 3.0
+code: Q050
+name: Login using OAuth Based Account with High Risk Scopes to Unverified SaaS App
+description: 
+type: rule
+view: identity_protection
+impact: high
+likelihood: moderate
+createdon: 1720396800000
+updatedon: 1720396800000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_06
+examples: []
+recommendations: []

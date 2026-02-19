@@ -1,0 +1,51 @@
+id: f848c1ec-1fc8-48d0-833b-5e7bd6ee1807
+version: 5.6
+code: BID_03
+name: Users Leaking Sensitive Data
+type: behavior
+createdon: 1710504494000
+updatedon: 1731565160000
+posture:
+  - PID_01
+browser_enabled: true
+description: Users who shared sensitive data over Gen AI application.
+query: "SELECT RECORD_METADATA['CreateTime']::bigint AS datetime, EVENT_TIME AS EVENTTIME, ALERT_NAME, ALERT_TYPE, ALERT_USERNAME, 
+                  APPLICATION_DISPLAYNAME, TRIGGERED_CONTROL_ID,
+                  ALERT_PROPERTIES, ALERT_EVENTPROPERTIES, ALERT_ARTIFACTS, ALERT_USERPRINCIPALNAME, CONTEXT_ID AS CONTEXTID, ALERT_STATUS,
+                  ALERT_SEVERITY, ALERT_ACTIONTAKEN, QUILR_SUBSCRIBERID AS SUBSCRIBER, QUILR_TENANTID AS TENANT, IS_USER_PROMPT_SENSITIVE
+            FROM KAFKA_CONNECT.SNOWDATA_SCHEMA.TRANSFORMEDDATA
+            WHERE
+                ALERT_ARTIFACTS IS NOT NULL
+                AND ALERT_PROPERTIES IS NOT NULL
+                AND IS_USER_PROMPT_SENSITIVE = true
+                AND QUILR_INTEGRATION_TYPE = 'alerts'
+                AND QUILR_INTEGRATION_VENDOR_NAME = 'Quilr'
+                AND QUILR_SUBSCRIBERID = $subscriber
+                AND QUILR_TENANTID = $tenant
+                AND RECORD_METADATA['CreateTime']::bigint > $starttime
+                AND RECORD_METADATA['CreateTime']::bigint < $endtime"
+config:
+  datasourcetype: datalake
+  expression: "def fn(message): return True if message.get('ALERT_USERNAME') else False "
+  type: $ALERT_TYPE
+  subtype: event
+  status: open
+  code: $RULE_CODE
+  sla: 1W
+  entity: $ALERT_USERPRINCIPALNAME
+  entitytype: user
+  tags:
+    - insecure_behavior
+  sourceofalert: Quilr
+  template: "Received DLP alert for the User: ${ALERT_USERNAME} on Application: ${APPLICATION_DISPLAYNAME}"
+  artifacts: $ALERT_ARTIFACTS
+  properties: $ALERT_PROPERTIES
+lambda: |
+  def fn(payload):
+      for item in payload:
+        control = item.get("TRIGGERED_CONTROL_ID")
+        tenant = item.get("TENANT")
+        if control and tenant:
+            item["RULE_CODE"] = f"{control}_{tenant}"
+      
+      return payload

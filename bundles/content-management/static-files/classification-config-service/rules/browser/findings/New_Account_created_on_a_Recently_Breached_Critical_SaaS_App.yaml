@@ -1,0 +1,17 @@
+id: d52974c5-39df-425d-b6ab-f3e2a306d319
+version: 3.0
+code: Q039
+name: New Account created on a Recently Breached Critical SaaS App
+description: A new account was created on a recently breached application that does handle sensitive data or is critical to business operations.
+type: rule
+view: identity_protection
+impact: high
+likelihood: moderate
+createdon: 1720396800000
+updatedon: 1720396800000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_02
+examples: []
+recommendations: []

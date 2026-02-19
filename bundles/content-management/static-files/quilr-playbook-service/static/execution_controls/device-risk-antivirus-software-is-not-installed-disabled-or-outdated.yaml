@@ -1,0 +1,37 @@
+version: 1.0.0
+criticality: 4
+mode: monitor
+control_name: Updating antivirus software if not installed, is disabled, or is outdated
+control_description: Detects devices where antivirus software is either not installed, disabled, or outdated, potentially increasing security risks.
+posture:
+  id: PID_05
+behavior:
+  id: BID_101
+use_case:
+  id: UC100
+trigger_conditions:
+- operator: 
+  filter_condition:
+    attribute_type: ATTR_DEV_001
+    attribute_id: DEV-008
+    extension_property: device.realTimeProtectionEnabled
+    condition: is_equal_to
+    value: "false"
+  filter_group: 
+- operator: OR
+  filter_condition:
+    attribute_type: ATTR_DEV_001
+    attribute_id: DEV-009
+    extension_property: device.signatureUpdateEnabled
+    condition: is_equal_to
+    value: "false"
+  filter_group: 
+- operator: OR
+  filter_condition:
+    attribute_type: ATTR_DEV_001
+    attribute_id: DEV-010
+    extension_property: device.antiMalwareVersion
+    condition: is_equal_to
+    value: "null"
+  filter_group: 
+actions: []

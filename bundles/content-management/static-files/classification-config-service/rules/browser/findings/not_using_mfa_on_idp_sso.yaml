@@ -1,0 +1,17 @@
+id: c727f041-f89a-49c8-80ec-299efea45df4
+version: 3.0
+code: Q055
+name: Not using MFA on SSO/IDP
+description: 
+type: rule
+view: identity_protection
+impact: high
+likelihood: high
+createdon: 1720094794000
+updatedon: 1720094794000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_29
+examples: []
+recommendations: []

@@ -1,0 +1,121 @@
+# Inactive yaml
+id: 996ba570-b373-4800-88a6-aa262bf01a38
+name: Public Sync App To Knowledgegraph
+type: ingestion-to-graph
+version: 2.1
+active: false
+schedule: "24h"
+historicalrecordduration: "24h"
+context: global
+source:
+  type: query
+  config:
+    query: "SELECT 
+                  \"ACCESS.CONFIG.APPLICATION.LOGO_URL\", \"ACCESS.CONFIG.DISPLAY_NAME\",  \"ACCESS.CONFIG.APPLICATION.CATEGORY\", 
+                  \"ACCESS.CONFIG.DESCRIPTION\", \"DOMAIN_NAME\", \"ACCESS.CONFIG.APPLICATION.ORG_DOMAIN\", \"ORGANIZATION_NAME\", 
+                  \"ACCESS.CONFIG.APPLICATION.SUPPLY_CHAIN\", \"ACCESS.CONFIG.APPLICATION.PRIVACY_POLICY\", 
+                  \"ACCESS.CONFIG.APPLICATION.HEADQUATERS\", \"ACCESS.CONFIG.APPLICATION.SECURITY_PAGE\", 
+                  \"ACCESS.CONFIG.APPLICATION.STATUS_PAGE\", \"ACCESS.CONFIG.APPLICATION.SUB_DOMAINS\", 
+                  \"ACCESS.CONFIG.APPLICATION.HOSTING_PLATFORM\", \"ACCESS.CONFIG.APPLICATION.HOSTING_LOCATION\", 
+                  \"ACCESS.CONFIG.APPLICATION.SERVICE_TERMS\",
+                  REPLACE(parse_json(a.value):CERT_NAME, '\"', '') AS CERT_NAME,
+                  REPLACE(parse_json(a.value):CERT_IMAGE_LINK, '\"', '') AS CERT_IMAGE_LINK,
+                  REPLACE(parse_json(b.value):NAME, '\"', '') AS SUPPORTED_AUTH_NAME,
+                  REPLACE(parse_json(b.value):IMAGE_LINK, '\"', '') AS SUPPORTED_AUTH_IMAGE_LINK,
+                  REPLACE(parse_json(b.value):LIST, '\"', '') AS SUPPORTED_AUTH_FEATURES
+            FROM  kafka_connect.snowdata_schema.transformeddata,
+                  LATERAL FLATTEN(INPUT => \"ACCESS.CONFIG.APPLICATION.SECURITY_CERTIFICATIONS\") a,
+                  LATERAL FLATTEN(INPUT => \"ACCESS.CONFIG.APPLICATION.SUPPORTED_AUTH\") AS b
+            WHERE \"PRODUCT.FEATURE\" = 'public.sync'
+                  AND \"DOMAIN_NAME\" is not null  
+                  AND \"DOMAIN_NAME\" != ''
+                  AND \"ACCESS.CONFIG.APPLICATION.CATEGORY\" is not null
+                  AND \"RECORD_METADATA\":CreateTime > $starttime
+                  AND \"RECORD_METADATA\":CreateTime < $endtime
+            ORDER BY RECORD_METADATA:CreateTime DESC"
+    type: datalake
+    limit:
+    offset: 214200
+destination:
+  type: stream
+  topic: knowledgeGraph
+config:
+  nodes:
+    appcategory:
+      id: ACCESS.CONFIG.APPLICATION.CATEGORY
+      type: APPCATEGORY
+    app:
+      id: DOMAIN_NAME
+      type: APPLICATION
+      properties:
+        appName: ACCESS.CONFIG.DISPLAY_NAME
+        description: ACCESS.CONFIG.DESCRIPTION
+        logoUrl: ACCESS.CONFIG.APPLICATION.LOGO_URL
+        domain: DOMAIN_NAME
+        appUrl: ACCESS.CONFIG.URL
+        supplyChain: ACCESS.CONFIG.APPLICATION.SUPPLY_CHAIN
+        privacyPolicy: ACCESS.CONFIG.APPLICATION.PRIVACY_POLICY
+        headquaters: ACCESS.CONFIG.APPLICATION.HEADQUATERS
+        securityPage: ACCESS.CONFIG.APPLICATION.SECURITY_PAGE
+        statusPage: ACCESS.CONFIG.APPLICATION.STATUS_PAGE
+        subDomain: ACCESS.CONFIG.APPLICATION.SUB_DOMAINS
+        hostingPlatform: ACCESS.CONFIG.APPLICATION.HOSTING_PLATFORM
+        hostingLocation: ACCESS.CONFIG.APPLICATION.HOSTING_LOCATION
+        serviceTerms: ACCESS.CONFIG.APPLICATION.SERVICE_TERMS
+        breachStatus: breach_status
+        breachDate: breach_date
+        breachTitle: breach_title
+        breachDesc: breach_desc
+        breachIsVerified: breach_isVerified
+        breachIsFabricated: breach_isFabricated
+        breachIsSensitive: breach_isSensitive
+        breachIsRetired: breach_isRetired
+        breachIsSpamList: breach_isSpamList
+        breachIsMalware: breach_isMalware
+    apporganization:
+      id: ORGANIZATION_NAME
+      type: APPORGANIZATION
+      properties:
+        title: ACCESS.CONFIG.ORGANIZATION.ORG_DOMAIN
+    appcertificate:
+      id: CERT_NAME
+      type: APPCERTIFICATE
+    appsupportedauth:
+      id: SUPPORTED_AUTH_NAME
+      type: APPSUPPORTEDAUTH
+      properties:
+        IMAGE_LINK: SUPPORTED_AUTH_IMAGE_LINK
+  edges:
+    - destination: apporganization
+      direction: out
+      relation: HAS_APP_ORG
+      source: app
+    - destination: appcategory
+      direction: out
+      relation: HAS_APP_CATEGORY
+      source: app
+    - destination: appcertificate
+      direction: out
+      relation: HAS_APP_CERTIFICATE
+      source: app
+    - destination: appsupportedauth
+      direction: out
+      relation: HAS_APP_SUPPORTED_AUTH
+      source: app
+lambda: |
+  def fn(payload):
+      for item in payload:
+          breach_info = executor_instance.db_lookup("breach_lookup", domain_name=item.get("ACCESS.CONFIG.DISPLAY.NAME"))[0]['BREACHINFO']
+          item["breach_status"] = "BreachDate" in breach_info
+          item["breach_date"] = breach_info.get("BreachDate", "")
+          item["breach_title"] = breach_info.get("Title", "")
+          item["breach_desc"] = breach_info.get("Description", "")
+          item["breach_isVerified"] = breach_info.get("IsVerified", "")
+          item["breach_isFabricated"] = breach_info.get("IsFabricated", "")
+          item["breach_isSensitive"] = breach_info.get("IsSensitive", "")
+          item["breach_isRetired"] = breach_info.get("IsRetired", "")
+          item["breach_isSpamList"] = breach_info.get("IsSpamList", "")
+          item["breach_isMalware"] = breach_info.get("IsMalware", "")
+      return payload
+createdon: 1712157728
+updatedon: 1712157728

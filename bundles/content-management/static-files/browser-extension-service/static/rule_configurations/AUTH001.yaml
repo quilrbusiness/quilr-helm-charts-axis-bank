@@ -1,0 +1,46 @@
+datatype: DICT
+defaultValue:
+  name: Authentication Credentials
+  description: High-level access information for systems or platforms
+  criticality: CRITICAL
+  sensitivity: Sensitive
+  examples:
+    - Username + Password Combination
+    - API Key or Access Token
+    - Multi-Factor Authentication Seed
+    - Private Key or Digital Certificate
+    - Biometric Authentication Data
+  indicators:
+    - Presence of access control information
+    - Encryption keys or certificates
+    - Multi-factor authentication details
+    - System-specific identification codes
+  contentMarkers:
+    - Structured credential formats
+    - High entropy strings
+    - Specific prefixes/suffixes for access tokens
+    - Hashed or encrypted data strings
+  impactSummary: >-
+    Unauthorized system access risk; potential for widespread data breach;
+    security compromise
+  classificationRules:
+    positive: >-
+      Contains complete login information; security tokens or keys; encryption
+      materials
+    negative: Public API documentation; general system information without access details
+    resolution: Assess the potential for unauthorized system entry or data decryption
+  relatedClasses:
+    - PII001
+    - FIN001
+    - SRC001
+    - SYS001
+entityDescription: |-
+  Data Definition to classify and extract Authentication Credentials from text
+entityId: AUTH001
+entityMeta:
+  category: Data Protection Rule
+  source: default
+entityName: Authentication Credentials
+entityType: dlp_rule
+isDisabled: false
+isModifiable: true

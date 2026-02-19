@@ -1,0 +1,37 @@
+widget_id: d7bac5a0-2eda-473b-b743-1d638281b51b
+template_id: CyberSecurityScore
+active: true
+title: Security Index
+components:
+  - name: description1
+    type: html
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          data = {"viewMoreLink": "",
+                  "netPromoterScore": 80,
+                  "startRating": 4,
+                  "highlightsData": [{"name": "Human Friendly Security",
+                                      "eNPS": "45+",
+                                      "positiveSentiment": "85%",
+                                      "feedback": "Employees feel well-informed about current security threats and best practices."
+                                  },
+                                  {
+                                      "name": "Security Culture",
+                                      "eNPS": "32+",
+                                      "positiveSentiment": "78%",
+                                      "feedback": "Employees understand their role in cybersecurity"
+                                  },
+                                  {
+                                      "name": "Overall Awareness",
+                                      "eNPS": "38+",
+                                      "positiveSentiment": "80%",
+                                      "feedback": "Employees feel well-informed about current security threats and best practices."
+                                  },
+                                  {
+                                      "name": "Trends Over Time",
+                                      "text":"Visual representation of eNPS trends for each category."
+                                  }
+                              ]}
+          return data
+version: 6.0

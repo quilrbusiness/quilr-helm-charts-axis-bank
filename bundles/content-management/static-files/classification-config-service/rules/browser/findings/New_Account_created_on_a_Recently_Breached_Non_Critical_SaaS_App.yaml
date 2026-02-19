@@ -1,0 +1,17 @@
+id: a7160055-5376-4134-908c-30a7513fe302
+version: 3.0
+code: Q040
+name: New Account created on a Recently Breached Non Critical SaaS App
+description: A new account was created on a recently breached application that does not handle sensitive data.
+type: rule
+view: identity_protection
+impact: moderate
+likelihood: moderate
+createdon: 1720396800000
+updatedon: 1720396800000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_02
+examples: []
+recommendations: []

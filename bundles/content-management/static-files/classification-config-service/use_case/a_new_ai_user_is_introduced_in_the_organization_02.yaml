@@ -1,0 +1,42 @@
+id: 96d285e3-625b-42f2-b8d4-5690bcf28e44
+version: 1.3
+code: UC002
+name: a new AI user is discovered in the organization
+type: use-case
+description: Define what should be done when a new AI app user is discovered in the organization.
+posture:
+  - PID_01
+behavior:
+  - BID_02
+condition:
+  - operator: null
+    filter_condition:
+      attribute_type: ATTR_Browser_001
+      attribute_id: BROWSER-002
+      condition: is equal to
+      value: "visit"
+    filter_group: null
+    editable: false
+    supported_operators:
+      - is equal to
+  - operator: AND
+    filter_condition:
+      attribute_type: ATTR_APP_001
+      attribute_id: APP-001
+      condition: is equal to
+      value: "Generative AI"
+    filter_group: null
+    editable: false
+  - operator: AND
+    filter_condition:
+      attribute_type: ATTR_USER_001
+      attribute_id: USER-007
+      condition: is equal to
+      value: "false"
+    filter_group: null
+    editable: false
+    supported_operators:
+      - is equal to
+disabled: false
+createdon: 1710504494000
+updatedon: 1710504494000

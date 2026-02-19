@@ -1,0 +1,120 @@
+datatype: DICT
+defaultValue:
+  name: Personal Identifiable Information
+  criticality: HIGH
+  description: |2-
+    Description:
+    Personally Identifiable Information (PII) refers to any data that can be used to identify an individual either directly or indirectly. This definition includes common formats, variations, and contextual indicators to recognize a wide range of PII without overfitting to specific patterns. It also excludes masked or partially hidden information (e.g., "xxxx-xxxx-xxxx-2345") and incorporates length validation to prevent misclassification of non-sensitive data. You are an expert in counting digits as it's one of the required skills to be able to identify PII data effectively.
+
+    Mandatory Data:
+
+    1. Direct Identifiers:
+       - Full Name:
+         - Typical Formats: First name + Last name, Full name including middle name.
+         - Variations: Initials, partial names, names with special characters.
+         - Contextual Clues: Found in headers like "Name:", "Full Name:", or within introductions.
+         - False Positive Examples: Common names in generic contexts (e.g., "John Smith is a common name") may not be sensitive if not tied to specific identifying information.
+
+       - Social Security Number (SSN):
+         - Typical Formats: Always check the total number of digits. An SSN has exactly 9 digits. Regardless of separators (e.g., hyphens, spaces), the digit count should be precise. Recognize variations in formatting. Numbers with the correct digit count, such as "983-2233-43", might be in a non-standard format but should still be considered potentially sensitive if they contain exactly 9 digits. Formats like "983223343", "983 22 3343", or "983-22-3343" should be flagged as potentially sensitive.have format flexibility - Consider numbers with the correct digit count as potential PII even if they are not formatted traditionally. SSNs can appear in multiple formats, and any 9-digit sequence should be carefully evaluated.Use context clues around the number to determine whether it’s likely to be an SSN or another sensitive identifier. Explicitly count the digits and assess the separators used. Treat numbers like "983-2233-43" as containing 9 digits by counting the digits directly, ensuring no potential PII is missed due to non-standard formatting.
+         - Variations: May include or exclude hyphens or spaces.
+         - Exclusions: Any number that is not 9 numerical digits or reference of SSN with no sensitive number (e.g., 12-digit numbers or masked SSNs like "XXX-XX-6789") should not be classified as sensitive.
+         - Contextual Clues: Often follows labels like "SSN:", "Social Security Number:".
+         - False Positive Examples: Numeric sequences longer or shorter than 9 digits, or placeholder sequences like "999-99-9999" used in non-sensitive contexts.
+
+       - Date of Birth (DOB):
+         - Typical Formats: DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD.
+         - Variations: Written with different separators (slashes, hyphens, spaces) or as text (e.g., "January 1, 2000").
+         - Contextual Clues: Accompanied by terms like "DOB:", "Born on:", "Date of Birth:".
+         - False Positive Examples: Random dates not explicitly tied to a person (e.g., "Project started on 01/01/2020").
+
+       - Passport Number:
+         - Typical Formats: 6-9 alphanumeric characters.
+         - Variations: May include spaces or special characters.
+         - Exclusions: Masked passport numbers (e.g., "XXXXXX789") should not be classified as sensitive.
+         - Contextual Clues: Often follows "Passport No:", "Passport Number:".
+         - False Positive Examples: Random alphanumeric strings resembling passport numbers but unrelated (e.g., "ABC123456" as a product code).
+
+       - Driver�s License Number:
+         - Typical Formats: Varies by jurisdiction; often alphanumeric.
+         - Variations: With or without spaces or hyphens.
+         - Exclusions: Masked driver�s license numbers (e.g., "DXXX4567") should not be classified as sensitive.
+         - Contextual Clues: Accompanied by terms like "DL No:", "Driver�s License No:".
+         - False Positive Examples: Alphanumeric strings similar to license formats but used in other contexts (e.g., "ABC-1234" as a model number).
+
+       - Credit/Debit Card Numbers:
+         - Typical Formats: 13-19 digits, often grouped in sets of four.
+         - Variations: May appear as continuous digits or with separators.
+         - Exclusions: Masked card numbers (e.g., "xxxx-xxxx-xxxx-2345") should not be classified as sensitive.
+         - Contextual Clues: Typically found near "Card No:", "CC No:".
+         - False Positive Examples: Random 16-digit numbers not related to credit cards (e.g., order numbers or tracking codes).
+
+       - Bank Account Numbers:
+         - Typical Formats: 8-12 digits (varies by region).
+         - Variations: With or without spaces or dashes.
+         - Exclusions: Masked account numbers (e.g., "xxxx-xxxx-1234") should not be classified as sensitive.
+         - Contextual Clues: Found near "Account No:", "Bank Account No:".
+         - False Positive Examples: Generic numeric strings that match bank account lengths but are used in different contexts (e.g., "Transaction ID: 123456789").
+
+       - Phone Numbers:
+         - Typical Formats: 10 digits, often in the format (XXX) XXX-XXXX or similar.
+         - Variations: May include country code, spaces, or dashes.
+         - Exclusions: Masked phone numbers (e.g., "(XXX) XXX-7890") should not be classified as sensitive.
+         - Contextual Clues: Accompanied by labels like "Phone:", "Mobile:", "Contact No:".
+         - False Positive Examples: Random 10-digit strings not related to phone numbers (e.g., part numbers or serial codes).
+
+       - Email Addresses:
+         - Typical Formats: username@domain.com.
+         - Variations: May include special characters or subdomains.
+         - Exclusions: Masked email addresses (e.g., "j*@domain.com") should not be classified as sensitive.
+         - Contextual Clues: Found near "Email:", "E-mail:".
+         - False Positive Examples: Strings resembling email formats but used for different purposes (e.g., placeholders like "user@example.com").
+
+       - Home Address:
+         - Typical Formats: Includes street, city, state, and postal code.
+         - Variations: Can appear with different levels of detail (e.g., street only, city/state only).
+         - Exclusions: Partially masked addresses (e.g., "1234 M St, Springfield, IL") should not be classified as sensitive.
+         - Contextual Clues: Often follows "Address:", "Residence:".
+         - False Positive Examples: Addresses used in fictional contexts (e.g., "123 Fake Street" in examples or test data).
+
+    2. Sensitive Identifiers:
+       - Biometric Data: Includes fingerprints, facial recognition data, iris scans, or voiceprints.
+       - Medical Information: Health records, medical history, insurance numbers.
+       - Financial Information: Credit scores, loan details, financial transactions.
+       - Ethnic or Racial Origin: Data indicating an individual�s ethnicity or race.
+       - Religious or Philosophical Beliefs: Information about an individual�s beliefs.
+
+    3. Digital Identifiers:
+       - IP Addresses:
+         - Typical Formats: IPv4 (e.g., 192.168.1.1), IPv6 (e.g., 2001:0db8:85a3:0000:0000:8a2e:0370:7334).
+         - Variations: May include subnet information or be part of a URL.
+         - Contextual Clues: Often found near "IP:", "Address:".
+         - False Positive Examples: Local IP addresses in non-sensitive contexts (e.g., "127.0.0.1" used in examples).
+
+       - Device Identifiers: MAC addresses, IMEI numbers, serial numbers.
+       - Cookies and Tracking Data: Data from cookies or tracking pixels that can be tied to an individual.
+
+    Supplementary Data:
+
+    1. Indirect Identifiers:
+       - Usernames or Aliases: Online or system-specific names.
+       - Employee Identification Numbers: Work-related identifiers.
+       - Customer ID or Account Numbers: Organization-specific identifiers.
+       - Geolocation Data: GPS coordinates, location history.
+       - Educational Records: Includes grades, transcripts, student ID numbers.
+
+    2. Contextual Information:
+       - Employment Information: Job title, employer name, salary.
+       - Vehicle Registration Numbers: License plate numbers or VINs.
+       - Photographs or Videos: Images or videos that can identify an individual.
+       - Social Media Profiles: Publicly available information from social media platforms.
+entityDescription: |-
+  Data Definition to classify and extract Personal Identifiable Information (PII) from text
+entityId: PII0001
+entityMeta:
+  category: Data Protection Rule
+  source: default
+entityName: Personal Identifiable Information
+entityType: dlp_rule_v3
+isDisabled: false
+isModifiable: true

@@ -1,0 +1,1349 @@
+id: findings-screen
+name: Findings
+type: screen
+enabled: false
+version: 1.0.69
+icon_url: https://staticcontent1.blob.core.windows.net/quilrstatic/profile/findings.svg
+table_query:
+  id: 82f39be8-e238-4a2e-bee3-5ecb6bd420a2
+  name: Display Table Data
+  queryString: "CALL {
+    MATCH (u:USER {subscriber: $subscriber, tenant: $tenant})-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+    MATCH (e)-[]->(acc:ACCOUNT)
+    MATCH (acc)-[:HAS_FINDING]->(f:FINDING)
+    RETURN u, f AS finding, 'open' AS status, acc
+
+    UNION
+
+    MATCH (u:USER {subscriber: $subscriber, tenant: $tenant})-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+    MATCH (e)-[]->(acc:ACCOUNT)
+    MATCH (acc)-[:HAS_FINDING]->(fh:FINDING_HISTORY)
+    RETURN u, fh AS finding, 'closed' AS status, acc
+    }
+
+    WITH u, finding, status, acc
+    MATCH (r:RULE)-[:EVALUATED_TO]->(finding)
+    MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)-[:BELONGS_TO]->(p:POSTURE)
+    OPTIONAL MATCH (finding)-[:HAS_ACTION]->(action:ACTION)
+    OPTIONAL MATCH (acc)-[:USING_APP]->(application:APPLICATION)
+
+    WITH u, finding, status, acc, b, p, action, application, r
+
+    WHERE application.id_ is not null
+    AND (toLower(u.displayName) =~ '.*{searchText}.*'
+    OR toLower(finding.name) =~ '.*{searchText}.*'
+    OR toLower(b.name) =~ '.*{searchText}.*')
+    {placeholder}
+
+    RETURN
+    finding.id as id,
+    collect(DISTINCT action.name) as actionTaken,
+    r.name AS Finding,
+    r.view AS findingView,
+    r.severity as severity,
+    [{name: u.displayName, id: u.id}] as users,
+    u.mail as email,
+    b.name as Behaviour,
+    collect(DISTINCT {app: finding.source, logo: finding.sourceLogoUrl}) as Source,
+    p.name as Posture,
+    u.department as Department,
+    finding.generationTime as alertTime,
+    status as resolutionStatus,
+    collect(DISTINCT {app: finding.appDisplayName, logo: application.logoUrl}) as App,
+    finding.copilotStatus as `Co-Pilot`"
+  type: merge
+  allowed_params: true
+  allowed_body: true
+  input_params:
+    Users: AND u.displayName = $Users
+    Department: AND u.department = $Department
+    App: AND application.appDisplayName = $App
+    status: AND status = $status
+    actionTaken: AND action.name = $actionTaken
+    Behaviours: AND b.name = $Behaviours
+    Posture: AND p.name = $Posture
+    Finding: AND r.name = $Finding
+    behaviorFilter: AND b.name = $behaviorFilter
+    # starttime: AND finding.generationTime >= $starttime
+    # endtime: AND finding.generationTime <= $endtime
+  input_body: null
+  dataSourceType: knowledgegraph
+  sortOrder: DESC
+  sortColumn: alertTime
+  limit: 10
+  offset: 0
+detailed_widget:
+  - id: accounts
+    name: Findings_Account
+    position: main
+    template: detailed
+    query: ""
+    dataSourceType: knowledgegraph
+    sortOrder: null
+    sortColumn: null
+    pagination_query: ""
+    enabled: true
+    allowed_params: true
+  - id: humanContext
+    name: Human Context
+    position: offset
+    template: human_context
+    query: ""
+    dataSourceType: knowledgegraph
+    sortOrder: null
+    sortColumn: null
+    pagination_query: ""
+    enabled: true
+    allowed_params: true
+view_by: []
+table_filters:
+  - id: status
+    name: Finding Status
+    defaultValue: All
+    active: true
+    type: select
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      starttime: AND finding.generationTime >= $starttime
+      endtime: AND finding.generationTime <= $endtime
+    query: "CALL {
+        MATCH (u:USER {subscriber: $subscriber, tenant: $tenant})-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+        MATCH (e)-[]->(acc:ACCOUNT)
+        MATCH (acc)-[:HAS_FINDING]->(f:FINDING)
+        RETURN u, f AS finding, 'open' AS status, acc
+
+        UNION
+
+        MATCH (u:USER {subscriber: $subscriber, tenant: $tenant})-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+        MATCH (e)-[]->(acc:ACCOUNT)
+        MATCH (acc)-[:HAS_FINDING]->(fh:FINDING_HISTORY)
+        RETURN u, fh AS finding, 'closed' AS status, acc
+        }
+
+        WITH u, finding, status, acc
+        MATCH (r:RULE)-[:EVALUATED_TO]->(finding)
+        MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)-[:BELONGS_TO]->(p:POSTURE)
+        OPTIONAL MATCH (finding)-[:HAS_ACTION]->(action:ACTION)
+        OPTIONAL MATCH (acc)-[:USING_APP]->(application:APPLICATION)
+
+        WITH u, finding, status, acc, b, p, action, application, r
+
+        WHERE application.id_ is not null
+        AND (toLower(u.displayName) =~ '.*{searchText}.*' OR toLower(finding.name) =~ '.*{searchText}.*')
+        {placeholder}
+        WITH DISTINCT finding.status AS status
+
+        WITH 
+            collect(distinct {id: 'status_' + apoc.util.md5(['All']), label: 'All', value: 'All'}) +
+            collect(distinct {id: 'status_' + apoc.util.md5([status]), label: status, value: status}) AS filters
+        RETURN filters"
+  - id: actionTaken
+    name: Action Taken
+    active: true
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      starttime: AND finding.generationTime >= $starttime
+      endtime: AND finding.generationTime <= $endtime
+    defaultValue: All
+    type: select
+    query: "
+      CALL {
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      OPTIONAL MATCH (acc)-[:HAS_FINDING]->(f:FINDING)
+      OPTIONAL MATCH (acc)-[]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(f)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (f)-[]->(action:ACTION)
+      RETURN u, f AS finding, r, p, b, 'open' AS status, application, action
+
+      UNION
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      OPTIONAL MATCH (acc)-[]->(fh:FINDING_HISTORY)
+      OPTIONAL MATCH (acc)-[]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(fh)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (f)-[]->(action:ACTION)
+      RETURN u, fh AS finding, r, p, b, 'closed' AS status, application, action
+      }
+
+      WITH u, finding, r, p, b, status, application, action
+      WHERE
+      r.name is not null
+      AND u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      AND (toLower(u.displayName) =~ '.*{searchText}.*' OR toLower(finding.name) =~ '.*{searchText}.*')
+      {placeholder}
+
+      WITH
+      collect(distinct {id: 'actionTaken_' + apoc.util.md5(['All']), label: 'All', value: 'All'}) +
+      collect(distinct {id: 'actionTaken_' + apoc.util.md5(['Interaction Initiated']), label: 'Interaction Initiated', value: 'Interaction Initiated'}) +
+      collect(distinct {id: 'actionTaken_' + apoc.util.md5(['Not Started']), label: 'Not Started', value: 'Not Started'}) +
+      collect(distinct {id: 'actionTaken_' + apoc.util.md5(['Triage']), label: 'Triage', value: 'Triage'}) +
+      collect(distinct {id: 'actionTaken_' + apoc.util.md5(['Benign']), label: 'Benign', value: 'Benign'}) +
+      collect(distinct {id: 'actionTaken_' + apoc.util.md5(['Insecure Behavior']), label: 'Insecure Behavior', value: 'Insecure Behavior'}) +
+      collect(distinct {id: 'actionTaken_' + apoc.util.md5(['Escalated as Issue']), label: 'Escalated as Issue', value: 'Escalated as Issue'}) +
+      collect(distinct {id: 'actionTaken_' + apoc.util.md5(['Resolved']), label: 'Resolved', value: 'Resolved'}) +
+      collect(distinct {id: 'actionTaken_' + apoc.util.md5(['Blocked']), label: 'Blocked', value: 'Blocked'}) as filters
+
+      RETURN filters
+      "
+  - id: behaviorFilter
+    name: Behavior
+    type: select
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    active: true
+    input_params:
+      starttime: AND finding.generationTime >= $starttime
+      endtime: AND finding.generationTime <= $endtime
+    defaultValue: All
+    query:
+      "
+      CALL {
+        MATCH (u:USER {subscriber: $subscriber, tenant: $tenant})-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+        MATCH (e)-[]->(acc:ACCOUNT)
+        MATCH (acc)-[:HAS_FINDING]->(f:FINDING)
+        RETURN u, f AS finding, 'open' AS status, acc
+
+        UNION
+
+        MATCH (u:USER {subscriber: $subscriber, tenant: $tenant})-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+        MATCH (e)-[]->(acc:ACCOUNT)
+        MATCH (acc)-[:HAS_FINDING]->(fh:FINDING_HISTORY)
+        RETURN u, fh AS finding, 'closed' AS status, acc
+        }
+
+        WITH u, finding, status, acc
+        MATCH (r:RULE)-[:EVALUATED_TO]->(finding)
+        MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)-[:BELONGS_TO]->(p:POSTURE)
+        OPTIONAL MATCH (finding)-[:HAS_ACTION]->(action:ACTION)
+        OPTIONAL MATCH (acc)-[:USING_APP]->(application:APPLICATION)
+
+        WHERE application.id_ is not null
+        AND (toLower(u.displayName) =~ '.*{searchText}.*' OR toLower(b.name) =~ '.*{searchText}.*')
+        {placeholder}
+        WITH
+            COLLECT(distinct {id: 'status_' + apoc.util.md5(['All']), label: 'All', value: 'All'}) +
+            COLLECT(distinct {id: 'status_' + apoc.util.md5([b.name]), label: b.name, value: b.name}) AS filters 
+        RETURN filters"
+  - id: Posture
+    name: Posture
+    type: select
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    active: true
+    input_params:
+      x: ""
+    defaultValue: All
+    query: "
+      CALL {
+        MATCH (u:USER {subscriber: $subscriber, tenant: $tenant})-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+        MATCH (e)-[]->(acc:ACCOUNT)
+        MATCH (acc)-[:HAS_FINDING]->(f:FINDING)
+        RETURN u, f AS finding, 'open' AS status, acc
+
+        UNION
+
+        MATCH (u:USER {subscriber: $subscriber, tenant: $tenant})-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+        MATCH (e)-[]->(acc:ACCOUNT)
+        MATCH (acc)-[:HAS_FINDING]->(fh:FINDING_HISTORY)
+        RETURN u, fh AS finding, 'closed' AS status, acc
+        }
+
+        WITH u, finding, status, acc
+        MATCH (r:RULE)-[:EVALUATED_TO]->(finding)
+        MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)-[:BELONGS_TO]->(p:POSTURE)
+        OPTIONAL MATCH (finding)-[:HAS_ACTION]->(action:ACTION)
+        OPTIONAL MATCH (acc)-[:USING_APP]->(application:APPLICATION)
+
+        WHERE application.id_ is not null
+        AND (toLower(u.displayName) =~ '.*{searchText}.*' OR toLower(p.name) =~ '.*{searchText}.*')
+        {placeholder}
+        WITH
+            COLLECT(distinct {id: 'status_' + apoc.util.md5(['All']), label: 'All', value: 'All'}) +
+            COLLECT(distinct {id: 'status_' + apoc.util.md5([p.name]), label: p.name, value: p.name}) AS filters 
+        RETURN filters"
+
+  # - id: cf21f158-0dea-4975-816d-ca3e1a2c5d74
+  #   name: Co-Pilot Status
+  #   type: Drop Down Menu
+  #   active: false
+  #   options:
+  #     query_id: ""
+  #     mergeQueryString: ""
+  #     label: ""
+  #     value: ""
+widgets:
+  - id: status
+    name: Finding Status
+    label: Widget
+    template: status
+    enabled: true
+    type: polar_graph
+    className: col-span-3
+    query_id: ""
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      starttime: AND finding.generationTime >= $starttime AND finding.generationTime >= $starttime
+      endtime: AND finding.generationTime <= $endtime AND finding.generationTime <= $endtime
+    queryFilters: []
+    query: "CALL {
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      OPTIONAL MATCH (acc)-[:HAS_FINDING]->(f:FINDING)
+      OPTIONAL MATCH (acc)-[]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(f)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (f)-[]->(action:ACTION)
+      RETURN u, f AS finding, r, p, b, 'open' AS status, application, action
+
+      UNION
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      OPTIONAL MATCH (acc)-[]->(fh:FINDING_HISTORY)
+      OPTIONAL MATCH (acc)-[]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(fh)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (f)-[]->(action:ACTION)
+      RETURN u, fh AS finding, r, p, b, 'closed' AS status, application, action
+      }
+
+      WITH u, finding, r, p, b, status, application, action
+      WHERE
+      r.name is not null
+      AND u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      AND (toLower(u.displayName) =~ '.*{searchText}.*' OR toLower(finding.name) =~ '.*{searchText}.*')
+      {placeholder}
+      WITH
+      COUNT(DISTINCT CASE WHEN finding.status = 'open' THEN finding END) AS openCount,
+      COUNT(DISTINCT CASE WHEN finding.status = 'closed' THEN finding END) AS closedCount,
+      COUNT(DISTINCT CASE WHEN finding.status = 'inprogress' THEN finding END) AS inprogressCount
+
+      RETURN [
+      { value: closedCount, name: 'Closed' },
+      { value: inprogressCount, name: 'In Progress' },
+      { value: openCount, name: 'Open' }
+      ] AS results"
+  - id: actionTaken
+    name: Action Taken
+    label: Widget
+    template: actionTaken
+    enabled: true
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    type: analytical data
+    className: col-span-6
+    query_id: ""
+    input_params:
+      starttime: AND finding.generationTime >= $starttime
+      endtime: AND finding.generationTime <= $endtime
+    queryFilters: []
+    query: "CALL {
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      OPTIONAL MATCH (acc)-[:HAS_FINDING]->(f:FINDING)
+      OPTIONAL MATCH (acc)-[]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(f)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (f)-[]->(action:ACTION)
+      RETURN u, f AS finding, r, p, b, 'open' AS status, application, action
+
+      UNION
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      OPTIONAL MATCH (acc)-[]->(fh:FINDING_HISTORY)
+      OPTIONAL MATCH (acc)-[]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(fh)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (f)-[]->(action:ACTION)
+      RETURN u, fh AS finding, r, p, b, 'closed' AS status, application, action
+      }
+
+      WITH u, finding, r, p, b, status, application, action
+      WHERE
+      r.name is not null
+      AND u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      AND (toLower(u.displayName) =~ '.*{searchText}.*' OR toLower(finding.name) =~ '.*{searchText}.*')
+      {placeholder}
+      WITH
+      COUNT(DISTINCT CASE WHEN action.name = 'Blocked' THEN action END) AS blockedCount,
+      COUNT(DISTINCT CASE WHEN action.name = 'Resolved' THEN action END) AS resolvedCount,
+      COUNT(DISTINCT CASE WHEN action.name = 'User Interaction' THEN action END) AS userInteractionCount,
+      COUNT(DISTINCT CASE WHEN action.name = 'Triage' THEN action END) AS triageCount,
+      COUNT(DISTINCT CASE WHEN action.name = 'Benign' THEN action END) AS benignCount,
+      COUNT(DISTINCT CASE WHEN action.name = 'Escalated as Issue' THEN action END) AS escalatedCount,
+      COUNT(DISTINCT CASE WHEN action.name = 'Insecure Behaviour' THEN action END) AS insecureCount
+
+
+      RETURN [
+      { value: blockedCount, name: 'Blocked' },
+      { value: resolvedCount, name: 'Resolved' },
+      { value: userInteractionCount, name: 'User Interaction' },
+      { value: triageCount, name: 'Triage' },
+      { value: benignCount, name: 'Benign' },
+      { value: escalatedCount, name: 'Escalated as Issue' },
+      { value: insecureCount, name: 'Insecure Behaviour' }
+      ] AS results"
+  - id: Behaviours
+    name: Behaviours
+    label: Widget
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    template: Posture
+    enabled: true
+    type: packedbubble
+    className: col-span-3
+    query_id: ""
+    input_params:
+      starttime: AND finding.generationTime >= $starttime
+      endtime: AND finding.generationTime <= $endtime
+    queryFilters: []
+    query: "
+      CALL {
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      OPTIONAL MATCH (acc)-[:HAS_FINDING]->(f:FINDING)
+      OPTIONAL MATCH (acc)-[]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(f)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (f)-[]->(action:ACTION)
+      RETURN u, f AS finding, r, p, b, 'open' AS status, application, action
+
+      UNION
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      OPTIONAL MATCH (acc)-[]->(fh:FINDING_HISTORY)
+      OPTIONAL MATCH (acc)-[]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(fh)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (f)-[]->(action:ACTION)
+      RETURN u, fh AS finding, r, p, b, 'closed' AS status, application, action
+      }
+
+      WITH u, finding, r, p, b, status, application, action
+      WHERE
+      r.name is not null
+      AND u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      AND (toLower(u.displayName) =~ '.*{searchText}.*' OR toLower(finding.name) =~ '.*{searchText}.*')
+      {placeholder}
+      WITH 'packedbubble' as type, p.name as name, status, count(b.name) as value, b.name as valName
+      WITH collect({name: valName, value: value, type: '', behaviour:'' }) AS data, name, type
+      RETURN name, type, data"
+table_render:
+  detailedWidgets:
+    accounts:
+      queries:
+        - id: accounts
+          queryParam: id
+          paramValue: id
+        - id: user_interaction
+          queryParam: id
+          paramValue: id
+        - id: final_outcome
+          queryParam: id
+          paramValue: id
+        - id: finding_details
+          queryParam: id
+          paramValue: id
+        - id: user_interaction_identity_protection
+          queryParam: id
+          paramValue: id
+        - id: behavior_trend_chart
+          params: 
+            - queryParam: behaviorName
+              paramValue: Behaviour
+            - queryParam: userid
+              paramValue: users[0].id
+      template: DetailedView
+    humanContext:
+      template: HumanContext
+      queries:
+        - id: human_technical_details
+          queryParam: userId
+          paramValue: users[0].id
+        - id: human_departments
+          queryParam: userId
+          paramValue: users[0].id
+        - id: human_postures
+          queryParam: userId
+          paramValue: users[0].id
+        - id: human_risks
+          queryParam: userId
+          paramValue: users[0].id
+        - id: human_chart
+          queryParam: username
+          paramValue: users[0].name
+
+  widgets:
+    actionTaken:
+      map:
+        Blocked:
+          color: "#FFA2A2"
+          logo: "https://staticcontent1.blob.core.windows.net/finding-icons/Blocked.svg"
+        Resolved:
+          color: "#A2FFF4"
+          logo: "https://staticcontent1.blob.core.windows.net/finding-icons/Resolved.svg"
+        User Interaction:
+          color: "#EBEDB2"
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/User Interaction Initiated.svg
+        Triage:
+          color: "#F5BAFD"
+          logo: "https://staticcontent1.blob.core.windows.net/finding-icons/Triaging.svg"
+        Benign:
+          color: "#A2EDFF"
+          logo: "https://staticcontent1.blob.core.windows.net/finding-icons/Benign.svg"
+        Escalated as Issue:
+          color: "#7C90FF"
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/Escalated as Issue.svg
+        Insecure Behaviour:
+          color: "#FFA355"
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/Insecure Human Behavior.svg
+  detailed:
+    Finding:
+      id: Finding
+      type: text
+      label: Finding
+      valuePath: Finding
+      width: "w-[15%]"
+      sortable: false
+      groupByKey: Findings
+      order: 1
+  table:
+    # checkbox:
+    #   show: true
+    #   order: 0
+    Finding:
+      id: Finding
+      type: text
+      label: Finding
+      valuePath: Finding
+      width: "w-[15%]"
+      sortable: false
+      groupByKey: Findings
+      order: 1
+    users:
+      id: users
+      type: UserViewOnly
+      label: User
+      valuePath: Users
+      sortable: false
+      groupByKey: Users
+      width: "w-[%]"
+      extraClasses: "capitalize text-center"
+      order: 2
+    behaviour:
+      id: Behaviour
+      type: text
+      label: Behavior
+      valuePath: Behaviour
+      width: "w-[10%]"
+      sortable: false
+      order: 3
+    source:
+      id: Source
+      type: SourceCell
+      label: Source
+      valuePath: Source
+      sortable: false
+      order: 4
+    posture:
+      id: Posture
+      type: PostureView
+      label: Posture
+      valuePath: Posture
+      sortable: false
+      groupByKey: Posture
+      map:
+        "Password Hygiene":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-password-hygiene.svg
+          color: "#2B2B2B"
+        "SaaS Usage":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-saas-usage.svg
+          color: "#2B2B2B"
+        "MFA usage":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-mfa-usage.svg
+          color: "#2B2B2B"
+        "Human Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-human-risk.svg
+          color: "#2B2B2B"
+        "Data Handling":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-data-handling.svg
+          color: "#2B2B2B"
+        "AI Usage":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-ai-usage.svg
+          color: "#2B2B2B"
+        "Social Engineering":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-social-engineering.svg
+          color: "#2B2B2B"
+        "Web Browsing":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-web-browsing.svg
+          color: "#2B2B2B"
+        "Workstation Risks":
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/posture-workstation-risks.svg
+          color: "#2B2B2B"
+      order: 5
+    department:
+      id: Department
+      type: text
+      label: Department
+      valuePath: Department
+      sortable: false
+      groupByKey: Department
+      order: 6
+    app:
+      id: App
+      type: multi_icon
+      label: App
+      valuePath: App
+      sortable: false
+      groupByKey: App
+      order: 7
+    alertTime:
+      id: alertTime
+      type: USFormattedDate
+      label: Alert Time
+      valuePath: alertTime
+      width: "w-[8%]"
+      sortable: false
+      order: 8
+    resolutionStatus:
+      id: resolutionStatus
+      type: status
+      label: Status
+      valuePath: resolutionStatus
+      sortable: false
+      map:
+        open: "#FFDFB4"
+        closed: "#8282F2"
+        inprogress: "#B7FCAA"
+      order: 9
+    coPilot:
+      id: Co-Pilot
+      type: CoPilotCell
+      label: Co-Pilot
+      valuePath: Co-Pilot
+      sortable: false
+      order: 10
+      map:
+        disabled:
+          logo: "https://staticcontent1.blob.core.windows.net/finding-icons/Co-pilot-no.svg"
+        enabled:
+          logo: "https://staticcontent1.blob.core.windows.net/finding-icons/Co-pilot-yes.svg"
+    actionTaken:
+      id: actionTaken
+      type: actionTaken
+      label: Action Taken
+      valuePath: actionTaken
+      map:
+        Blocked:
+          color: "#FFA2A2"
+          logo: "https://staticcontent1.blob.core.windows.net/finding-icons/Blocked.svg"
+        Resolved:
+          color: "#A2FFF4"
+          logo: "https://staticcontent1.blob.core.windows.net/finding-icons/Resolved.svg"
+        "User Interaction":
+          color: "#EBEDB2"
+          logo: "https://staticcontent1.blob.core.windows.net/finding-icons/User Interaction Initiated.svg"
+        Triage:
+          color: "#F5BAFD"
+          logo: "https://staticcontent1.blob.core.windows.net/finding-icons/Triaging.svg"
+        Benign:
+          color: "#A2EDFF"
+          logo: "https://staticcontent1.blob.core.windows.net/finding-icons/Benign.svg"
+        "Escalated as Issue":
+          color: "#7C90FF"
+          logo: "https://staticcontent1.blob.core.windows.net/finding-icons/Escalated as Issue.svg"
+        "Insecure Behaviour":
+          color: "#FFA355"
+          logo: "https://staticcontent1.blob.core.windows.net/finding-icons/Insecure Human Behavior.svg"
+      sortable: false
+      order: 11
+    # dots:
+    #   show: true
+    #   order: 12
+    #   options:
+    #     - id: c0c4fc68-e2e3-410c-9a3b-8b38a8487193
+    #       label: Approve
+    #     - id: 305626d2-0399-41af-8572-dd4b6cbaa53f
+    #       label: Resolve
+    #     - id: 5ecbba05-17ae-4de8-8542-0ff47c2b2ee1
+    #       label: Escalate
+
+    severity:
+      order: 0
+      id: severity
+      label: ""
+      type: colorMap
+      valuePath: severity
+      map:
+        "VERYLOW": "#98FB98"
+        "LOW": "#F0E68C"
+        "MODERATE": "#FFE200"
+        "HIGH": "#FF7A5A"
+        "VERYHIGH": "#E01A01"
+    search:
+      id: search
+      placeholder: "Enter keywords and press enter to search for findings, users or behaviors"
+
+pagination_query:
+  query: "CALL {
+    MATCH (u:USER {subscriber: $subscriber, tenant: $tenant})-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+    MATCH (e)-[]->(acc:ACCOUNT)
+    MATCH (acc)-[:HAS_FINDING]->(f:FINDING)
+    RETURN u, f AS finding, 'open' AS status, acc
+
+    UNION
+
+    MATCH (u:USER {subscriber: $subscriber, tenant: $tenant})-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+    MATCH (e)-[]->(acc:ACCOUNT)
+    MATCH (acc)-[:HAS_FINDING]->(fh:FINDING_HISTORY)
+    RETURN u, fh AS finding, 'closed' AS status, acc
+    }
+
+    WITH u, finding, status, acc
+    MATCH (r:RULE)-[:EVALUATED_TO]->(finding)
+    MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)-[:BELONGS_TO]->(p:POSTURE)
+    OPTIONAL MATCH (finding)-[:HAS_ACTION]->(action:ACTION)
+    OPTIONAL MATCH (acc)-[:USING_APP]->(application:APPLICATION)
+
+    WITH u, finding, status, acc, b, p, action, application, r
+    WHERE application.id_ is not null
+    AND (toLower(u.displayName) =~ '.*{searchText}.*'
+    OR toLower(finding.name) =~ '.*{searchText}.*'
+    OR toLower(b.name) =~ '.*{searchText}.*')
+    {placeholder}
+
+    RETURN count(DISTINCT finding) as totalCount"
+  dataSourceType: knowledgegraph
+table_widget:
+  - id: accounts
+    name: Accounts
+    template: FindingsAccount
+    enabled: true
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      id: $id
+    queryFilters: []
+    query:
+      "MATCH (user:USER)-[]-(email:EMAIL)-[]-(account:ACCOUNT)-[:HAS_FINDING]-(finding {id: $id})
+      OPTIONAL MATCH (account)-[]-(app:APPLICATION) WHERE app.name IS NOT NULL
+      OPTIONAL MATCH (user)-[:BELONGS_TO]->(group {userDefined: true})
+      OPTIONAL MATCH (user)-[:HAS_MANAGER]->(manager:USER)
+      OPTIONAL MATCH (user)-[:HAS_DEPARTMENT]->(department)
+      OPTIONAL MATCH (user)-[:LOCATED_AT]->(location)
+      RETURN user.id as user_id, user.displayName as username, user.subscriber as subscriber,
+      user.tenant as tenant, user.profilePicUrl as profile_pic, user.mail as user_email,
+      CASE WHEN SIZE(COLLECT(DISTINCT group)) = 0 THEN [] ELSE COLLECT(DISTINCT { group_name: group.displayName, group_severity: group.severity }) END as groups,
+      manager.displayName as manager, department.name as department, location.id as location,
+      app.name as application_name, app.logoUrl as application_logo, finding.id as finding_id,
+      finding.name as finding_name, finding.status as finding_status, finding.source as finding_source,
+      finding.startTime as finding_ts,finding.startTime AS firstSeen, finding.generationTime AS lastSeen"
+  - id: final_outcome
+    name: ""
+    label: Widget
+    template: status
+    enabled: true
+    type: polar_graph
+    className: col-span-3
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      id : $id
+    queryFilters: []
+    query: "
+        CALL {
+          MATCH (user:USER{subscriber : $subscriber , tenant: $tenant})-[]-(email:EMAIL)-[]-(account:ACCOUNT)-[]-(finding:FINDING)
+          OPTIONAL MATCH (finding)-[:TRIGGERED]-(action:ACTION)
+          OPTIONAL MATCH (account)-[:USING_APP]-(app:APPLICATION)
+          OPTIONAL MATCH (finding)-[:RELATED_TO]->(issue:ISSUE)
+          RETURN app, finding, action, issue
+          UNION
+          MATCH (user:USER)-[]-(email:EMAIL)-[]-(account:ACCOUNT)-[]-(finding_history:FINDING_HISTORY)
+          OPTIONAL MATCH (finding_history)-[:TRIGGERED]-(action:ACTION)
+          OPTIONAL MATCH (account)-[:USING_APP]-(app:APPLICATION)
+          OPTIONAL MATCH (finding_history)-[:RELATED_TO]->(issue:ISSUE)
+          RETURN app, finding_history AS finding, action, issue
+        }
+      WITH app, finding, action, issue
+      WHERE finding.id = $id AND action.name IN ['escalate_to_issue', 'close_alert_as_benign', 'resolve_incident', 'block_human_action']
+      WITH app, finding, issue, action
+      RETURN
+          finding.id as findingId,
+          finding.userAction as userAction,
+          action.name as actionTaken,
+          issue.id as issueId "
+  - id: finding_details
+    name: ""
+    label: Widget
+    template: status
+    enabled: true
+    type: polar_graph
+    className: col-span-3
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      id : $id
+    queryFilters: []
+    query: 
+      "CALL {
+            MATCH (vendor_app:APPLICATION)-[]-(:INSTANCE)-[]-(user:USER)-[]-(email:EMAIL)-[]-(account:ACCOUNT)-[]-(finding:FINDING)
+            OPTIONAL MATCH (finding)-[has_artifact:HAS_ARTIFACT]-(artifact)
+            WHERE has_artifact.displayInUI IS NOT NULL AND toLower(has_artifact.displayInUI) = 'enabled'
+            RETURN vendor_app, finding, artifact, has_artifact
+
+            UNION
+
+            MATCH (vendor_app:APPLICATION)-[]-(:INSTANCE)-[]-(user:USER)-[]-(email:EMAIL)-[]-(account:ACCOUNT)-[]-(finding_history:FINDING_HISTORY)
+            OPTIONAL MATCH (finding_history)-[has_artifact:HAS_ARTIFACT]-(artifact)
+            WHERE has_artifact.displayInUI IS NOT NULL AND toLower(has_artifact.displayInUI) = 'enabled'
+            RETURN vendor_app, finding_history AS finding, artifact, has_artifact
+        }
+
+        WITH vendor_app, finding, artifact, has_artifact
+        WHERE finding.id = $id
+
+        WITH vendor_app, COLLECT(DISTINCT finding) AS findings, 
+            COLLECT(DISTINCT {
+                artifact_value: has_artifact.artifactValue,
+                artifact_type: has_artifact.artifactKey
+            }) AS artifacts, finding
+
+        RETURN 
+        CASE
+            WHEN SIZE(artifacts) > 0 THEN artifacts
+            ELSE []
+        END AS finding_artifacts, finding.promptChanged AS promptChanged"
+  # - id: findings_graph
+  #   name: ""
+  #   label: Widget
+  #   template: status
+  #   enabled: true
+  #   type: polar_graph
+  #   className: col-span-3
+  #   allowed_params: true
+  #   dataSourceType: knowledgegraph
+  #   input_params:
+  #     behaviorName : $behaviorName
+  #   queryFilters: []
+  #   query: 
+  #     "
+
+  #     "
+  - id: user_interaction_identity_protection
+    name: Identity Protection
+    label: Widget
+    template: 
+    enabled: true
+    type: ""
+    className:
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      id: $id
+    queryFilters: []
+    query:
+      "MATCH (finding:FINDING {id: $id})
+      OPTIONAL MATCH (finding)-[:TRIGGERED]-(action:ACTION)
+      WITH finding, collect(action) AS actions
+      UNWIND actions AS action
+      RETURN
+          COALESCE(action.resolutionChannel, finding.resolutionChannel) AS resolutionChannel,
+          COALESCE(action.mode, finding.mode) AS mode,
+          action.userJustification AS userMessage,
+          action.userJustificationTime AS userMessageTime,
+          action.summary AS summary,
+          action.summaryTime AS quilrMessageTime,
+          action.name AS actionName,
+          action.summary_description AS summaryDescription
+      ORDER BY quilrMessageTime"
+  - id: user_interaction
+    name: User Interaction
+    label: Widget
+    template: interaction
+    enabled: true
+    type: polar_graph
+    className: col-span-3
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      id : $id
+    queryFilters: []
+    query: "
+      CALL {
+          MATCH (user:USER{subscriber : $subscriber , tenant: $tenant})-[]-(email:EMAIL)-[]-(account:ACCOUNT)-[]-(finding:FINDING)
+          OPTIONAL MATCH (finding)-[:TRIGGERED]-(action:ACTION)
+          OPTIONAL MATCH (account)-[:USING_APP]-(app:APPLICATION)
+          OPTIONAL MATCH (finding)-[:RELATED_TO]->(issue:ISSUE)
+          RETURN app, finding, action, issue
+          UNION
+          MATCH (user:USER)-[]-(email:EMAIL)-[]-(account:ACCOUNT)-[]-(finding_history:FINDING_HISTORY)
+          OPTIONAL MATCH (finding_history)-[:TRIGGERED]-(action:ACTION)
+          OPTIONAL MATCH (account)-[:USING_APP]-(app:APPLICATION)
+          OPTIONAL MATCH (finding_history)-[:RELATED_TO]->(issue:ISSUE)
+          RETURN app, finding_history AS finding, action, issue
+      }
+      WITH app, finding, collect(action) AS actions, issue
+      WHERE finding.id = $id
+      WITH app, finding, issue,
+          REDUCE(result = null, action IN actions | CASE WHEN toLower(action.name) = 'user_interaction' THEN action ELSE result END) AS userInteractionAction,
+          actions
+      RETURN
+          finding.quilrMessage AS quilrMessage,
+          finding.userAction AS userAction,
+          userInteractionAction.userJustification AS userJustification,
+          userInteractionAction.businessJustificationSetting AS businessJustificationSetting,
+          finding.mode AS mode,
+          finding.promptChanged AS promptChanged,
+          app.name as app,
+          issue.id AS issueId,
+          [action IN actions | action.name] AS actionNames"
+  - id: behavior_trend_chart
+    input_params: 
+      behaviorName : $behaviorName
+      queryFilter : columnName
+      userid : $userid
+    name: Beahvior Trend Chart
+    label: Widget
+    template: dummy
+    enabled: true
+    type: polar_graph
+    className: col-span-3
+    allowed_params: true
+    dataSourceType: datalake
+    queryFilters: 
+      - id: columnName
+        type: replace
+        key: $behaviorName
+        toUpper: true
+    query: "
+      WITH parameters AS (
+              SELECT
+                  $userid AS userid,
+                  $subscriber AS subscriber,
+                  $tenant AS tenant
+          ),
+          time_range AS (
+              SELECT
+                  MIN(DATE_FROM_PARTS(year, monthofyear, dayofmonth)) AS min_time,
+                  MAX(DATE_FROM_PARTS(year, monthofyear, dayofmonth)) AS max_time
+              FROM 
+                  kafka_connect.snowdata_schema.behaviourprofile bp
+                  JOIN parameters p
+                  ON bp.subscriber = p.subscriber
+                  AND bp.tenant = p.tenant
+                  AND bp.userid = p.userid
+          ),
+          interval_calc AS (
+              SELECT
+                  DATEDIFF(millisecond, min_time, max_time) AS time_diff,
+                  CASE
+                      WHEN DATEDIFF(millisecond, min_time, max_time) <= 86400000 THEN 3600000 
+                      WHEN DATEDIFF(millisecond, min_time, max_time) <= 604800000 THEN 86400000
+                      WHEN DATEDIFF(millisecond, min_time, max_time) <= 2592000000 THEN 604800000
+                      WHEN DATEDIFF(millisecond, min_time, max_time) <= 31536000000 THEN 2592000000
+                      ELSE 31536000000
+                  END AS interval,
+                  min_time,
+                  max_time
+              FROM time_range
+          ),
+          findings_data AS (
+              SELECT
+                  DATE_FROM_PARTS(bp.year, bp.monthofyear, bp.dayofmonth) AS generation_time,
+                  COUNT(CASE WHEN $behaviorName IS NOT NULL THEN 1 END) AS finding_count
+              FROM 
+                  kafka_connect.snowdata_schema.behaviourprofile bp
+                  JOIN parameters p
+                  ON bp.USERID = p.userid
+                  AND bp.subscriber = p.subscriber
+                  AND bp.tenant = p.tenant
+                  JOIN time_range tr
+                  ON DATE_FROM_PARTS(bp.year, bp.monthofyear, bp.dayofmonth) BETWEEN tr.min_time AND tr.max_time
+              GROUP BY 
+                  DATE_FROM_PARTS(bp.year, bp.monthofyear, bp.dayofmonth)
+          ),
+          buckets AS (
+              SELECT
+                  CASE
+                      WHEN interval_calc.interval = 31536000000 THEN 
+                          DATE_TRUNC('YEAR', findings_data.generation_time)
+                      ELSE
+                          DATEADD(millisecond, 
+                              FLOOR(DATEDIFF(millisecond, interval_calc.min_time, findings_data.generation_time) / interval_calc.interval) * interval_calc.interval, 
+                              interval_calc.min_time)
+                  END AS bucket,
+                  SUM(findings_data.finding_count) AS total_count
+              FROM 
+                  findings_data
+                  JOIN interval_calc
+              GROUP BY 
+                  bucket
+          )
+          SELECT
+              OBJECT_CONSTRUCT(
+                  'timestamp', DATE_PART(epoch_millisecond, bucket),
+                  'count', total_count
+              ) AS trend
+          FROM buckets
+          ORDER BY bucket "
+  - id: human_technical_details
+    name: human_technical_details
+    template: "a"
+    enabled: true
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    queryFilters:
+      - id: orgwuhiwourhgouh2ohoiwoj24525
+        name: Time Filter
+        type: multiselect
+        options: null
+    input_params:
+      userId: $userId
+    query: "MATCH (user:USER)-[]-(persona:PERSONA) WHERE user.id = $userId RETURN persona.devices[-1] as device_details, persona.locations[-1] as location_details"
+  - id: human_departments
+    name: human_departments
+    enabled: true
+    template: "a"
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    queryFilters:
+      - id: orgwuhiwourhgouh2ohoiwoj24525
+        name: Time Filter
+        type: multiselect
+        options: null
+    input_params:
+      userId: $userId
+    query: "MATCH (u:USER)-[r:HAS_DEPARTMENT]->(d:DEPARTMENT)
+      WHERE d.score IS NOT NULL
+      AND u.score IS NOT NULL
+      AND u.id = $userId
+      RETURN
+      d.name AS departmentName,
+      u.engagement_profile_metric AS Engagement,
+      u.performance_metric AS Performance,
+      u.risk_metric AS Risk,
+      u.psychological_engagement_factors_metric AS Psychological,
+      u.behavioral_profile_metric AS Behavior,
+      toInteger(d.score) AS department_risk_score,
+      toInteger(u.score) AS user_risk_score"
+  - id: human_chart
+    name: human_chart
+    template: "a"
+    enabled: true
+    allowed_params: true
+    dataSourceType: datalake
+    queryFilters:
+      - id: orgwuhiwourhgouh2ohoiwoj24525
+        name: Time Filter
+        type: multiselect
+        options: null
+    input_params:
+      username: $username
+      endtime: $endtime
+    query: "WITH parameters AS (
+          SELECT
+              $subscriber AS subscriber,
+              $tenant AS tenant,
+              $username AS username,
+              $endtime AS endtime,
+              DATEADD(day, -90, TO_DATE(TO_TIMESTAMP($endtime / 1000))) AS start_date,
+              TO_DATE(TO_TIMESTAMP($endtime / 1000)) AS end_date
+      ),
+      date_range AS (
+          SELECT
+              uss.username,
+              uss.risk_score,
+              DATE_FROM_PARTS(uss.year, uss.monthofyear, uss.dayofmonth) AS date
+          FROM
+              kafka_connect.snowdata_schema.userscoresnapshot uss
+          CROSS JOIN parameters p
+          WHERE
+              uss.subscriber = p.subscriber
+              AND uss.tenant = p.tenant
+              AND DATE_FROM_PARTS(uss.year, uss.monthofyear, uss.dayofmonth) BETWEEN p.start_date AND p.end_date
+              AND uss.username = p.username
+              AND uss.risk_score IS NOT NULL
+      ),
+      formatted_risk_trend AS (
+          SELECT
+              dr.username,
+              CAST(dr.risk_score AS NUMBER(10, 2)) AS risk_score,
+              (DATEDIFF(second, '1970-01-01', dr.date) * 1000) AS epoch_millis
+          FROM
+              date_range dr
+      ),
+      ordered_risk_trend AS (
+          SELECT
+              frt.username,
+              OBJECT_CONSTRUCT('date', frt.epoch_millis, 'risk_score', frt.risk_score) AS risk_point
+          FROM
+              formatted_risk_trend frt
+          ORDER BY
+              frt.epoch_millis
+      ),
+      user_risk_trend AS (
+          SELECT
+              ort.username,
+              ARRAY_AGG(ort.risk_point) AS risk_trend
+          FROM
+              ordered_risk_trend ort
+          GROUP BY
+              ort.username
+      )
+      SELECT
+          urt.username,
+          urt.risk_trend
+      FROM
+          user_risk_trend urt
+      ORDER BY
+          urt.username"
+  - id: human_postures
+    name: HumanPostures
+    template: "a"
+    allowed_params: true
+    enabled: true
+    dataSourceType: datalake
+    queryFilters:
+      - id: orgwuhiwourhgouh2ohoiwoj24525
+        name: Time Filter
+        type: multiselect
+        options: null
+    input_params:
+      userId: $userId
+    query: "WITH max_risk_index AS (
+      SELECT
+          agg_subtype_name AS name,
+          MAX(TO_NUMBER(ROUND((alert_percentile * 4) + 1))) AS risk_index
+      FROM
+          kafka_connect.snowdata_schema.postureprofileaggregated
+      WHERE
+          subscriber = $subscriber
+          AND tenant = $tenant
+          AND agg_type = 'userid'
+          AND agg_subtype = 'posture'
+          and agg_type_name = $userId
+      GROUP BY
+          agg_subtype_name
+      )
+      SELECT
+          name,
+          risk_index
+      FROM
+          max_risk_index
+      ORDER BY
+          name"
+  - id: human_risks
+    name: Human Risks
+    template: "a"
+    enabled: true
+    allowed_params: true
+    dataSourceType: datalake
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    input_params:
+      userId: $userId
+    query: "WITH parameters AS (
+          SELECT
+              $subscriber AS subscriber,
+              $tenant AS tenant,
+              $userId AS userid,
+              $endtime AS endtime,
+              DATEADD(month, -3, TO_DATE(TO_TIMESTAMP($endtime / 1000))) AS start_date,
+              TO_DATE(TO_TIMESTAMP($endtime / 1000)) AS end_date
+      ),
+      risk_scores AS (
+          SELECT
+              uss.username,
+              DATE_FROM_PARTS(uss.year, uss.monthofyear, uss.dayofmonth) AS date,
+              uss.risk_score
+          FROM
+              kafka_connect.snowdata_schema.userscoresnapshot uss
+          CROSS JOIN parameters p
+          WHERE
+              uss.subscriber = p.subscriber
+              AND uss.tenant = p.tenant
+              AND uss.USERID = p.userid
+              AND DATE_FROM_PARTS(uss.year, uss.monthofyear, uss.dayofmonth) BETWEEN p.start_date AND p.end_date
+              AND uss.risk_score IS NOT NULL
+      ),
+      first_last_scores AS (
+          SELECT
+              (SELECT risk_score FROM risk_scores WHERE date = (SELECT MIN(date) FROM risk_scores)) AS first_score,
+              (SELECT risk_score FROM risk_scores WHERE date = (SELECT MAX(date) FROM risk_scores)) AS last_score
+      )
+      SELECT
+          CASE
+              WHEN (SELECT COUNT(*) FROM risk_scores) = 0 THEN 0
+              WHEN first_score = last_score THEN 0
+              ELSE ROUND(((first_score - last_score) / NULLIF(first_score, 0)) * 100, 0)
+          END AS risk_score_changed_percentage
+      FROM
+          first_last_scores"
+  - id: summary
+    name: Summary
+    template: FindingsSummary
+    enabled: true
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      id: $id
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: "CALL {
+      MATCH (vendor_app:APPLICATION)-[]-(:INSTANCE)-[]-(user:USER)-[]-(email:EMAIL)-[]-(account:ACCOUNT)-[]-(base_finding:FINDING)
+      OPTIONAL MATCH (base_finding)-[:TRIGGERED]-(base_action:ACTION)
+      OPTIONAL MATCH (base_finding)-[:RELATED_TO]-(issue)
+      OPTIONAL MATCH (issue)<-[:RELATED_TO]-(finding)
+      OPTIONAL MATCH (issue)-[:TRIGGERED]-(action:ACTION)
+      OPTIONAL MATCH (finding)-[]-(rule:RULE)-[]-(behaviour:BEHAVIOUR)-[]-(posture:POSTURE)
+      OPTIONAL MATCH (account)-[:USING_APP]-(app:APPLICATION)
+      OPTIONAL MATCH (finding)-[:HAS_ARTIFACT]-(artifact)
+      WHERE artifact.displayInUI IS NOT NULL AND toLower(artifact.displayInUI) = 'enabled'
+      RETURN vendor_app, app, base_finding, finding, issue, rule, behaviour, posture, base_action, action, artifact
+      UNION
+      MATCH (vendor_app:APPLICATION)-[]-(:INSTANCE)-[]-(user:USER)-[]-(email:EMAIL)-[]-(account:ACCOUNT)-[]-(base_finding:FINDING_HISTORY)
+      OPTIONAL MATCH (base_finding)-[:TRIGGERED]-(base_action:ACTION)
+      OPTIONAL MATCH (base_finding)-[:RELATED_TO]-(issue)
+      OPTIONAL MATCH (issue)<-[:RELATED_TO]-(finding)
+      OPTIONAL MATCH (issue)-[:TRIGGERED]-(action:ACTION)
+      OPTIONAL MATCH (finding)-[]-(rule:RULE)-[]-(behaviour:BEHAVIOUR)-[]-(posture:POSTURE)
+      OPTIONAL MATCH (account)-[:USING_APP]-(app:APPLICATION)
+      OPTIONAL MATCH (finding)-[:HAS_ARTIFACT]-(artifact)
+      WHERE artifact.displayInUI IS NOT NULL AND toLower(artifact.displayInUI) = 'enabled'
+      RETURN vendor_app, app, base_finding, finding, issue, rule, behaviour, posture, base_action, action, artifact
+      }
+      WITH vendor_app, app, base_finding, finding, issue, rule, behaviour, posture, base_action, action, artifact
+      WHERE base_finding.id = $id
+      WITH vendor_app, app, COLLECT(DISTINCT base_finding)+COLLECT(DISTINCT finding) as findings, issue, COLLECT(DISTINCT rule) as rules, COLLECT(DISTINCT behaviour) as behaviours, COLLECT(DISTINCT posture) as postures, COLLECT(DISTINCT base_action)+COLLECT(DISTINCT action) as actions, COLLECT(DISTINCT artifact) as artifacts
+      UNWIND findings as finding
+      UNWIND (CASE
+      WHEN SIZE(rules) > 0 THEN rules
+      ELSE [NULL]
+      END) as rule
+      UNWIND (CASE
+      WHEN SIZE(behaviours) > 0 THEN behaviours
+      ELSE [NULL]
+      END) as behaviour
+      UNWIND (CASE
+      WHEN SIZE(postures) > 0 THEN postures
+      ELSE [NULL]
+      END) as posture
+      UNWIND (CASE
+      WHEN SIZE(actions) > 0 THEN actions
+      ELSE [NULL]
+      END) as action
+      UNWIND (CASE
+      WHEN SIZE(artifacts) > 0 THEN artifacts
+      ELSE [NULL]
+      END) as artifact
+      WITH vendor_app, app, finding, issue, rule, behaviour, posture, action,
+      CASE
+      WHEN SIZE(COLLECT(DISTINCT artifact)) > 0 THEN
+      COLLECT(DISTINCT {
+      artifact_key : artifact.artifactKey,
+      artifact_value: artifact.artifactValue,
+      artifact_type: labels(artifact)[0]
+      })
+      ELSE []
+      END as finding_artifacts
+      WITH
+      {
+      incident_id: COALESCE(MAX(issue.id), MAX(finding.id)),
+      incident_type: CASE WHEN MAX(issue) IS NOT NULL THEN 'issue' ELSE 'finding' END,
+      incident_status: COALESCE(MAX(issue.status), MAX(finding.status)),
+      incident_source: COALESCE(MAX(issue.source), MAX(finding.source)),
+      incident_ts: COALESCE(MAX(issue.generationTime), MAX(finding.generationTime)),
+      summary_title: COALESCE(MAX(issue.summary_title), MAX(finding.summary_title)),
+      summary_description: COALESCE(MAX(issue.summary_description), MAX(finding.summary_description)),
+      incident_description: COALESCE(MAX(issue.incident_details), MAX(finding.incident_details)),
+      incident_severity: COALESCE(MAX(issue.severity), MAX(finding.severity)),
+      vendor_app_name: MAX(vendor_app.name),
+      vendor_app_logo_url: MAX(vendor_app.logoUrl)
+      } as overall_summary,
+      COLLECT(DISTINCT {
+      event_id: finding.id,
+      event_name: finding.name,
+      event_type: 'finding',
+      event_ts: finding.generationTime,
+      summary_title: finding.name,
+      summary_description: finding.incident_details,
+      event_severity: finding.severity,
+      artifact_details: finding_artifacts,
+      behaviour: behaviour.name,
+      posture: posture.name,
+      app_name: app.name,
+      app_logo_url: app.logoUrl,
+      firstSeen: finding.startTime,
+      lastSeen: finding.generationTime
+      }) +
+      COLLECT(DISTINCT
+      CASE WHEN action.name <> 'create_insecure_human_behavior_object' THEN
+      {
+      event_id: action.id,
+      event_name: action.name,
+      event_type: 'action',
+      event_ts: action.timestamp,
+      event_channel: action.resolutionChannel,
+      interaction_mode:
+      CASE WHEN toLower(action.name) in ['user interaction', 'user_interaction'] THEN
+      CASE WHEN action.mode IS NULL THEN NULL ELSE action.mode END
+      ELSE NULL
+      END,
+      prompt_message:
+      CASE WHEN toLower(action.name) in ['user interaction', 'user_interaction'] THEN
+      CASE WHEN action.summary IS NULL THEN NULL ELSE action.summary END
+      ELSE NULL
+      END,
+      prompt_message_time: action.summaryTime,
+      summary_title: action.summary_title,
+      summary_description: action.summary_description,
+      awaiting_user_response:
+      CASE WHEN toLower(action.name) in ['user interaction', 'user_interaction'] THEN
+      CASE WHEN action.userJustification IS NULL THEN true ELSE false END
+      ELSE NULL
+      END,
+      user_response:
+      CASE WHEN toLower(action.name) in ['user interaction', 'user_interaction'] THEN
+      CASE WHEN action.userJustification IS NULL THEN NULL ELSE action.userJustification END
+      ELSE NULL
+      END,
+      user_response_time: action.userJustificationTime,
+      behaviour: behaviour.name,
+      posture: posture.name
+      }
+      ELSE NULL
+      END) as events_timeline,
+      COLLECT(DISTINCT
+      CASE WHEN action.name = 'create_insecure_human_behavior_object' THEN
+      {
+      event_name: action.name,
+      event_type: 'action',
+      behaviour: behaviour.name,
+      posture: posture.name
+      }
+      ELSE NULL
+      END) as insecure_behaviours
+      RETURN overall_summary, apoc.coll.sortMaps(events_timeline, '^event_ts') as events_timeline, insecure_behaviours"

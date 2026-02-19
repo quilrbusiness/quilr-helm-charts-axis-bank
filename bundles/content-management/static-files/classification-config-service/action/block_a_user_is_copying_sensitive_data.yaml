@@ -1,0 +1,21 @@
+id: 6f3b2a1c-5d4e-4e6f-9a70-1b2c3d4e5040
+version: 1.2
+code: ACT_241
+name: Block user copying sensitive data
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: templatized
+    message_template: block-copying-sensitive-data
+    execution_type: tool
+    execution_module: send_templated_user_message
+    browser_action: Block
+    blocked: false
+tags:
+  - UC040
+behavior:
+  - BID_200
+createdon: 1755648000000
+updatedon: 1758018676721

@@ -1,0 +1,18 @@
+name: Justify using a breached SaaS app
+type: message
+channel: Browser
+content:
+  header: "Hey there!"
+  title: |
+    It looks like you're about to use a breached SaaS app.
+    <br />We just need a quick justification to make sure everything&#39;s good to go. Feel free to share why you want to use it!
+    
+    <br />Your actions matter — help keep your organization safe!
+  description: ""
+  acknowledgedButtons:
+    - id: 9bf310b1-579a-46b9-904d-6ccad5c00cc8
+      isPrimary: true
+      name: "Acknowledge warning"
+      whitelist: false
+rendered_content_type: application/json
+is_active: true

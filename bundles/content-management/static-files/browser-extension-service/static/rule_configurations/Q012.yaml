@@ -1,0 +1,22 @@
+datatype: DICT
+defaultValue:
+  message: |-
+    This is a data sensitive app. Please change this password - it was recently found in a breach. This will only take 2 mins.
+  mode: Ask
+entityDescription: |-
+  Login with a compromised password on centralized login or authentication services such as IdP or SSO.
+entityId: Q012
+entityMeta:
+  behavior: Compromised Password
+  category: ISPM
+  posture: Password Hygiene
+  check_id:
+    form_check_ids:
+      - CH-FORM-LOGIN
+      - CH-FORM-WEAK-PASSWORD
+      - CH-FORM-COMPROMISED-PASSWORD
+      - CH-APP-IDP
+entityName: Login with Compromised Password on IDP/SSO
+entityType: rule
+isDisabled: false
+isModifiable: true

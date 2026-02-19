@@ -1,0 +1,31 @@
+id: cc797128-943b-450b-9565-79784896f984
+name: Syslog
+description: Integrate syslog with Quilr to send Quilr alerts to syslog server.
+connection_config_id: 54f35d70-f568-4ca2-9005-236bdd41917f
+icon_url: https://staticcontent1.blob.core.windows.net/static-images-company-logos/sylog.png
+login_enabled: false
+version: 2025.10.31
+updated_at: 1726462800000
+parent_org:
+  name: syslog
+  description: Syslog integration with SIEM
+  icon_url: https://staticcontent1.blob.core.windows.net/static-images-company-logos/sylog.png
+category: SIEM
+metadata:
+  type: integrations
+  product: Syslog
+  subProduct: /v1.0
+  vendor: SIEM
+internal:
+  content_ids:
+    env_var: ""
+    default_value: "00000000-0000-0000-0000-000000000000"
+inputSchema:
+  - id: name
+    type: string
+    label: Instance Name
+    description: A custom name given by the user to identify the instance.
+    options: []
+    default: []
+outputSchema: {}
+is_active: true

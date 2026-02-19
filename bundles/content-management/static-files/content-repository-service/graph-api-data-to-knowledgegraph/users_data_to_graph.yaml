@@ -1,0 +1,389 @@
+id: 4eef9785-61d0-414a-a466-214ee2979bc2
+name: User Graph Data To Knowledgegraph
+type: ingestion-to-graph
+version: 1.1.16
+schedule: 1h
+historicalrecordduration: 8h
+lambda_config:
+  batch_size : 20
+source: 
+  type: query
+  config: 
+    query: "SELECT 
+                  QUILR_MATCHED_APP_ID, USER_ID, COALESCE ( USER_DISPLAYNAME , CONCAT (USER_FIRSTNAME , ' ' ,  USER_LASTNAME) ) AS USER_DISPLAYNAME, USER_FIRSTNAME,
+                  USER_JOBTITLE, USER_EMAIL_PRIMARY, USER_MOBILE, USER_OFFICELOCATION, 
+                  USER_PREFERREDLANGUAGE, USER_LASTNAME, COALESCE(USER_PRINCIPALNAME, USER_EMAIL_PRIMARY )::text AS USER_PRINCIPALNAME, 
+                  USER_ACCOUNTTYPE, USER_SID, USER_PRIMARYPHONE, USER_DEPARTMENT, USER_COUNTRY, USER_STATE, USER_CITY, USER_TYPE, USER_ORGANIZATION, USER_STATUS, 
+                  QUILR_SUBSCRIBERID, QUILR_INTEGRATION_VENDOR_NAME, QUILR_TENANTID, QUILR_INTEGRATION_APPLICATION_RELATION, QUILR_INTEGRATION_INSTANCEID, 
+                  USER_MANAGERNAME, APPLICATION_IDPPROVIDER, USER_MANAGEREMAIL, USER_REGISTRATION_DETAILS , 
+                  COALESCE(USER_REGISTRATION_DETAILS['isAdmin'] , 'false')::boolean AS ADMIN_STATUS , USER_HIREDATE, USER_EMAIL_SECONDARY, USER_MANAGERID, 
+                  COALESCE(USER_REGISTRATION_DETAILS['isMfaRegistered'] , 'false')::boolean AS MFA_REG_STATUS, USER_GROUP_NAMES, USER_ROLES, USER_CREATIONTIME,
+                  DELETED_USER_GROUP_MAPPINGS, DELETED_USER_ROLES_MAPPINGS, DELETED_USER_MAPPING, USER_ISADMIN, USER_ISDELEGATEDADMIN, USER_LASTLOGINTIME, USER_AGREEDTERMS, 
+                  USER_SUSPENDED, USER_ARCHIVED, USER_MOBILETYPE, USER_CUSTOMERID, USER_IPWHITELISTED, USER_ORGUNITPATH, USER_ISMAILBOXSETUP, USER_ISENROLLEDIN2SV, USER_ISENFORCEDIN2SV, USER_INCLUDEINGLOBALADDRESSLIST,
+                  USER_CHANGEDPASSWORDATNEXTLOGIN                 
+            FROM KAFKA_CONNECT.SNOWDATA_SCHEMA.TRANSFORMEDDATA 
+            WHERE QUILR_INTEGRATION_TYPE = 'users' 
+              AND RECORD_METADATA['CreateTime']::bigint > $starttime 
+              AND RECORD_METADATA['CreateTime']::bigint < $endtime"
+    type: datalake
+    limit: 
+    offset: 0
+destination: 
+  type: stream
+  topic: knowledgeGraph
+config: 
+  nodes: 
+    tenant: 
+      id: QUILR_TENANTID
+      type: TENANT
+      immutableproperties:
+        creationTime: TIMESTAMP
+    instance: 
+      id: QUILR_INTEGRATION_INSTANCEID
+      type: INSTANCE
+      immutableproperties: 
+        creationTime: TIMESTAMP
+    idp_application: 
+      context: global
+      type: APPLICATION
+      merge:
+        property: id_
+        attribute: QUILR_MATCHED_APP_ID
+      immutableproperties: 
+        domain: APPLICATION_IDPPROVIDER
+        newApp: newApp
+        globalSyncAllowed: globalSyncAllowed
+    account_main: 
+      id: vendor_and_email
+      type: ACCOUNT
+      properties: 
+        email: USER_PRINCIPALNAME
+        appName: QUILR_INTEGRATION_VENDOR_NAME
+      immutableproperties:
+        creationTime: TIMESTAMP
+    role:
+      id: $.USER_ROLES.roleTemplateId
+      type: ROLE
+      properties:
+        rolename: $.USER_ROLES.displayName
+        roledescription: $.USER_ROLES.description
+        roleassignmenttype: $.USER_ROLES.assignmentType
+        isroleprivileged: $.USER_ROLES.role_definition.isPrivileged
+        roleenabled: $.USER_ROLES.role_definition.isEnabled
+        inbuiltrole: $.USER_ROLES.role_definition.isBuiltIn
+    user: 
+      id: USER_EMAIL_PRIMARY
+      type: USER
+      properties: 
+        userid: USER_ID
+        displayName: USER_DISPLAYNAME
+        givenName: USER_FIRSTNAME
+        middleName: USER_MIDDLENAME
+        orgCode: USER_ORGANIZATIONCODE
+        empType: USER_EMPLOYMENTTYPE
+        workFrom: USER_WORKFROM
+        jobTitle: USER_JOBTITLE
+        mail: USER_EMAIL_PRIMARY
+        mobilePhone: USER_MOBILE
+        preferredLanguage: USER_PREFERREDLANGUAGE
+        signInActivity: USER_LASTLOGINTIME
+        surname: USER_LASTNAME
+        userPrincipalName: USER_PRINCIPALNAME
+        userType: USER_ACCOUNTTYPE
+        securityIdentifier: USER_SID
+        businessPhones: USER_PRIMARYPHONE
+        street: USER_STREET
+        country: USER_COUNTRY
+        zipCode: USER_ZIPCODE
+        city: USER_CITY
+        employeeHireDate: USER_HIREDATE
+        userCreationTime: USER_CREATIONTIME
+        state: USER_STATE
+        employeeType: USER_TYPE
+        companyName: USER_ORGANIZATION
+        accountEnabled: USER_STATUS
+        terminationDate: USER_TERMINATIONDATE
+        profilePicUrl : profilePic
+        suspensionReason: USER_SUSPENDREASON
+        userIsadmin: USER_ISADMIN
+        userDelegationadmin: USER_ISDELEGATEDADMIN
+        userLastLoginTime: USER_LASTLOGINTIME
+        userAgreedterms: USER_AGREEDTERMS
+        userSuspended: USER_SUSPENDED
+        userArchived: USER_ARCHIVED
+        usermobiletype: USER_MOBILETYPE
+        userCustomerID: USER_CUSTOMERID
+        userIsMailboxSetup: USER_ISMAILBOXSETUP
+        userIs2svEnrolled: USER_ISENROLLEDIN2SV
+        userIsforcedIn2sv: USER_ISENFORCEDIN2SV
+        userIncludeInGlobalAddressList: USER_INCLUDEINGLOBALADDRESSLIST
+        userChangedPasswordAtNextLogin: USER_CHANGEDPASSWORDATNEXTLOGIN
+        userOrgUnitPath: USER_ORGUNITPATH
+        userIpWhitelisted: USER_IPWHITELISTED
+      immutableproperties: 
+        extensionDeploymentStatus: extensionDeploymentStatus
+        copilotStatus: copilotStatus
+    emailprimary:
+      type: EMAIL
+      # commented MERGE part, to create new EMAIL node for newly found email, in case of transition
+      # to handle email domain transitions
+      # we merge on userid
+#      merge:
+#        attribute: USER_ID
+#        property: userid
+#      properties:
+      id: USER_EMAIL_PRIMARY
+      tags: 
+      - PRIMARY
+    emailsecondary: 
+      id: USER_EMAIL_SECONDARY
+      type: EMAIL
+      tags: 
+      - SECONDARY
+    department: 
+      id: USER_DEPARTMENT
+      type: DEPARTMENT
+      properties:
+        name: USER_DEPARTMENT
+    office_location: 
+      id: USER_OFFICELOCATION
+      type: OFFICE_LOCATION
+      properties: 
+        name: USER_OFFICELOCATION
+    manager: 
+      id: USER_MANAGERID
+      type: USER
+    group: 
+      id: $.USER_GROUP_NAMES.id
+      type: GROUP
+      properties: 
+        displayName: $.USER_GROUP_NAMES.displayName
+        description: $.USER_GROUP_NAMES.description
+        createdDateTime: $.USER_GROUP_NAMES.createdDateTime
+        renewedDateTime: $.USER_GROUP_NAMES.renewedDateTime
+        deletedDateTime: $.USER_GROUP_NAMES.deletedDateTime
+        expirationDateTime: $.USER_GROUP_NAMES.expirationDateTime
+        creationOptions: $.USER_GROUP_NAMES.creationOptions
+        groupTypes: $.USER_GROUP_NAMES.groupTypes
+        isAssignableToRole: $.USER_GROUP_NAMES.isAssignableToRole
+        mail: $.USER_GROUP_NAMES.mail
+        mailEnabled: $.USER_GROUP_NAMES.mailEnabled
+        visibility: $.USER_GROUP_NAMES.visibility
+        membersCount: $.USER_GROUP_NAMES.directMembersCount
+        isAdminCreated: $.USER_GROUP_NAMES.adminCreated
+    deleted_group:
+      id: $.DELETED_USER_GROUP_MAPPINGS.group_id
+      type: GROUP
+    deleted_role:
+      id: $.DELETED_USER_ROLES_MAPPINGS.role_id
+      type: ROLE
+    deleted_group_account:
+      between:
+        starting: 
+          type: USER
+          on: id
+          value: $.DELETED_USER_GROUP_MAPPINGS.user_id
+          depth:
+            starting: 1
+            ending: 2
+        ending:
+          type: GROUP
+          on: id
+          value: $.DELETED_USER_GROUP_MAPPINGS.group_id
+          depth:
+            starting: 0
+            ending: 1
+      type: ACCOUNT
+    deleted_role_account:
+      between:
+        starting: 
+          type: USER
+          on: id
+          value: $.DELETED_USER_ROLES_MAPPINGS.user_id
+          depth:
+            starting: 1
+            ending: 2
+        ending:
+          type: ROLE
+          on: id
+          value: $.DELETED_USER_ROLES_MAPPINGS.role_id
+          depth:
+            starting: 0
+            ending: 1
+      type: ACCOUNT
+    deleted_user:
+      id: DELETED_USER_MAPPING
+      type: USER
+      properties:
+        accountEnabled: "@INACTIVE"
+  edges: 
+  - destination: instance
+    direction: out
+    relation: HAS_INSTANCE
+    source: tenant
+  - destination: user
+    direction: out
+    relation: HAS_USER
+    source: instance
+  - destination: group
+    direction: out
+    relation: HAS_GROUP
+    source: instance
+  - destination: idp_application
+    direction: out
+    relation: USING_APP
+    source: account_main
+  - destination: account_main
+    direction: out
+    relation: CREDSBASED_ACCOUNT
+    source: emailprimary
+    properties: 
+      isAdmin: ADMIN_STATUS
+      defaultMfaMethod: $.USER_REGISTRATION_DETAILS.defaultMfaMethod
+      isMfaCapable: $.USER_REGISTRATION_DETAILS.isMfaCapable
+      isMfaEnabled: $.USER_REGISTRATION_DETAILS.isEnabled
+      isMfaRegistered: MFA_REG_STATUS
+      isPasswordlessCapable: $.USER_REGISTRATION_DETAILS.isPasswordlessCapable
+      isSsprCapable: $.USER_REGISTRATION_DETAILS.isSsprCapable
+      isSsprEnabled: $.USER_REGISTRATION_DETAILS.isSsprEnabled
+      isSsprRegistered: $.USER_REGISTRATION_DETAILS.isSsprRegistered
+      isSystemPreferredAuthenticationMethodEnabled: $.USER_REGISTRATION_DETAILS.isSystemPreferredAuthenticationMethodEnabled
+      lastUpdatedDateTime: $.USER_REGISTRATION_DETAILS.lastUpdatedDateTime
+      methodsRegistered: $.USER_REGISTRATION_DETAILS.methodsRegistered
+      systemPreferredAuthenticationMethods: $.USER_REGISTRATION_DETAILS.systemPreferredAuthenticationMethods
+      isMfaEnforced : USER_AUTHENTICATION_MFA_ENFORCED
+      delegatedAdmin: USER_DELEGATEDADMIN
+    immutableproperties:
+      creationTime: USER_HIREDATE
+  - destination: group
+    direction: out
+    relation: BELONGS_TO
+    source: account_main
+  - destination: emailprimary
+    direction: out
+    relation: HAS_EMAIL
+    source: user
+  - destination: manager
+    direction: out
+    relation: HAS_MANAGER
+    source: user
+    deleteexistingedge: true
+  - destination: emailsecondary
+    direction: out
+    relation: HAS_EMAIL
+    source: user
+  - destination: department
+    direction: out
+    relation: HAS_DEPARTMENT
+    source: user
+    deleteexistingedge: true
+  - destination: office_location
+    direction: out
+    relation: LOCATED_AT
+    source: user
+    deleteexistingedge: true
+  - destination: idp_application
+    direction: out
+    relation: $QUILR_INTEGRATION_APPLICATION_RELATION
+    source: instance
+  - destination: role
+    direction: out
+    relation: HAS_ROLE
+    source: account_main
+  - destination: deleted_group
+    direction: out
+    relation: BELONGS_TO
+    source: deleted_group_account
+    properties: 
+      ttl: TIMESTAMP
+  - destination: deleted_role
+    direction: out
+    relation: HAS_ROLE
+    source: deleted_role_account
+    properties:
+      ttl: TIMESTAMP
+lambda: |
+  def fn(payload):
+
+    import time
+    import re
+
+    from itertools import product
+    from typing import Any, Dict, List, Union
+    from datetime import datetime
+
+    def to_epoch_millis(date_str):
+      if isinstance(date_str, int) or (isinstance(date_str, str) and re.match(r'^\d+$', date_str)):
+        return int(date_str)
+      try:
+        dt = datetime.fromisoformat(date_str.rstrip('Z'))
+        epoch = int(dt.timestamp() * 1000)
+        return epoch
+      except ValueError:
+        return date_str
+    
+    def flatten_lists(payload: List[Dict[str, Union[List, Any]]]) -> List[Dict[str, Any]]:
+      print(f"Inside flatten function..")
+      rows = []
+      for entry in payload:
+        
+        # Separate list and non-list items in each entry
+        list_items = {k: (v if v else [None]) for k, v in entry.items() if isinstance(v, list)}
+        non_list_items = {k: v for k, v in entry.items() if not isinstance(v, list)}
+
+        # Store keys for lists that were originally empty
+        empty_list_keys = [k for k, v in entry.items() if isinstance(v, list) and not v]
+        
+        if list_items:
+          list_keys = list(list_items.keys())
+          list_values = list(list_items.values())
+          
+          for combination in product(*list_values):
+            row = non_list_items.copy()
+            row.update({list_keys[i]: combination[i] for i in range(len(list_keys))})
+            for key in empty_list_keys:
+              row[key] = []
+      
+            rows.append(row)
+        else:
+          rows.append(non_list_items)
+    
+      return rows
+
+    def normalize_dates(data):
+      if isinstance(data, dict):
+        for key, value in data.items():
+          if isinstance(value, (dict, list)):
+            normalize_dates(value)
+          elif isinstance(value, str) and 'T' in value and ':' in value:
+            data[key] = to_epoch_millis(value)
+      elif isinstance(data, list):
+        for item in data:
+          normalize_dates(item)
+  
+    for item in payload:
+      # Normalize all date-time values in the item
+      normalize_dates(item)
+  
+      user_id = item.get("USER_ID")
+      tenant_id = item.get("QUILR_TENANTID")
+      if item.get("USER_PHOTO"):
+        item["profilePic"] = item.get("USER_PHOTO")
+      else:  
+        item["profilePic"] = "https://staticcontent1.blob.core.windows.net/quilrstatic/profile/pic/" + tenant_id + "/" + user_id + ".png"
+      if item.get("USER_STATUS") == "ACTIVE" and item.get("USER_ACCOUNTTYPE") != "Guest":
+        item["extensionDeploymentStatus"] = "Ready to Deploy"
+      else:
+        item["extensionDeploymentStatus"] = "Excluded"
+      item["TIMESTAMP"] = int(time.time() * 1000) 
+      if item.get("USER_EMAIL_SECONDARY") is None or item.get("USER_EMAIL_SECONDARY") == "":
+        item.pop("USER_EMAIL_SECONDARY")
+      item["app_id"] = item.get("QUILR_MATCHED_APP_ID","")
+      item["vendor_and_email"] = (item.get("USER_PRINCIPALNAME") or "") + "_" + (item.get("app_id") or "")
+      item["copilotStatus"] = "disabled"
+      item["globalSyncAllowed"] = True
+      item["newApp"] = True
+    new_payload = flatten_lists(payload)
+    return new_payload
+createdon: 1721143284
+updatedon: 1730802434

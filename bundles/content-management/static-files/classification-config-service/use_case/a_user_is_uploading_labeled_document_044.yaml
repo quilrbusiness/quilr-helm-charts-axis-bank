@@ -1,0 +1,37 @@
+id: "e4d5a6b7-8c9d-4ae1-b2c3-d4e5f6a7b844"
+version: 1.1
+code: UC044
+name: a user is uploading a labeled document
+type: use-case
+description: Define what should be done when a user is uploading a labeled (classified) document.
+posture:
+  - PID_06
+behavior:
+  - BID_203
+condition:
+  - operator: null
+    filter_condition:
+      attribute_type: ATTR_Browser_001
+      attribute_id: BROWSER-002
+      condition: is_equal_to
+      value: upload
+    filter_group: null
+    editable: false
+    supported_operators:
+      - is equal to
+  - operator: AND
+    filter_condition:
+      attribute_type: ATTR_UPL_001
+      attribute_id: UPL-005
+      condition: is in
+      value: "Select Label"
+    filter_group: null
+    editable: true
+    supported_operators:
+      - is equal to
+      - is not equal to
+      - is in
+      - is not in
+disabled: false
+createdon: 1755715200000
+updatedon: 1755715200000

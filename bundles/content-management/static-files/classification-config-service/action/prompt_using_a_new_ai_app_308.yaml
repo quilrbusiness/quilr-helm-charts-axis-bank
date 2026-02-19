@@ -1,0 +1,20 @@
+id: 7a0d4d17-5c6a-4c0f-8fa7-296aae22085c
+version: 1.5
+code: ACT_308
+name: Warn of AI risks
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: templatized
+    message_template: warn-on-using-an-ai-app-not-seen-before
+    execution_type: tool
+    execution_module: send_templated_user_message
+    browser_action: Ask
+tags:
+  - UC001
+behavior:
+  - BID_17
+createdon: 1710504494000
+updatedon: 1710504494000

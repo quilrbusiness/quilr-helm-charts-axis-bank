@@ -1,0 +1,32 @@
+widget_id: edfd1ee8-3529-489b-84b5-7b675d0e58d7
+template_id: NotableBehaviourCategories
+active: true
+title: Notable Behaviour Categories
+components:
+  - name: Notable Behaviour Categories Table
+    type: table
+    data_source_type: knowledgegraph
+    lambda: |
+      def fn(client):
+          data_result = client.fetch_data(
+             "MATCH (user:USER)-[has_violated_rule:HAS_VIOLATED_RULE]->(rule:RULE)-[:BELONGS_TO]->(behaviourCategory:BEHAVIOURCATEGORY) "
+             "WHERE has_violated_rule.timestamp >= $starttime and has_violated_rule.timestamp <= $endtime "
+             "WITH COUNT(DISTINCT user) AS userCount, behaviourCategory.name AS behaviourCategoryName " 
+             "MATCH (total_user:USER) " 
+             "WITH COUNT(total_user) AS totalUsers, userCount, behaviourCategoryName "
+             "RETURN userCount, behaviourCategoryName, totalUsers ORDER BY userCount DESC ")
+      
+          count_result = client.total_record_count(
+             "MATCH (user:USER)-[has_violated_rule:HAS_VIOLATED_RULE]->(rule:RULE)-[:BELONGS_TO]->(behaviourCategory:BEHAVIOURCATEGORY) "
+             "WHERE has_violated_rule.timestamp >= $starttime and has_violated_rule.timestamp <= $endtime "
+             "WITH COUNT(DISTINCT behaviourCategory) AS count "
+             "RETURN count"
+          )
+      
+          total_record_count = 0
+          if count_result:
+              total_record_count = count_result[0].get('count')
+          
+          formatted_data = {"data": data_result, "total_record_count": total_record_count}
+          return formatted_data
+version: 11.0

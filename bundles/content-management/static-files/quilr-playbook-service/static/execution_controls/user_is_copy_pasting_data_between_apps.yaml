@@ -1,0 +1,43 @@
+version: 1.0.2
+criticality: 4
+mode: monitor
+control_name: copy-paste data from one app to another
+control_description: ""
+posture:
+  id: PID_06
+behavior:
+  id: BID_201
+use_case:
+  id: UC031
+schedule: "@every 15m"
+trigger_conditions:
+  - operator: null
+    filter_group: null
+    filter_condition:
+      attribute_type: ATTR_Browser_001
+      attribute_id: BROWSER-002
+      graph_property: null
+      extension_property: null
+      condition: is_equal_to
+      value: paste
+  - operator: AND
+    filter_group: null
+    filter_condition:
+      attribute_type: ATTR_CLP_001
+      attribute_id: CLP_038
+      graph_property: null
+      extension_property: null
+      condition: is_equal_to
+      value: ""
+  - operator: AND
+    filter_group: null
+    filter_condition:
+      attribute_type: ATTR_APP_001
+      attribute_id: APP-019
+      graph_property: null
+      extension_property: null
+      condition: is_equal_to
+      value: ""
+actions: []
+is_active: false
+is_internal: false

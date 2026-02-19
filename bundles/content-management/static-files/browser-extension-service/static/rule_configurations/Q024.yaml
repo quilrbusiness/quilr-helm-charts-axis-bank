@@ -1,0 +1,21 @@
+datatype: DICT
+defaultValue:
+  message: |-
+    Cannot allow you to reuse an admin password. Please use a different password
+  mode: Monitor
+entityDescription: |-
+  A new account was created with reused admin account password on an application.
+entityId: Q024
+entityMeta:
+  behavior: Password Reuse
+  category: ISPM
+  posture: Password Hygiene
+  check_id:
+    form_check_ids:
+      - CH-FORM-SIGNUP
+      - CH-FORM-REUSED-PASSWORD
+      - CH-FORM-ADMIN
+entityName: New Account created with Admin Password Reuse
+entityType: rule
+isDisabled: false
+isModifiable: true

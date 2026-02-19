@@ -1,0 +1,122 @@
+id: d84d84c0-40aa-4537-b718-07884be345c4  #UUID - 36 chars
+name: Login to a Recently Breached Critical SaaS App 
+type: rule  #rule configs - type rule only
+version: 2.1
+active: false
+schedule: "10m" 
+historicalrecordduration: "10m"
+source:
+  type: query
+  config:
+    query: "WITH date(datetime({epochSeconds:  timestamp()/1000})) AS current_date
+            MATCH (user:USER) - [has_email:HAS_EMAIL] - (email:EMAIL:PRIMARY)-[credsbased_account:CREDSBASED_ACCOUNT]-(account:ACCOUNT)-[using_app:USING_APP] - (app:APPLICATION) 
+            OPTIONAL MATCH (tenant:TENANT)-[app_settings:HAS_APP_SETTINGS]-(app) 
+            WHERE toLower(app_settings.criticality) = 'critical'
+            WITH user,has_email,email,credsbased_account,account,using_app,app,app_settings,tenant
+            WHERE credsbased_account.timestamp >= $starttime
+                  AND credsbased_account.timestamp <= $endtime
+                  AND app.breachIsRetired = false
+                  AND app.breachIsSpamList = false
+                  AND app.breachIsVerified = true
+                  AND abs(duration.between(current_date, app.breachDate).years) <= 2
+                  AND tolower(COALESCE(app_settings.criticality, app.criticality, 'NOT SET')) = 'critical'
+            OPTIONAL MATCH (account:ACCOUNT)-[has_cred_fingerprint:HAS_CRED_FINGERPRINT] - (cred_fingerprint:CRED_FINGERPRINT)
+            OPTIONAL MATCH (user) - [has_department:HAS_DEPARTMENT] - (department:DEPARTMENT)
+            OPTIONAL MATCH (app) - [has_app_category:HAS_APP_CATEGORY] - (app_category:APP_CATEGORY)
+            OPTIONAL MATCH (account:ACCOUNT)-[using_browser:HAS_BROWSER] - (browser:BROWSER)
+            RETURN DISTINCT
+                user.id AS userId,
+                user.displayName AS userName,
+                user.mail AS userMail,
+                user.accountEnabled as userAccountEnabled,
+                department.name as userDepartment,
+                user.tenant as TENANT,               
+                user.subscriber AS SUBSCRIBER,
+                app.id_ as appId,
+                app.name AS appName,
+                app.domain as appDomain,
+                app.Url AS appUrl,
+                COLLECT(app_category.name) AS appCategory,
+                app.breachDesc AS breachDesc,
+                app.breachDate AS breachDate,
+                app.breachTitle AS breachTitle,
+                COALESCE(app_settings.criticality, app.criticality, 'NOT SET') AS appCriticality,
+                user.mail+'_'+app.id_ AS userAppAccount,
+                browser.id as browserUsed,
+                cred_fingerprint.id AS credFingerprintId,
+                cred_fingerprint.password_strength as passwordStrength, 
+                using_browser.client_ip as ipaddress,
+                credsbased_account.context_id as CONTEXTID,
+                has_cred_fingerprint.last_access_time as EVENTTIME"
+    type: knowledgegraph 
+    limit:
+    offset: 0
+destination:
+  type: stream 
+  topic: ruleEvaluator
+config:
+  expression: "def fn(message): return True if message.get('userName') else False " 
+  type: finding
+  subtype: status
+  code: Q036
+  status: open
+  sla: 1W
+  entity: userName
+  entitytype: user
+  tags:
+    - insecure_behaviour
+  sourceofalert: Quilr 
+  template: "Login by an account: ${userName} to a recently breached Application: ${appName}"
+  artifacts: 
+    - type: "ACCOUNT"
+      property: "id"
+      value: "$userAppAccount"
+      artifactproperties: 
+        artifactValue: $userName
+        displayInUI: enabled
+
+    - type: "APPLICATION" 
+      context: "global" 
+      property: id_
+      value: $appId
+      artifactproperties: 
+        artifactValue: $appName
+        displayInUI: enabled
+
+    - type: "IPADDRESS"
+      property: "id"
+      value: "$ipaddress"
+      artifactproperties: 
+        artifactValue: $ipaddress
+        displayInUI: enabled
+
+    - type: CRED_FINGERPRINT
+      property: id
+      value: $credFingerprintId
+      artifactproperties: 
+        artifactValue: $passwordStrength	
+        displayInUI: disabled
+  properties:
+    userId: $userId  
+    userName: $userName
+    userMail: $userMail
+    userAccountEnabled: $userAccountEnabled
+    userDepartment: $userDepartment
+    TENANT: $TENANT
+    SUBSCRIBER: $SUBSCRIBER
+    appName: $appName
+    appUrl: $appUrl
+    appId: $appId
+    breachDesc: $breachDesc
+    breachDate: $breachDate
+    breachTitle: $breachTitle
+    appCategory: $appCategory 
+    appCriticality: $appCriticality
+    appDomain: $appDomain
+    passwordStrength: $passwordStrength
+    browser: $browserUsed
+    context_id: $CONTEXTID
+    time: $EVENTTIME
+lambda: ""
+createdon: 1720396800000
+updatedon: 1720396800000

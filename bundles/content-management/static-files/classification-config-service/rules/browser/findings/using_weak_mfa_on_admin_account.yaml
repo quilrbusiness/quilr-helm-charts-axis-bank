@@ -1,0 +1,17 @@
+id: ca4bce65-2901-4add-ae7f-192a898151f2
+version: 3.0
+code: Q058
+name: Using Weak MFA on admin account
+description: 
+type: rule
+view: identity_protection
+impact: low
+likelihood: low
+createdon: 1720094794000
+updatedon: 1720094794000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_30
+examples: []
+recommendations: []

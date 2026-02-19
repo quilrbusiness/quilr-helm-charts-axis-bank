@@ -1,0 +1,36 @@
+id: 5eaf2503-588e-4b74-830e-8205b97b7351
+name: Financial Data Access
+type: ingestion-to-graph
+version: 2.1
+schedule: 1D
+historicalrecordduration: 1D
+source: 
+  type: query
+  config: 
+    query: "MATCH(user:USER)-[]-(department:DEPARTMENT)
+            WHERE department.name in ['Finance','Finance Team']
+                AND user.timestamp >= $starttime
+                AND user.timestamp <= $endtime
+            RETURN collect(DISTINCT user.id) as userids,
+                user.subscriber as SUBSCRIBER,
+                user.tenant as TENANT"
+    type: "knowledgegraph"
+    limit: 
+    offset: 0
+destination: 
+  type: "api"
+  headers: 
+    Internal: "true"
+  uri: "http://quilr-grouping-service:9071/group/create"
+config: 
+  groupname: "Financial Data Access"
+  userids: "$userids"
+  impact: high
+  likelihood: high
+  groupproperties:
+    mailEnabled: false
+    Description: 'This group consists of users who have access to financial data or applications.'
+lambda: ""
+active: true
+createdon: 1720396800000
+updatedon: 1720396800000

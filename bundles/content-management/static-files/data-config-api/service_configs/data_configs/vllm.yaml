@@ -1,0 +1,31 @@
+id: 5fdbd28f-4667-4869-936d-0d3c86abe05e
+name: vLLM
+description: Integrate vLLM with Quilr to send AI/ML assets to vLLM server.
+connection_config_id: f7d7c24c-3d11-46fb-88dd-54075561f422
+icon_url: https://staticcontent1.blob.core.windows.net/static-images-company-logos/vllm-logo.webp
+login_enabled: false
+version: 2025.11.25
+updated_at: 1726462800000
+parent_org:
+  name: vLLM
+  description: vLLM integration with Quilr
+  icon_url: https://staticcontent1.blob.core.windows.net/static-images-company-logos/vllm-logo.webp
+category: Asset Discovery
+metadata:
+  type: integrations
+  product: vLLM
+  subProduct: /v1.0
+  vendor: vLLM
+internal:
+  content_ids:
+    env_var: ""
+    default_value: "00000000-0000-0000-0000-000000000000"
+inputSchema:
+  - id: name
+    type: string
+    label: Instance Name
+    description: A custom name given by the user to identify the instance.
+    options: []
+    default: []
+outputSchema: {}
+is_active: true

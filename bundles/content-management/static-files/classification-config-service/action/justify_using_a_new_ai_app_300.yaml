@@ -1,0 +1,20 @@
+id: c643ad4a-0459-4a61-a283-19cae6138445
+version: 1.0
+code: ACT_300
+name: Justify using a new AI app
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: templatized
+    message_template: justify-using-a-new-ai-app
+    execution_type: tool
+    execution_module: send_templated_user_message
+    browser_action: Justify
+tags:
+  - UC001
+behavior:
+  - BID_17
+createdon: 1710504494000
+updatedon: 1710504494000

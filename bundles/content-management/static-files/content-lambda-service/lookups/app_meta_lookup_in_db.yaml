@@ -1,0 +1,24 @@
+id: 44afa5ec-019d-43f2-88dd-bb97291b988d
+type: REST
+description: Database lookup via search API to fetch app meta
+version: 1.0
+endpoint: http://search-service:8002/api/v1/search/
+request_type: POST
+required_headers:
+  Content-Type: application/json
+  internal : "true"
+required_query_params: {}
+required_body_params:
+  query : "match (app:APPLICATION) where app.appUrl contains $domain return app"
+  inputs : {}
+  limit : 1
+  offset : 0
+  dataSourceType : knowledgegraph
+required_user_params:
+  - id: domain
+    type: string
+    description: Company domain to search for in the database
+    example: abcd.com
+    required: true
+    location: body
+response_status_code: 200

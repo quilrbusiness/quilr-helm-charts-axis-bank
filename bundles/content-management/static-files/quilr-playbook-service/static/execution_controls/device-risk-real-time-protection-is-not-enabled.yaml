@@ -1,0 +1,28 @@
+version: 1.0.0
+criticality: 4
+mode: monitor
+control_name: Enabling real-time protection for a device
+control_description: Detects devices where real-time protection is disabled, potentially leaving them vulnerable to malware and other security threats.
+posture:
+  id: PID_05
+behavior:
+  id: BID_105
+use_case:
+  id: UC101
+trigger_conditions:
+- operator: 
+  filter_condition:
+    attribute_type: ATTR_DEV_001
+    attribute_id: DEV-008
+    extension_property: device.realTimeProtectionEnabled
+    condition: is_equal_to
+    value: "False"
+  filter_group: 
+actions:
+- type:
+    id: ACTP_01
+  name:
+    id: ACT_104
+  description: 
+  meta:
+    prompt_frequency: 

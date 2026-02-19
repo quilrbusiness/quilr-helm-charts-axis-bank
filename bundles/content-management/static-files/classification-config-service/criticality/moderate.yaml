@@ -1,0 +1,9 @@
+id: 85d277b6-b943-4a20-bd72-bdc09f8ea573
+version: 2.0
+code: moderate
+name: Moderate
+type: criticality
+factor: 0.6
+priority: 3
+createdon: 1710504494000
+updatedon: 1710504494000

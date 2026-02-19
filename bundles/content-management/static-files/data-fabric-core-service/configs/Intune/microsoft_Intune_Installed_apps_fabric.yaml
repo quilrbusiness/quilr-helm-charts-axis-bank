@@ -1,0 +1,118 @@
+id: b274c567-382e-4e21-bfc9-213ecf3415c2
+name: microsoft-intune-detectedapps-fabric
+type: fabric
+version: 1.0.0
+trail:
+  block: start
+  dependson: []
+  attempt:
+    - block: get_refresh_token
+      dependson: []
+      attempt:
+        - block: list_application
+          dependson: []
+          attempt:
+            - block: fetch_detected_apps
+              dependson: []
+              attempt:
+                - block: merge_device_data
+                  dependson: []
+                  attempt: 
+                    - block: publish_to_kafka_relationship
+                      dependson: []
+                      attempt: []
+                      otherwise: []
+                      start: false
+                      end: false
+                  otherwise: []
+                  start: false
+                  end: false
+              otherwise: []
+              start: false
+              end: false
+          otherwise: []
+          start: false
+          end: false
+      otherwise: []
+      start: false
+      end: false
+  otherwise:
+    - block: end
+      dependson: []
+      attempt: []
+      otherwise: []
+      start: false
+      end: true
+  start: true
+  end: false
+blocks:
+  - name: start
+    type: start
+    config: {}
+  - name: end
+    type: end
+    config: {}
+  - name: get_refresh_token
+    type: receiver
+    config:
+      type: rest
+      uri: https://login.microsoftonline.com/f6709ce5-b4be-4d43-9001-35867678adb5/oauth2/v2.0/token
+      method: GET
+      headers: {}
+      body:
+        grant_type: refresh_token
+        client_id: $.env.client_id
+        client_secret: $.env.client_secret
+        scope: https://graph.microsoft.com/.default
+        refresh_token: $.credential.token.refreshToken
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: list_application
+    type: receiver
+    config:
+      type: rest
+      uri: https://graph.microsoft.com/v1.0/deviceManagement/detectedApps
+      method: GET
+      headers:
+        Authorization: Bearer $.block.get_refresh_token.output.response.response.access_token
+      body: {}
+      extract: value
+  - name: fetch_detected_apps
+    type: receiver
+    config:
+      type: rest
+      uri: https://graph.microsoft.com/v1.0/deviceManagement/detectedApps/$.input.using.id/managedDevices?$select=id
+      method: GET
+      headers:
+        Authorization: Bearer $.block.get_refresh_token.output.response.response.access_token
+      body:
+        applicationid: $.input.using.id
+      foreach: $.block.list_application.output.response.response[*]
+      extract: value
+  - name: merge_device_data
+    type: util
+    config:
+      type: merge
+      primary: $.block.list_application.output.response.response
+      secondary: $.block.fetch_detected_apps.output.response
+      pickfrom: response
+      sinkto: detectedApps
+      condition: "$.primary.id == $.secondary.body.applicationid"
+  - name: publish_to_kafka_relationship
+    type: sender
+    config:
+      type: kafka
+      topic: rawOutput
+      facade:
+        instance_id: $.context.context.instanceid
+        name: Microsoft Intune Detected Apps Device Relationship
+        description: Detected apps for devices in Intune
+        type: device
+        vendor: Microsoft
+        product: microsoft.intune.detectedapps
+        subProduct: /deviceManagement/detectedApps
+        data: $.input.using
+        subscriber: $.context.subscriber
+        tenant: $.context.tenant
+      foreach: $.block.merge_device_data.output.response.response[*]

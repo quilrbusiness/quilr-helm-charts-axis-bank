@@ -1,0 +1,17 @@
+id: 478c53bb-13ad-40a0-8d1c-f7b3525dce2b
+version: 3.0
+code: Q041
+name: New Account created with admin account on a recently breached non business critical SaaS app
+description: 
+type: rule
+view: identity_protection
+impact: high
+likelihood: verylow
+createdon: 1720094794000
+updatedon: 1720094794000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_02
+examples: []
+recommendations: []

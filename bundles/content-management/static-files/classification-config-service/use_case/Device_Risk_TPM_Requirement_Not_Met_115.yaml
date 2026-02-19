@@ -1,0 +1,31 @@
+id: 5d006502-49f6-49fe-8f32-ad2c711ca348
+name: device tpm requirement is not met
+updatedon: 1739373071728
+condition:
+- filter_condition:
+    condition: is equal to
+    value: TpmRequired
+    attribute_nid: DEV-003
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: 
+  editable: false
+- filter_condition:
+    condition: is not equal to
+    value: compliant
+    attribute_id: DEV-004
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: AND
+  editable: false
+createdon: 1739373071728
+version: 1.4
+description: The device does not meet the Trusted Platform Module (TPM) requirement, which is essential for hardware-based security, encryption, and system integrity. Without TPM, the device is more vulnerable to unauthorized access, credential theft, and data tampering.
+posture:
+- PID_05
+code: UC115
+disabled: false
+type: use-case
+behavior:
+- BID_101
+

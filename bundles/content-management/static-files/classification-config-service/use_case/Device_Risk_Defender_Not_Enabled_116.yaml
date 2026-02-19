@@ -1,0 +1,31 @@
+id: 5d006502-49f6-49fe-8f32-ad2c711ca348
+name: microsoft defender is disabled
+updatedon: 1739375685085
+condition:
+- filter_condition:
+    condition: is equal to
+    value: DefenderEnabled
+    attribute_id: DEV-003
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: 
+  editable: false
+- filter_condition:
+    condition: is not equal to
+    value: compliant
+    attribute_id: DEV-004
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: AND
+  editable: false
+createdon: 1739375685085
+version: 1.4
+description: Microsoft Defender is not enabled on this device, leaving it vulnerable to malware, viruses, and other security threats. Without active protection, the system is at increased risk of compromise.
+posture:
+- PID_05
+code: UC116
+disabled: false
+type: use-case
+behavior:
+- BID_101
+

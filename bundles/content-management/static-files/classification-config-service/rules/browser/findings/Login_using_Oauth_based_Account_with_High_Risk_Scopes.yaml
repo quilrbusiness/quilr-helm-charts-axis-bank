@@ -1,0 +1,17 @@
+id: c4abec87-2ab2-48fb-bd42-3ece0593262e
+version: 3.0
+code: Q046
+name: Login using OAuth based Account with High Risk Scopes
+description: Login using OAuth account with privileged permissions assigned to an application.
+type: rule
+view: identity_protection
+impact: high
+likelihood: high
+createdon: 1720094794000
+updatedon: 1720094794000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_06
+examples: []
+recommendations: []

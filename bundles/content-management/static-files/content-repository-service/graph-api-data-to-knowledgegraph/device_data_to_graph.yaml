@@ -1,0 +1,256 @@
+id: f5cf5075-4450-42c3-bd6d-1527b22e9996
+name: Device Graph Data To Knowledgegraph
+type: ingestion-to-graph
+version: 1.1.11
+schedule: 1h
+historicalrecordduration: 8h
+lambda_config:
+  batch_size: 20
+source:
+  type: query
+  config:
+    query: "SELECT QUILR_INTEGRATION_VENDOR_PRODUCT, QUILR_INTEGRATION_VENDOR_FEATURE, QUILR_INTEGRATION_VENDOR_SUBPRODUCT, QUILR_INTEGRATION_VENDOR_NAME, 
+                  QUILR_INTEGRATION_TYPE, QUILR_SUBSCRIBERID, QUILR_TENANTID, QUILR_INTEGRATION_INSTANCEID, USER_DEVICE_ID, USER_ID, USER_DEVICE_NAME, USER_DEVICE_OWNERTYPE, 
+                  USER_DEVICE_ENROLLEDTIME, USER_DEVICE_LASTSYNCTIME, USER_DEVICE_OS, USER_DEVICE_COMPLIANCESTATE, USER_DEVICE_JAILBROKEN, USER_DEVICE_MANAGEMENTAGENT, 
+                  USER_DEVICE_OSVERSION, USER_DEVICE_EASACTIVATED, USER_EASDEVICEID, USER_DEVICE_ADREGISTERED, USER_DEVICE_ENROLLMENT, DEVICE_ENROLLMENT_PROFILE_NAME, USER_DEVICE_EMAIL, USER_DEVICE_ADID, 
+                  USER_DEVICE_STATE, USER_DEVICE_SUPERVISED, USER_DEVICE_ENCRYPTED, COALESCE(USER_PRINCIPALNAME, USER_DEVICE_EMAIL)::text AS USER_PRINCIPALNAME, USER_DEVICE_MODEL, USER_DEVICE_MANUFACTURER, 
+                  USER_DEVICE_SERIALNO, USER_DEVICE_MACADDRESS, USER_MANAGED_DEVICE_NAME, USER_DEVICE_TOTALSTORAGEINBYTES, USER_DEVICE_FREESTORAGEINBYTES, USER_DEVICE_PHYSICALMEMORYINBYTES, 
+                  USER_DEVICE_CERTIFICATEEXPIRY, USER_DEVICE_ICCID, USER_DEVICE_UDID, USER_DEVICE_NOTES, USER_DEVICE_ETHERNETMACADDRESS, DEVICE_PROTECTION_ID, DEVICE_MALWAREPROTECTION_ENABLED, 
+                  DEVICE_STATE, DEVICE_REALTIME_PROTECTION_ENABLED, DEVICE_TAMPER_PROTECTION_ENABLED, DEVICE_QUICKSCAN_TIME, DEVICE_ENGINE_VERSION, DEVICE_SIGNATURE_VERSION, DEVICE_ANTIMALWARE_VERSION, 
+                  DEVICE_FULLSCAN_TIME, DEVICE_QUICKSCAN_SIGNATURE_VERSION, DEVICE_FULLSCAN_SIGNATURE_VERSION, DEVICE_LASTREPORTED_TIME, DEVICE_PRODUCT_STATUS, DEVICE_ISVIRTUALMACHINE, DEVICE_COMPLIANCE_POLICY_ID, 
+                  DEVICE_CREATIONTIME, DEVICE_DESCRIPTION, DEVICE_LAST_MODIFIEDTIME, DEVICE_VERSION, COMPLIANCE_POLICY_NAME, USER_DEVICE_DISPLAYNAME, DEVICE_NETWORKPROTECTION_ENABLED,
+                  DEVICE_QUICKSCAN_ENABLED, DEVICE_FULLSCAN_ENABLED, DEVICE_SIGNATURE_UPDATE_ENABLED, DEVICE_REBOOT_REQUIRED, DEVICE_FULLSCAN_REQUIRED, DEVICE_COMPLIANCE_STATES, DEVICE_APPLICATION_ID, 
+                  DEVICE_APPLICATION_DISPLAYNAME, DEVICE_APPLICATION_VERSION, DEVICE_APPLICATION_SIZEINBYTES, DEVICE_COUNT, DEVICE_APPLICATION_PUBLISHER, DEVICE_APPLICATION_PLATFORM, USER_DEVICE_IDS , DEVICE_COMPLIANCE_POLICY_CONFIGURATION, 
+                  DEVICE_CONFIGURATION_CREATIONTIME,DEVICE_CONFIGURATION_LAST_MODIFIEDTIME,DEVICE_CONFIGURATION,DEVICE_CONFIGURATION_DESCRIPTION,DEVICE_CONFIGURATION_VERSION,COMPLIANCE_CONFIGURATION_POLICY_NAME,DEVICE_CONFIGURATION_STATES
+                  FROM KAFKA_CONNECT.SNOWDATA_SCHEMA.TRANSFORMEDDATA 
+                  WHERE QUILR_INTEGRATION_TYPE = 'device' 
+                  AND RECORD_METADATA['CreateTime']::bigint > $starttime 
+                  AND RECORD_METADATA['CreateTime']::bigint < $endtime"
+    type: datalake
+    limit: 10
+    offset: 0
+destination:
+  type: stream
+  topic: knowledgeGraph
+config:
+  nodes:
+    user_node:
+      type: USER
+      merge:
+        attribute: USER_ID
+        property: id
+    device_application_node:
+      type: APPLICATION
+      merge:
+        attribute: DEVICE_APPLICATION_ID
+        property: id
+      properties:
+        Name: DEVICE_APPLICATION_DISPLAYNAME
+        applicationPublisher: DEVICE_APPLICATION_PUBLISHER
+        applicationPlatform: DEVICE_APPLICATION_PLATFORM
+    device_compliance_node:
+      type: COMPLIANCE
+      merge:
+        attribute: $.DEVICE_COMPLIANCE_STATES.sources[0].id
+        property: id
+      properties:
+        displayName: $.DEVICE_COMPLIANCE_STATES.sources[0].displayName
+    device_node:
+      type: DEVICE
+      merge:
+        attribute: USER_DEVICE_ID
+        property: id
+      properties:
+        deviceName: USER_DEVICE_NAME
+        managedDeviceOwnerType: USER_DEVICE_OWNERTYPE
+        enrollmentDatetime: USER_DEVICE_ENROLLEDTIME
+        enrollmentprofilename: DEVICE_ENROLLMENT_PROFILE_NAME
+        lastSyncDatetime: USER_DEVICE_LASTSYNCTIME
+        osName: USER_DEVICE_OS
+        complianceState: USER_DEVICE_COMPLIANCESTATE
+        jailBroken: USER_DEVICE_JAILBROKEN
+        managementAgent: USER_DEVICE_MANAGEMENTAGENT
+        osVersion: USER_DEVICE_OSVERSION
+        easActivated: USER_DEVICE_EASACTIVATED
+        easDeviceId: USER_EASDEVICEID
+        azureAdRegistered: USER_DEVICE_ADREGISTERED
+        enrollmentType: USER_DEVICE_ENROLLMENT
+        azureAdDeviceId: USER_DEVICE_ADID
+        registrationState: USER_DEVICE_STATE
+        supervised: USER_DEVICE_SUPERVISED
+        encrypted: USER_DEVICE_ENCRYPTED
+        deviceModel: USER_DEVICE_MODEL
+        manufacturer: USER_DEVICE_MANUFACTURER
+        serialNumber: USER_DEVICE_SERIALNO
+        wifiMacAddress: USER_DEVICE_MACADDRESS
+        managedDeviceName: USER_MANAGED_DEVICE_NAME
+        userDisplayName: USER_DEVICE_DISPLAYNAME
+        totalStorage: USER_DEVICE_TOTALSTORAGEINBYTES
+        freeStorage: USER_DEVICE_FREESTORAGEINBYTES
+        memoryPhysical: USER_DEVICE_PHYSICALMEMORYINBYTES
+        managementCertificateExpiry: USER_DEVICE_CERTIFICATEEXPIRY
+        easActivationDateTime: USER_DEVICE_EASACTIVATIONDATETIME
+        iccid: USER_DEVICE_ICCID
+        udid: USER_DEVICE_UDID
+        notes: USER_DEVICE_NOTES
+        ethernetMacAddress: USER_DEVICE_ETHERNETMACADDRESS
+        physicalMemory: USER_DEVICE_PHYSICALMEMORYINBYTES
+        enrollmentProfileName: USER_DEVICE_ENROLLMENTPROFILENAME
+        deviceActionResult: USER_DEVICE_ACTIONRESULTS
+        workstationDeviceId: DEVICE_PROTECTION_ID
+        malwareProtectionEnabled: DEVICE_MALWAREPROTECTION_ENABLED
+        deviceState: DEVICE_STATE
+        realTimeProtectionEnabled: DEVICE_REALTIME_PROTECTION_ENABLED
+        tamperProtectionEnabled: DEVICE_TAMPER_PROTECTION_ENABLED
+        lastQuickScanDatetime: DEVICE_QUICKSCAN_TIME
+        engineVersion: DEVICE_ENGINE_VERSION
+        signatureVersion: DEVICE_SIGNATURE_VERSION
+        antiMalwareVersion: DEVICE_ANTIMALWARE_VERSION
+        lastFullScanDatetime: DEVICE_FULLSCAN_TIME
+        lastQuickScanSignatureVersion: DEVICE_QUICKSCAN_SIGNATURE_VERSION
+        lastFullScanSignatureVersion: DEVICE_FULLSCAN_SIGNATURE_VERSION
+        lastReportedDatetime: DEVICE_LASTREPORTED_TIME
+        productStatus: DEVICE_PRODUCT_STATUS
+        isVirtualMachine: DEVICE_ISVIRTUALMACHINE
+        networkProtectionEnabled: DEVICE_NETWORKPROTECTION_ENABLED
+        quickScanEnabled: DEVICE_QUICKSCAN_ENABLED
+        fullScanEnabled: DEVICE_FULLSCAN_ENABLED
+        signatureUpdateEnabled: DEVICE_SIGNATURE_UPDATE_ENABLED
+        rebootRequired: DEVICE_REBOOT_REQUIRED
+        fullScanRequired: DEVICE_FULLSCAN_REQUIRED
+    compliance_node:
+      type: COMPLIANCE
+      merge:
+        attribute: DEVICE_COMPLIANCE_POLICY_ID
+        property: id
+      properties:
+        creationTime: DEVICE_CREATIONTIME
+        description: DEVICE_DESCRIPTION
+        lastModifiedTime: DEVICE_LAST_MODIFIEDTIME
+        displayName: COMPLIANCE_POLICY_NAME
+        version: DEVICE_VERSION
+        configuration: DEVICE_COMPLIANCE_POLICY_CONFIGURATION
+    configuration_node:
+      type: DEVICE_CONFIGURATION
+      merge:
+        attribute: device_configuration_id
+        property: id
+      properties:
+        creationTime: DEVICE_CONFIGURATION_CREATIONTIME
+        description: DEVICE_CONFIGURATION_DESCRIPTION
+        lastModifiedTime: DEVICE_CONFIGURATION_LAST_MODIFIEDTIME
+        displayName: COMPLIANCE_CONFIGURATION_POLICY_NAME
+        version: DEVICE_CONFIGURATION_VERSION
+        configuration: DEVICE_CONFIGURATION
+    configuration_node_states:
+      type: DEVICE_CONFIGURATION
+      merge:
+        attribute: $.DEVICE_CONFIGURATION_STATES.policyId
+        property: id
+  edges:
+  - source: user_node
+    destination: device_node
+    direction: out
+    relation: OWNS_DEVICE
+    properties:
+      assignedDate: USER_DEVICE_ENROLLEDTIME
+      enrollmentMethod: USER_DEVICE_ENROLLMENT
+      lastOwnershipSync: USER_DEVICE_LASTSYNCTIME
+      userPrincipleName: USER_DEVICE_EMAIL
+  - source: device_node
+    destination: device_application_node
+    direction: out
+    relation: HAS_APPLICATION
+    merge:
+      attribute: DEVICE_APPLICATION_ID
+      property: id
+    properties:
+      applicationVersion: DEVICE_APPLICATION_VERSION
+      applicationSizeInBytes: DEVICE_APPLICATION_SIZEINBYTES
+  - source: device_node
+    destination: device_compliance_node
+    direction: out
+    relation: COMPLIES_WITH
+    merge:
+      attribute: $.DEVICE_COMPLIANCE_STATES.setting
+      property: devicesettingname
+    properties:
+      devicesettingvalue: $.DEVICE_COMPLIANCE_STATES.state
+      deviceerrorcode: $.DEVICE_COMPLIANCE_STATES.errorcode
+      deviceerrordescription: $.DEVICE_COMPLIANCE_STATES.errordescription
+      userprincipalname: $.DEVICE_COMPLIANCE_STATES.userPrincipalName
+      devicecurrentvalue: $.DEVICE_COMPLIANCE_STATES.currentvalue
+  - source: device_node
+    destination: configuration_node_states
+    direction: out
+    relation: DEVICE_CONFIGURATION_STATES
+    merge:
+      attribute: $.DEVICE_CONFIGURATION_STATES.SettingName
+      property: deviceconfigurationsettingname
+    properties:
+      deviceconfigurationvalue: $.DEVICE_CONFIGURATION_STATES.SettingStatus
+      errorcode: $.DEVICE_CONFIGURATION_STATES.ErrorCode
+lambda: |
+  def fn(payload):
+    import time
+    import re
+    from itertools import product
+    from typing import Any, Dict, List, Union
+    from datetime import datetime
+    def to_epoch_millis(date_str):
+      if isinstance(date_str, int) or (isinstance(date_str, str) and re.match(r'^\\d+$', date_str)):
+        return int(date_str)
+      try:
+        dt = datetime.fromisoformat(date_str.rstrip('Z'))
+        epoch = int(dt.timestamp() * 1000)
+        return epoch
+      except ValueError:
+        return date_str
+    def flatten_lists(payload: List[Dict[str, Union[List, Any]]]) -> List[Dict[str, Any]]:
+      print(f"Inside flatten function..")
+      rows = []
+      for entry in payload:
+        list_items = {k: (v if v else [None]) for k, v in entry.items() if isinstance(v, list)}
+        non_list_items = {k: v for k, v in entry.items() if not isinstance(v, list)}
+        empty_list_keys = [k for k, v in entry.items() if isinstance(v, list) and not v]
+        if list_items:
+          list_keys = list(list_items.keys())
+          list_values = list(list_items.values())
+          for combination in product(*list_values):
+            row = non_list_items.copy()
+            row.update({list_keys[i]: combination[i] for i in range(len(list_keys))})
+            for key in empty_list_keys:
+              row[key] = []
+            rows.append(row)
+        else:
+          rows.append(non_list_items)
+      return rows
+    def normalize_dates(data):	
+      if isinstance(data, dict):
+        for key, value in data.items():
+          if isinstance(value, (dict, list)):
+            normalize_dates(value)
+          elif isinstance(value, str) and 'T' in value and ':' in value:
+            data[key] = to_epoch_millis(value)
+      elif isinstance(data, list):
+        for item in data:
+          normalize_dates(item)
+    new_payload = []
+    try:
+      for item in flatten_lists(payload):
+        normalize_dates(item)
+        item["TIMESTAMP"] = int(time.time() * 1000)
+        if item.get("vendor"):
+          item["vendor"] = item["vendor"].upper()
+        if item.get("vendor") and item.get("product"):
+          item["vendor_and_product"] = f"{item['vendor']}_{item['product']}"
+        if item['DEVICE_CONFIGURATION_STATES'] is not None:
+          if item['DEVICE_CONFIGURATION_STATES'].get("policyId") and item['DEVICE_CONFIGURATION_STATES'].get("SettingId"):
+            item['SETTINGUUID'] = item['USER_DEVICE_ID']+'_'+item['DEVICE_CONFIGURATION_STATES'].get("policyId")+'_'+item['DEVICE_CONFIGURATION_STATES'].get("SettingId")
+        new_payload.append(item)
+      return new_payload
+    except Exception as e:
+      raise(e)
+      # return flatten_lists(payload)
+createdon: 1737504000000
+updatedon: 1738230639447

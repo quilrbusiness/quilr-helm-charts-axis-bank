@@ -1,0 +1,204 @@
+id: aafb608d-4e2b-4a2f-ab8e-80dcfcab2a5f
+name: graph-api-emails-data
+type: fabric
+version: 1.0.0
+trail:
+  block: start
+  dependson: [ ]
+  attempt:
+    - block: retrieve_token
+      dependson: [ ]
+      attempt:
+        - block: update_completion_to_25
+          dependson:
+            - retrieve_token
+          attempt: [ ]
+          otherwise: [ ]
+          start: false
+          end: false
+        - block: list_users
+          dependson:
+            - retrieve_token
+          attempt:
+            - block: update_completion_to_50
+              dependson:
+                - list_users
+              attempt: [ ]
+              otherwise: [ ]
+              start: false
+              end: false
+            - block: get_user_messages
+              dependson:
+                - list_users
+              attempt:
+                - block: update_completion_to_75
+                  dependson:
+                    - get_user_messages
+                  attempt: [ ]
+                  otherwise: [ ]
+                  start: false
+                  end: false
+                - block: publish_to_rawOutput
+                  dependson:
+                    - get_user_messages
+                  attempt:
+                    - block: update_completion_to_100
+                      dependson:
+                        - publish_to_rawOutput
+                      attempt: [ ]
+                      otherwise: [ ]
+                      start: false
+                      end: false
+                    - block: end
+                      dependson:
+                        - publish_to_rawOutput
+                      attempt: [ ]
+                      otherwise: [ ]
+                      start: false
+                      end: true
+                  otherwise:
+                    - block: end
+                      dependson: [ ]
+                      attempt: [ ]
+                      otherwise: [ ]
+                      start: false
+                      end: true
+                  start: false
+                  end: false
+              otherwise: [ ]
+              start: false
+              end: false
+          otherwise: [ ]
+          start: false
+          end: false
+      otherwise: [ ]
+      start: false
+      end: false
+  otherwise:
+    - block: end
+      dependson: [ ]
+      attempt: [ ]
+      otherwise: [ ]
+      start: false
+      end: true
+  start: true
+  end: false
+blocks:
+  - name: start
+    type: start
+    config: {}
+  - name: end
+    type: end
+    config: {}
+  - name: retrieve_token
+    type: receiver
+    config:
+      type: rest
+      uri: https://login.microsoftonline.com/f6709ce5-b4be-4d43-9001-35867678adb5/oauth2/v2.0/token
+      method: GET
+      headers: {}
+      body:
+        grant_type: client_credentials
+        client_id: 46aa8f87-52c1-4d5f-96c0-e71f14af6f55
+        client_secret: cHh8Q~ZvexHg.-hdmiTOqVmPcCfzJ0VGvnDInbK2
+        scope: https://graph.microsoft.com/.default
+        tenant_id: f6709ce5-b4be-4d43-9001-35867678adb5
+      extract: access_token
+      pagination: null
+      paginationplacement: null
+  - name: list_users
+    type: receiver
+    config:
+      type: rest
+      uri: https://graph.microsoft.com/v1.0/users?$select=id, userPrincipalName, surname, mail, givenName, displayName
+      method: GET
+      headers:
+        Authorization: Bearer $.block.retrieve_token.output.response.response
+      body: {}
+      extract: value
+      pagination: null
+      paginationplacement: null
+  - name: get_user_messages
+    type: receiver
+    config:
+      type: rest
+      uri: https://graph.microsoft.com/v1.0/users/$.input.using.id/messages?$select= internetMessageHeaders,id,createdDateTime,lastModifiedDateTime,changeKey,categories,receivedDateTime,sentDateTime,hasAttachments,internetMessageId,subject,bodyPreview,importance,parentFolderId,conversationId,conversationIndex,isDeliveryReceiptRequested,isReadReceiptRequested,isRead,isDraft,webLink,inferenceClassification,body,sender,from,toRecipients,ccRecipients,bccRecipients,replyTo,flag
+      method: GET
+      headers:
+        Authorization: Bearer $.block.retrieve_token.output.response.response
+      body:
+        appId: $.input.using.id
+      foreach: $.block.list_users.output.response.response[*]
+      extract: value
+      pagination: null
+      paginationplacement: null
+  - name: publish_to_rawOutput
+    type: sender
+    config:
+      type: kafka
+      topic: rawOutput
+      facade:
+        instance_id: f7f195b4-df8b-437b-87f5-c2943d41c2e2
+        name: Active Directory email Connector
+        description: Azure AD Connector Configuration
+        type: emails
+        vendor: Microsoft
+        product: microsoft.graph
+        subProduct: /v1.0/users/messages
+        data: $.input.using
+        subscriber: $.context.subscriber
+        tenant: $.context.tenant
+      foreach: $.block.get_user_messages.output.response.response[*]
+      foreach: $.block.get_user_messages.output.response[*].response[*]
+  - name: update_completion_to_25
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update/output
+      method: POST
+      headers:
+        Internal: true
+      body:
+        completed_percentage: 25
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: update_completion_to_50
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update/output
+      method: POST
+      headers:
+        Internal: true
+      body:
+        completed_percentage: 50
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: update_completion_to_75
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update/output
+      method: POST
+      headers:
+        Internal: true
+      body:
+        completed_percentage: 75
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: update_completion_to_100
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update/output
+      method: POST
+      headers:
+        Internal: true
+      body:
+        completed_percentage: 100
+      extract: null
+      pagination: null
+      paginationplacement: null

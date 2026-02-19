@@ -1,0 +1,26 @@
+type: message
+content:
+  acknowledgedButtons:
+  - name: Acknowledge warning
+    id: 1bb20dd2-4e21-40d7-bd86-ea0c1c589f0b
+    isPrimary: true
+    whitelist: false
+  justification_list:
+  - It’s blocking my productivity.
+  - I can’t do my job without this.
+  - This is an industry-standard app, why is it blocked?
+  - I have approval from my manager to use this app.
+  - The official app doesn't support what I need.
+  - I didn't know it wasn't allowed.
+  - It is just a one-time thing.
+  - We are racing against a deadline.
+  - Everyone else in the team is using it.
+  - Something else.
+  header: Hey! Just a quick heads-up!
+  description: ""
+  title: "AI's awesome, but it's not perfect — double-check important info. Be careful with personal data, and keep an eye out for any biases. Always trust your judgment along with AI. Have fun exploring!\n   \n<br />Your actions matter — help keep your organization safe!\n"
+channel: Browser
+rendered_content_type: application/json
+name: Block creating an account on an AI app
+is_active: true
+

@@ -1,0 +1,34 @@
+id: 158d3d24-26e0-446e-989d-84ac403201b7
+version: 1.1
+code: UC039
+name: SaaS application blocked by organisation
+type: use-case
+description: Blocks access to a SaaS application when an organization-defined policy is triggered, such as pasting data from a restricted browser or application.
+posture:
+  - PID_04
+behavior:
+  - BID_22
+condition:
+  - operator: null
+    filter_condition:
+      attribute_type: ATTR_Browser_001
+      attribute_id: BROWSER-002
+      condition: is_equal_to
+      value: visit
+    filter_group: null
+    editable: false
+    supported_operators:
+      - is equal to
+  - operator: AND
+    filter_condition:
+      attribute_type: ATTR_APP_001
+      attribute_id: APP-023
+      condition: is equal to
+      value: "yes"
+    filter_group: null
+    editable: true
+    supported_operators:
+      - is equal to
+disabled: false
+createdon: 1710504494000
+updatedon: 1710504494000

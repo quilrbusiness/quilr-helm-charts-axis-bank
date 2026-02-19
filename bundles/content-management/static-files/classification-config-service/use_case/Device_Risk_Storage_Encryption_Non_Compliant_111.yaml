@@ -1,0 +1,31 @@
+id: c448059f-d842-4ce8-8643-b79a3992d118
+name: storage encryption is non-compliant
+updatedon: 1739367217131
+condition:
+- filter_condition:
+    condition: is equal to
+    value: StorageRequireEncryption
+    attribute_id: DEV-003
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: 
+  editable: false
+- filter_condition:
+    condition: is not equal to
+    value: compliant
+    attribute_id: DEV-004
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: AND
+  editable: false
+createdon: 1739367217131
+version: 1.4
+description: Device storage encryption is currently disabled, leaving data vulnerable to unauthorized access, theft, or compromise. This increases security risks and may violate compliance policies.
+posture:
+- PID_05
+code: UC111
+disabled: false
+type: use-case
+behavior:
+- BID_101
+

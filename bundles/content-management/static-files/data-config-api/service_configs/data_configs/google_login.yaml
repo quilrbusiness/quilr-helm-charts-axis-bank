@@ -1,0 +1,25 @@
+id: b2e0017a-b476-4710-8108-e9746a4ac2db
+name: Continue with Google
+description: Quilr integrates with google login to enhance collaboration, productivity, and communication with powerful cloud based tools and service
+connection_config_id: 6d6b9038-4c36-4dfb-8f05-be863a36b68f
+icon_url: https://staticcontent1.blob.core.windows.net/static-images-company-logos/google_workspace.png
+login_enabled: true
+category: Identity
+version: 1.0.0
+updated_at: 1729595216000
+parent_org:
+  name: Google
+  description: Effortlessly integrate your Google's Workspace for gaining deeper insights in your environment.
+  icon_url: https://staticcontent1.blob.core.windows.net/static-images-company-logos/google_workspace.png
+metadata:
+  type: oauth_integration
+  product: googleapis.com
+  subProduct: /admin/directory/v1/users
+  vendor: Google
+internal:
+  content_ids:
+    env_var: ""
+    default_value: "sample"
+inputSchema: []
+outputSchema: {}
+is_active: true

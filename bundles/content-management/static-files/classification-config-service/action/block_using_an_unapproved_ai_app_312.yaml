@@ -1,0 +1,21 @@
+id: 559b8426-41a6-418c-a092-72bbc66ac096
+version: 1.10
+code: ACT_312
+name: Block using an unapproved AI app
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: templatized
+    message_template: block-using-an-unapproved-ai-app
+    execution_type: tool
+    execution_module: send_templated_user_message
+    browser_action: Block
+    blocked: false
+tags:
+  - UC303
+behavior:
+  - BID_04
+createdon: 1710504494000
+updatedon: 1758018676721

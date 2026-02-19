@@ -1,0 +1,78 @@
+widget_id: f694edd0-8816-41c5-9bde-76d7012081d8
+template_id: HumanSecurityIndex
+active: true
+title: Human Security Index
+components:
+  - name: description
+    type: html
+    data_source_type: data_lake
+    lambda: |
+      def fn(client):
+          # Combine redundant queries and use descriptive variable name:
+          user_security_data = client.fetch_data(
+              query="SELECT EXTRACT(epoch FROM timestamp) as recorded_date,"
+                            "COUNT(timestamp) as measure, COUNT(timestamp) as mark "
+                    "FROM security_behaviour_data "
+                    "WHERE user_id='be711671' "
+                    "GROUP BY EXTRACT(epoch FROM timestamp) LIMIT 1"
+          )
+          user_security_data['template'] = (
+              "<p> The identity risk level within your organization, recorded on "
+              "{recorded_date}, indicates a measurement of {measure}, notably higher "
+              "than mark {mark}</p>"
+          )
+          return user_security_data
+  - name: areaspline
+    type: chart
+    data_source_type: data_lake
+    lambda: |
+      def fn(client):
+          # Combine redundant queries and use descriptive variable name:
+          hsi_trend_data = client.fetch_data(
+              query="SELECT EXTRACT(epoch FROM timestamp) as timestamp, hsi_trend "
+                    "FROM time_series_data "
+                    "WHERE timestamp >= TO_TIMESTAMP(1641062400) AND timestamp <= TO_TIMESTAMP(1643654400)"
+          )
+          print(f"hsi_trend_data: {hsi_trend_data}")
+          result = {
+              "series": {"data": hsi_trend_data},
+              "name": "Hsi Trends",
+              "title": "HSI Chart",
+              "x_title": "Month - Year",
+              "y_title": "score",
+          }
+          return result
+  - name: radio_buttons
+    type: radio
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          return {"radio_1": "HSi Trend",
+                  "radio_2": "User Distribution"}
+  - name: solidgauge
+    type: chart
+    data_source_type: knowledgegraph
+    lambda: |
+      def fn(client):
+          # Combine redundant queries and use descriptive variable name:
+          query_result = client.fetch_data(
+              query="MATCH (tenant:TENANT {id: 'f6709ce5-b4be-4d43-9001-35867678adb5'}) "
+                    "RETURN toInteger(toFloat(tenant.score) * 100) AS score "
+          )
+          # print(f"max_hsi_trend: {max_hsi_trend}")
+          result = {
+              "series": {"data": query_result[0]['score']},
+              "dataLabels": {
+                  "verticalAlign": "middle",
+                  "align": "center",
+                  "enabled": "true",
+                  "borderWidth": 0,
+                  "useHTML": True,
+                  "style": {
+                      "textAlign": "center",
+                      "lineWidth": 1
+                  }
+              }
+          }
+          return result
+version: 10.0

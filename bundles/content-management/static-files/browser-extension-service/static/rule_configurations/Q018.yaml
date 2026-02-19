@@ -1,0 +1,21 @@
+datatype: DICT
+defaultValue:
+  message: |-
+    Cannot allow you to login with your {Appname} password on an app that does not belong to {Appname}. Sorry for the inconvenience but please reset your password
+  mode: Block
+entityDescription: |-
+  Reusing the password on centralized login or authentication services such as IdP or SSO.
+entityId: Q018
+entityMeta:
+  behavior: Password Reuse
+  category: ISPM
+  posture: Password Hygiene
+  check_id:
+    form_check_ids:
+      - CH-FORM-LOGIN
+      - CH-FORM-REUSED-PASSWORD
+      - CH-ADMIN-REUSED-PASSWORD
+entityName: Reusing Password on SSO/IDP
+entityType: rule
+isDisabled: false
+isModifiable: true

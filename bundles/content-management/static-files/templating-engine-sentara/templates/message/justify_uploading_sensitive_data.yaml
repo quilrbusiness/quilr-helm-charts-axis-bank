@@ -1,0 +1,22 @@
+name: Justify uploading sensitive data
+type: message
+channel: Browser
+content:
+  header: Hold On!
+  title: |
+    It looks like you are uploading sensitive data to an app.
+    Provide a business reason for moving this data:
+  description: ''
+  justification_list:
+    - To upload data to an approved system or repository
+    - To back up or archive business data
+    - To integrate with another authorized business system
+    - To migrate data during a project or environment upgrade
+    - To generate reports, analytics, or dashboards
+    - To test or validate data in an approved environment
+    - To submit data for audit, compliance, or regulatory review
+    - To support customer service or issue resolution
+    - To train or fine-tune approved AI or ML models
+    - To perform a one-time urgent business task
+rendered_content_type: application/json
+is_active: true

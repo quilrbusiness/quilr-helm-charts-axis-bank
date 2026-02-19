@@ -1,0 +1,45 @@
+id: 897e1b87-dc07-4b96-9a28-d01f14ed637b
+name: Tenant Score History To Knowledgegraph
+type: ingestion-to-graph
+version: 1.1
+schedule: "24h"
+historicalrecordduration: "24h"
+source:
+  type: query
+  config:
+    query: "MATCH (tenant:TENANT) 
+            WHERE tenant.id IS NOT NULL
+                  AND tenant.score IS NOT NULL
+            RETURN tenant.id as tenantId, 
+                   tenant.score AS tenantScore, 
+                   tenant.subscriber AS `PRODUCT.SUBSCRIBER`,
+                   tenant.tenant AS `PRODUCT.TENANT`,
+                   timestamp() AS currentTimestamp"
+    type: knowledgegraph
+    limit:
+    offset: 0
+destination:
+  type: stream
+  topic: knowledgeGraph
+config:
+  nodes:
+    tenant:
+      id: tenantId
+      type: TENANT
+    history:
+      id: currentTimestamp
+      type: HISTORY
+      timetravel: false
+      ttl: 90D
+      properties:
+        score: tenantScore
+  edges:
+    - destination: history
+      direction: out
+      relation: HAS_HISTORY
+      source: tenant
+      timetravel: false
+      ttl: 90D
+lambda: ""
+createdon: 1711006734
+updatedon: 1711006734

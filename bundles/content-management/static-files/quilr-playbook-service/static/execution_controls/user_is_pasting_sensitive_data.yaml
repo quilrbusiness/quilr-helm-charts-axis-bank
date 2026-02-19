@@ -1,0 +1,34 @@
+version: 1.0.3
+criticality: 4
+mode: monitor
+control_name: User is pasting sensitive data
+control_description: ""
+posture:
+  id: PID_06
+behavior:
+  id: BID_201
+use_case:
+  id: UC041
+schedule: "@every 11m"
+trigger_conditions:
+  - operator: null
+    filter_group: null
+    filter_condition:
+      attribute_type: ATTR_Browser_001
+      attribute_id: BROWSER-002
+      graph_property: null
+      extension_property: null
+      condition: is_equal_to
+      value: paste
+  - operator: AND
+    filter_group: null
+    filter_condition:
+      attribute_type: ATTR_DATA_001
+      attribute_id: DATA-009
+      graph_property: null
+      extension_property: null
+      condition: is_equal_to
+      value: "true"
+actions: []
+is_active: true
+is_internal: false

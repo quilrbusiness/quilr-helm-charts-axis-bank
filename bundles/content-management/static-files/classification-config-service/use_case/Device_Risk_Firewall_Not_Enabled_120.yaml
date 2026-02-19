@@ -1,0 +1,31 @@
+id: 8ec99523-4859-424b-bf88-6c8d9cc04333
+name: firewall protection is disabled
+updatedon: 1739509472017
+condition:
+- filter_condition:
+    condition: is equal to
+    value: FirewallEnabled
+    attribute_id: DEV-003
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: 
+  editable: false
+- filter_condition:
+    condition: is not equal to
+    value: compliant
+    attribute_id: DEV-004
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: AND
+  editable: false
+createdon: 1739509472017
+version: 1.4
+description: he device firewall is not enabled, exposing it to unauthorized network access and potential security threats. A firewall is required to protect against malicious traffic and ensure compliance with security policies.
+posture:
+- PID_05
+code: UC120
+disabled: false
+type: use-case
+behavior:
+- BID_101
+

@@ -1,0 +1,92 @@
+id: c4133c79-10e2-4a42-95c7-03cf52d91b92
+name: Okta Group Fabric
+type: fabric
+version: 1.0.0
+trail:
+  block: start
+  attempt:
+    - block: list_groups
+      attempt:
+        - block: list_group_members
+          attempt:
+            - block: merge_groups
+              attempt:
+                - block: publish_to_rawOutput
+                  attempt: []
+                  otherwise: []
+                  start: false
+                  end: false
+              otherwise: []
+              start: false
+              end: false
+          otherwise: []
+          start: false
+          end: false
+      otherwise: []
+      start: false
+      end: false
+  otherwise:
+    - block: end
+      attempt: []
+      otherwise: []
+      start: false
+      end: true
+  start: true
+blocks:
+  - name: start
+    type: start
+    config: {}
+  - name: end
+    type: end
+    config: {}
+  - name: list_groups
+    type: receiver
+    config:
+      type: rest
+      uri: $.credential.config.url/api/v1/groups
+      method: GET
+      headers:
+        Authorization: SSWS $.credential.config.key
+      body: {}
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: list_group_members
+    type: receiver
+    config:
+      type: rest
+      foreach: $.block.list_groups.output.response.response
+      uri: $.credential.config.url/api/v1/groups/$.input.using.id/users
+      method: GET
+      headers:
+        Authorization: SSWS $.credential.config.key
+      body:
+        groupid: $.input.using.id
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: merge_groups
+    type: util
+    config:
+      type: merge
+      primary: $.block.list_groups.output.response.response
+      secondary: '$.block.list_group_members.response.[*]'
+      pickfrom: response
+      sinkto: group_members
+      condition: $.primary.id == $.secondary.body.groupid
+  - name: publish_to_rawOutput
+    type: sender
+    config:
+      type: kafka
+      foreach: $.block.merge_groups.output.response.response
+      topic: rawOutput
+      facade:
+        name: Okta Groups Connector
+        description: Okta Connector Configuration
+        type: groups
+        vendor: Okta
+        product: okta groups
+        subProduct: /v1.0/groups
+        data: $.input.using
+        subscriber: $.context.subscriber
+        tenant: $.context.tenant

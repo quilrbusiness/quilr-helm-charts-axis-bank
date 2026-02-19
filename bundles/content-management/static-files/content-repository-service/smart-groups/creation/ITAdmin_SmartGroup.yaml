@@ -1,0 +1,36 @@
+id: 4f4c9bd4-a4a1-45ed-a349-fcfe2c74e23f
+name: IT Admins
+type: ingestion-to-graph
+version: 2.1
+schedule: 1D
+historicalrecordduration: 1D
+source: 
+  type: query
+  config: 
+    query: "MATCH(user:USER)
+            WHERE user.jobTitle in ['Network Administrator','Network Admin','System Administrator','System Admin','Network Administrator','Network Admin']
+                AND user.timestamp >= $starttime
+                AND user.timestamp <= $endtime
+            RETURN collect(DISTINCT user.id) as userids,
+                user.subscriber as SUBSCRIBER,
+                user.tenant as TENANT"
+    type: "knowledgegraph"
+    limit: 
+    offset: 0
+destination: 
+  type: "api"
+  headers: 
+    Internal: "true"
+  uri: "http://quilr-grouping-service:9071/group/create"
+config: 
+  groupname: "IT Admins"
+  userids: "$userids"
+  impact: veryhigh
+  likelihood: veryhigh
+  groupproperties:
+    mailEnabled: false
+    Description: 'This group consists of users who have administrative access to IT systems.'
+lambda: ""
+active: true
+createdon: 1720396800000
+updatedon: 1720396800000

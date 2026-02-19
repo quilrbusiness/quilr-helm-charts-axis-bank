@@ -1,0 +1,29 @@
+version: 1.0.0
+criticality: 3
+mode: monitor
+control_name: Enabling secure boot for a device
+control_description: Detects devices where Windows Secure Boot is disabled, which may increase the risk of unauthorized firmware or bootloader modifications, potentially exposing the system to security threats.
+posture:
+  id: PID_05
+behavior:
+  id: BID_101
+use_case:
+  id: UC109
+trigger_conditions:
+- operator: 
+  filter_condition:
+    attribute_type: ATTR_DEV_001
+    attribute_id: DEV-003
+    extension_property: split(compliancesetting.devicesettingname,".")[1]
+    condition: is_equal_to
+    value: SecureBootEnabled
+  filter_group: 
+- operator: AND
+  filter_condition:
+    attribute_type: ATTR_DEV_001
+    attribute_id: DEV-004
+    extension_property: compliancesetting.devicesettingvalue
+    condition: is_not_equal_to
+    value: compliant
+  filter_group: 
+actions: []

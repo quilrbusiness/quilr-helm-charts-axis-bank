@@ -1,0 +1,10 @@
+version: 1.0.3
+screen_id: device-risks
+title: Device Risks
+tag: Posture Screen
+description: Monitor your organizations security posture
+active: true
+type: options
+iconUrl: https://staticcontent1.blob.core.windows.net/finding-icons/posture-ai-usage.svg
+path: postures/device-risks
+order: 5

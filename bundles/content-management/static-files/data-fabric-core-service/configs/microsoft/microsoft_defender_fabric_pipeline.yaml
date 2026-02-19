@@ -1,0 +1,188 @@
+id: 072f6bac-1876-4bff-8c63-b96cc0fd00af
+name: graph-api-alert-data
+type: fabric
+version: 1.0.1
+trail:
+  block: start
+  dependson: [ ]
+  attempt:
+    - block: get_refresh_token
+      dependson: [ ]
+      attempt:
+        - block: send_token_to_vault
+          dependson: [ ]
+          attempt:
+            - block: update_completion_to_50
+              dependson: [ ]
+              attempt: [ ]
+              otherwise: [ ]
+              start: false
+              end: false
+            - block: get_defender_alertsv2
+              dependson: [get_refresh_token]
+              attempt: [ ]
+              otherwise: [ ]
+              start: false
+              end: false
+            - block: publish_to_rawOutputv2
+              dependson: [get_defender_alertsv2]
+              attempt: [ ]
+              otherwise: [ ]
+              start: false
+              end: false
+            - block: get_defender_alerts_legacy
+              dependson: [get_refresh_token]
+              attempt: [ ]
+              otherwise: [ ]
+              start: false
+              end: false
+            - block: publish_to_rawOutput_legacy
+              dependson: [get_defender_alerts_legacy]
+              attempt: 
+                  - block: update_completion_to_100
+                    dependson: [publish_to_rawOutput_legacy]
+                    attempt: [ ]
+                    otherwise: [ ]
+                    start: false
+                    end: false
+              otherwise: [ ]
+              start: false
+              end: false
+          otherwise: [ ]
+          start: false 
+          end: false
+      otherwise: [ ]
+      start:  false
+      end:  false
+  otherwise: 
+    - block: end
+      dependson: [ ]
+      attempt: [ ]
+      otherwise: [ ]
+      start: false
+      end: true
+  start: true
+  end: false
+blocks:
+  - name: start
+    type: start
+    config: {}
+  - name: end
+    type: end
+    config: {}
+  - name: get_refresh_token
+    type: receiver
+    config:
+      type: rest
+      uri: https://login.microsoftonline.com/common/oauth2/v2.0/token
+      method: GET
+      headers: {}
+      body:
+        grant_type: refresh_token
+        client_id: $.env.client_id
+        client_secret: $.env.client_secret
+        scope: https://graph.microsoft.com/.default
+        refresh_token: $.credential.token.refreshToken
+      extract: access_token
+      pagination: null
+      paginationplacement: null
+  - name: send_token_to_vault
+    type: sender
+    config:
+      type: vault
+      credential_type: token
+      subscriber: $.context.subscriber
+      tenant: $.context.tenant
+      userid: $.context.context.userid
+      facade:
+        accessToken: $.block.get_refresh_token.output.response.response
+        refreshToken: $.block.get_refresh_token.output.response.response
+  - name: get_defender_alertsv2
+    type: receiver
+    config:
+      type: rest
+      uri: https://graph.microsoft.com/v1.0/security/alerts_v2
+      method: GET
+      headers: 
+        Authorization: Bearer $.block.get_refresh_token.output.response.response
+      body: {}
+      extract: value
+      pagination: null
+      paginationplacement: null
+  - name: update_completion_to_50
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update
+      method: POST
+      headers:
+        Internal: true
+      body:
+        output :
+          completed_percentage: 50
+          executed_blocks : 4
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: update_completion_to_100
+    type: receiver
+    config:
+      type: rest
+      uri: http://content-tracking-service:9037/pipelines/$.context.context.pipelineid/update
+      method: POST
+      headers:
+        Internal: true
+      body:
+        output :
+          completed_percentage: 100
+          executed_blocks : 8
+          is_completed : true
+      extract: null
+      pagination: null
+      paginationplacement: null
+  - name: publish_to_rawOutputv2
+    type: sender
+    config:
+      type: kafka
+      topic: rawOutput
+      facade:
+        # instance_id: $.context.context.instanceid
+        name: Microsoft Defender Connector
+        description: Microsoft Defender Alert Configuration
+        type: alerts
+        vendor: Microsoft
+        product: defender
+        subProduct: /v1.0/security/alerts_v2
+        data: $.input.using
+        subscriber: $.context.subscriber
+        tenant: $.context.tenant
+      foreach: $.block.get_defender_alertsv2.output.response.response[*]
+  - name: get_defender_alerts_legacy
+    type: receiver
+    config:
+      type: rest
+      uri: https://graph.microsoft.com/v1.0/security/alerts
+      method: GET
+      headers: 
+        Authorization: Bearer $.block.get_refresh_token.output.response.response
+      body: {}
+      extract: value
+      pagination: null
+      paginationplacement: null
+  - name: publish_to_rawOutput_legacy
+    type: sender
+    config:
+      type: kafka
+      topic: rawOutput
+      facade:
+        instance_id: $.context.context.instanceid
+        name: Microsoft Defender Connector
+        description: Microsoft Defender Alert Configuration
+        type: alerts
+        vendor: Microsoft
+        product: defender_legacy
+        subProduct: /v1.0/security/alerts
+        data: $.input.using
+        subscriber: $.context.subscriber
+        tenant: $.context.tenant
+      foreach: $.block.get_defender_alerts_legacy.output.response.response[*]

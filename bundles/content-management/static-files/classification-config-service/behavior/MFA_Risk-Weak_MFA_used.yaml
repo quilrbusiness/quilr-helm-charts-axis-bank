@@ -1,0 +1,78 @@
+id: 2195f5fd-aee5-4aa7-b776-a979023e6ff4
+version: 2.5
+code: BID_07
+name: Weak MFA used
+type: behavior
+createdon: 1710504494000
+updatedon: 1710504494000
+posture:
+  - PID_02
+browser_enabled: true
+query: "MATCH (user:USER {subscriber: $subscriber, tenant: $tenant}) - [has_email:HAS_EMAIL] - (email:EMAIL)
+          MATCH (email)-[account_relation]-(account:ACCOUNT)-[using_app:USING_APP]-(app:APPLICATION)
+          WHERE type(account_relation) IN ['CREDSBASED_ACCOUNT', 'OAUTH_ACCOUNT']
+            OPTIONAL MATCH (tenant:TENANT {id: $tenant})-[app_settings:HAS_APP_SETTINGS]-(app)
+            WHERE account_relation.timestamp >= $starttime
+            AND account_relation.timestamp <= $endtime
+            AND toupper(COALESCE(app_settings.approval_status, app.approval_status, 'NOT SET'))= 'UNAPPROVED'
+            OPTIONAL MATCH (app) - [has_app_category:HAS_APP_CATEGORY] - (app_category:APP_CATEGORY)
+            OPTIONAL MATCH (tenant:TENANT {id: $tenant})-[:HAS_INSTANCE]-(instance:INSTANCE)-[has_idp:HAS_IDP]-(app:APPLICATION)
+            RETURN DISTINCT
+                user.displayName AS userName,
+                user.tenant as TENANT,               
+                user.subscriber AS SUBSCRIBER,
+                app.id_ as appId,
+                COALESCE(CASE WHEN NOT app.name IN ['', '-'] THEN app.name ELSE NULL END, app.domain) AS appName,
+                COLLECT(app_category.name) AS appCategory,
+                COALESCE(app_settings.criticality, app.criticality, 'NOT SET') AS appCriticality,
+                COALESCE(app_settings.approval_status, app.approval_status, 'NEEDS REVIEW') as appApprovalStatus,
+                account.id AS userAppAccount"
+config:
+  expression: "def fn(message): return True if message.get('userName') else False "
+  type: finding
+  subtype: status
+  status: open
+  sla: 1W
+  entity: userName
+  entitytype: user
+  tags:
+    - insecure_behavior
+  sourceofalert: Quilr
+  template: "Received an alert for the User: ${userName} on Application: ${appName}"
+  artifacts: 
+    - type: "ACCOUNT"
+      property: "id"
+      value: "$userAppAccount"
+      artifactproperties: 
+        artifactValue: $userName
+        displayInUI: enabled
+        artifactKey: "User"
+    - type: "APPLICATION" 
+      context: "global" 
+      property: id_
+      value: "$appId"
+      artifactproperties: 
+        artifactValue: $appName
+        displayInUI: enabled
+        artifactKey: "Application"
+#    - type: "App Criticality"
+#      property: "criticality"
+#      value: "$appCriticality"
+#      artifactproperties:
+#        artifactValue: $appCriticality
+#        displayInUI: enabled
+#        artifactKey: "Critical"
+    - type: "First Seen"
+      property: ""                                 #is this correct for matching ?
+      value: "$"                                # need to add first seen and last seen in the artifact
+      artifactproperties: 
+        artifactValue: $
+        displayInUI: enabled
+        artifactKey: ""
+    - type: "Last Seen"
+      property: ""                                 #is this correct for matching ?
+      value: "$"                                # need to add first seen and last seen in the artifact
+      artifactproperties: 
+        artifactValue: $
+        displayInUI: enabled
+        artifactKey: ""

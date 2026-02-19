@@ -1,0 +1,73 @@
+widget_id: 60e8cb29-bdbf-4cd7-9c73-24b0a7caea76
+template_id: TestWidgetPlayground
+active: true
+title: Test Widget Playground
+components:
+  - name: areaSpline
+    type: chart
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          data = {"title": "HBI Score Trends",
+                  "x_title": "Last 6 Years",
+                  "series": [
+                    {
+                      "type": "area",
+                      "name": "HBI Trend",
+                      "color": "#17E9C3",
+                      "data": [
+                        [1699920000000, 79.25693268446066],
+                        [1700006400000, 78.48813797833273],
+                        [1700092800000, 55.71303207862741],
+                        [1700179200000, 79.15545307835187],
+                        [1700265600000, 40.50555872350333]
+                      ],
+                      "lineWidth": 0.5,
+                      "fillColor": {
+                        "linearGradient": {
+                          "x1": 1,
+                          "y1": 1,
+                          "x2": 1,
+                          "y2": 0
+                        },
+                        "stops": [
+                          [0, "#00968800"],
+                          [1, "#019688"]
+                        ]
+                      },
+                      "fillOpacity": 0.5
+                    }
+                  ]
+                }
+          return data
+  - name: Initial Investment
+    type: area
+    data_source_type: static
+    lambda: |
+      def fn(client):
+          # Combine redundant queries and use descriptive variable name:
+          data = {"color": "#C12611",
+                  "data": [
+                    [1699920000000, 72.25693268446066],
+                    [1700006400000, 81.48813797833273],
+                    [1700092800000, 90.71303207862741],
+                    [1700179200000, 20.15545307835187],
+                    [1700265600000, 76.50555872350333]
+                  ],
+                  "lineWidth": 0.5,
+                  "fillColor": {
+                    "linearGradient": {
+                      "x1": 1,
+                      "y1": 1,
+                      "x2": 1,
+                      "y2": 0
+                    },
+                    "stops": [
+                      [0, "#00968800"],
+                      [1, "#F19688"]
+                    ]
+                  },
+                  "fillOpacity": 0.5
+                }
+          return data
+version: 5.0

@@ -1,0 +1,20 @@
+name: Justify copying sensitive data
+type: message
+channel: Browser
+content:
+  header: Data Transfer Blocked!
+  title: |
+    You are copying what looks like sensitive data. Moving important business information can put your organization at risk!
+    <br />Provide a business reason for moving this data:
+  description: ''
+  justification_list:
+    - Performing internal analysis for a defined task
+    - Testing or debugging with approved safeguards
+    - Executing a sensitive workflow under policy
+    - Acting on a documented manager-approved request
+    - Documentation update
+    - Sharing with authorized team
+    - Accidental copy (will cancel)
+  acknowledgedButtons: []
+rendered_content_type: application/json
+is_active: true

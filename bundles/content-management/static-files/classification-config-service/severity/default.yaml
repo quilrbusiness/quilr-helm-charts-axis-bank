@@ -1,0 +1,23 @@
+id: a00d25f1-7819-4235-8589-a5286acf3181
+version: 1.0
+code: DEFAULT
+name: Default Severity
+type: severity
+range:
+  - max: 1.0
+    min: 0.65
+    value: VERYHIGH
+  - max: 0.64
+    min: 0.45
+    value: HIGH
+  - max: 0.44
+    min: 0.30
+    value: MODERATE
+  - max: 0.29
+    min: 0.15
+    value: LOW
+  - max: 0.14
+    min: 0.01
+    value: VERYLOW
+createdon: 1710504494000
+updatedon: 1710504494000

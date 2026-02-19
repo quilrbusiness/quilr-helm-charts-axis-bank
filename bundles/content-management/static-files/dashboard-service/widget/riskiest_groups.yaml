@@ -1,0 +1,37 @@
+widget_id: 18b071b9-f9d3-42e5-8e78-8b5a125f9d39
+template_id: RiskiestGroups
+active: true
+title: Riskiest Groups
+components:
+  - name: Riskiest Groups
+    type: table
+    data_source_type: knowledgegraph
+    lambda: |
+      def fn(client):
+        data_result = client.fetch_data(
+            query="MATCH (u:USER)-[:BELONGS_TO]-(g:GROUP)"
+                  " WHERE u.subscriber = $subscriber and u.tenant = $tenant"
+                  " AND g.score IS NOT NULL AND g.userDefined IS NOT NULL"
+                  " RETURN"
+                  " COUNT(DISTINCT u.id) AS totalUsers,"
+                  " CASE" 
+                  " WHEN g.impact IS NOT NULL THEN g.impact" 
+                  " END AS impact,"
+                  " CASE"
+                  " WHEN g.likelihood IS NOT NULL THEN g.likelihood"
+                  " END AS likeliHood,"
+                  " g.displayName AS group,"
+                  " TOINTEGER(g.score) AS riskScore"
+        )
+        if data_result and isinstance(data_result, list) and data_result[0]:
+            total_record_count = 1
+            formatted_data = {"data": data_result,"total_record_count":total_record_count}
+            return formatted_data
+        else:
+            # Handle case where data_result is empty or doesn't contain expected structure
+            formatted_data = {
+                "data": [],
+                "total_record_count": 0
+            }
+            return formatted_data
+version: 1.0.7

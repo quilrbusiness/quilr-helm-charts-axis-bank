@@ -1,0 +1,21 @@
+id: 04034e28-a272-498e-8167-4e143bf829fd
+name: Microsoft Defender Alerts Scheduler
+type: fabric
+version: 1.0
+schedule: "1D"
+historicalrecordduration: "4h"
+istrackable: true
+source:
+  type: api
+  config:
+    uri: http://data-fabric-core-service:9031/fabric/start?fabricid=072f6bac-1876-4bff-8c63-b96cc0fd00af
+    method: POST
+    headers: {}
+    body: {}
+destination:
+  type: stream
+  topic: pipelineTracking
+config: {}
+lambda: ""
+createdon: 1707315500
+updatedon: 1707315500

@@ -1,0 +1,18 @@
+name: Justify pasting sensitive data
+type: message
+channel: Browser
+content:
+  header: Data Transfer Blocked!
+  title: |
+    It looks like you are pasting sensitive data into an unsafe app. <br/> Provide a business reason for moving this data:
+
+  description: "*Provide business justification?*"
+  justification_list:
+    - Internal processing
+    - Secure collaboration
+    - Data testing/transformation
+    - Accidental paste (will remove)
+    - Approved by manager
+  acknowledgedButtons: []
+rendered_content_type: application/json
+is_active: true

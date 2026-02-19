@@ -1,0 +1,6 @@
+filter_id: 91d876c0-a5af-4120-96a4-055f34e7a720
+config:
+  input_params:
+    - starttime
+    - endtime
+version: "1.0"

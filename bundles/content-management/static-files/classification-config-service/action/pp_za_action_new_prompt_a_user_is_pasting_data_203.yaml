@@ -1,0 +1,21 @@
+id: 1b5ecaba-36c3-4692-b226-dc2794301090
+version: 1.6
+code: ACT_203
+name: Prompt user for pasting data
+type: action
+actiontype: ACTP_02
+config:
+  meta:
+    channel: null
+    engagement_type: templatized
+    message_template: prompt-pasting-data
+    execution_type: tool
+    execution_module: send_templated_user_message
+    browser_action: Ask
+tags:
+  - UC026
+  - UC028
+behavior:
+  - BID_201
+createdon: 1710504494000
+updatedon: 1710504494000

@@ -1,0 +1,36 @@
+id: afa528a8-11fa-40ea-a24a-5cb9a6fa5f0c
+name: Vendors
+type: ingestion-to-graph
+version: 2.1
+schedule: 1D
+historicalrecordduration: 1D
+source: 
+  type: query
+  config: 
+    query: "MATCH(user:USER)
+            WHERE user is not null
+                AND user.employeeType in ['Vendors','vendors','vendor']
+                AND user.timestamp >= $starttime
+                AND user.timestamp <= $endtime
+            RETURN collect(DISTINCT user.id) as userids,
+                user.subscriber as SUBSCRIBER,
+                user.tenant as TENANT"
+    type: "knowledgegraph"
+    limit: 
+    offset: 0
+destination: 
+  type: "api"
+  headers: 
+    Internal: "true"
+  uri: "http://quilr-grouping-service:9071/group/create"
+config: 
+  groupname: "Vendors"
+  userids: "$userids"
+  impact: moderate
+  likelihood: moderate
+  groupproperties:
+    Description: 'This group includes users who are employed by external vendor organizations and provide services or products to the company.'
+lambda: ""
+active: true
+createdon: 1720396800000
+updatedon: 1720396800000

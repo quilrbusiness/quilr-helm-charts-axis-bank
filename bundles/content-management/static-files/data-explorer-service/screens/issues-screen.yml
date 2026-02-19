@@ -1,0 +1,1453 @@
+id: issues-screen
+name: Issues
+type: screen
+enabled: true
+version: 1.0.676
+icon_url: https://staticcontent1.blob.core.windows.net/finding-icons/alert-triangle-svgrepo-com.svg
+table_query:
+  id: issues-screen
+  name: Display Table Data
+  queryString: "
+    CALL {
+    MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+    MATCH (e)-[]->(acc:ACCOUNT)
+    MATCH (acc)-[hi:HAS_ISSUE]->(i:ISSUE)
+    OPTIONAL MATCH (u)-[:BELONGS_TO]->(g:GROUP{userDefined: true})
+    OPTIONAL MATCH (u)-[:HAS_DEPARTMENT]->(dep:DEPARTMENT)
+    OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+    OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(i)
+    OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+    OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+    OPTIONAL MATCH (i)-[:TRIGGERED]->(action:ACTION)
+
+    RETURN u, e, acc, i as issue, g, application, r, b, p, action, dep
+
+    UNION
+
+    MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+    MATCH (e)-[]->(acc:ACCOUNT)
+    MATCH (acc)-[hi:HAS_ISSUE]->(ih:ISSUE_HISTORY)
+    OPTIONAL MATCH (u)-[:BELONGS_TO]->(g:GROUP{userDefined: true})
+    OPTIONAL MATCH (u)-[:HAS_DEPARTMENT]->(dep:DEPARTMENT)
+    OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+    OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(ih)
+    OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+    OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+    OPTIONAL MATCH (ih)-[:TRIGGERED]->(action:ACTION)
+
+    RETURN u, e, acc, ih as issue, g, application, r, b, p, action, dep
+    }
+
+    WITH u, acc, issue as i, r, p, b, issue.status as status, application, action, g, dep,
+    right(issue.sla, 1) AS unit,
+    toInteger(substring(issue.sla, 0, size(issue.sla)-1)) AS slaValue,
+    issue.generationTime as genTime,
+    timestamp() as now
+
+    WITH u, acc, i, r, p, b,g, status, application, action, unit, slaValue, genTime, now, dep,
+    CASE
+    WHEN unit = 'W' THEN slaValue * 7 * 24 * 60 * 60 * 1000
+    WHEN unit = 'd' THEN slaValue * 24 * 60 * 60 * 1000
+    WHEN unit = 'h' THEN slaValue * 60 * 60 * 1000
+    WHEN unit = 's' THEN slaValue * 1000
+    ELSE 0
+    END AS slaMillis
+    WITH u, acc, i, r, p, b,g, dep, status, application, action, (slaMillis - (now - genTime)) as diff
+    WHERE
+    u.subscriber = $subscriber
+    AND u.tenant = $tenant
+    AND (toLower(u.displayName) =~ '.*{searchText}.*' OR toLower(i.name) =~ '.*{searchText}.*' OR toLower(i.id) =~ '.*{searchText}.*')
+    {placeholder}
+    RETURN
+    i.id as id,
+    i.assignedto as assignedTo,
+    collect(DISTINCT action.name) as actionTaken,
+    r.name AS IssueName,
+    r.severity as severity,
+    collect(DISTINCT {name: u.displayName, id: u.id}) as users,
+    [g IN COLLECT(DISTINCT {id: g.id, name: g.displayName}) WHERE g.name IS NOT NULL] AS group,
+    u.mail as email,
+    collect(DISTINCT b.name) AS behaviourNames,
+    p.name as Posture,
+    dep.name as Department,
+    i.generationTime as createdTime,
+    status as resolutionStatus,
+    i.actionStatus as actionStatus,
+    i.assignementStatus as assignementStatus,
+    collect(DISTINCT {app: COALESCE(application.name, application.domain,application.id), logo: application.logoUrl}) as App,
+    i.copilotStatus as `Co-Pilot`,
+    CASE
+    WHEN diff > 24 * 60 * 60 * 1000 THEN 'on track'
+    WHEN diff <= 24 * 60 * 60 * 1000 AND diff > 0 THEN 'at risk'
+    ELSE 'breached'
+    END AS slaStatus"
+  type: merge
+  allowed_params: true
+  allowed_body: true
+  input_params:
+    Users: AND u.displayName = $Users
+    Apps: AND COALESCE(application.name, application.domain,application.id) = $Apps
+    status: AND i.status = $status
+    issueName: AND r.name = $issueName
+    severity: AND r.severity = $severity
+    Posture: AND p.name = $Posture
+    Finding: AND r.name = $Finding
+    starttime: AND i.generationTime >= $starttime
+    endtime: AND i.generationTime <= $endtime
+    queue: AND (i.status = 'open' OR i.assignedto = {token}.id )
+    myqueue: AND i.assignedto = {token}.id
+    resolved: AND i.status = 'closed'
+  input_body: null
+  dataSourceType: knowledgegraph
+  sortOrder: null
+  sortColumn: null
+  limit: 10
+  offset: 0
+detailed_widget:
+  - id: accounts
+    name: Findings_Account
+    position: main
+    template: detailed
+    query: ""
+    dataSourceType: knowledgegraph
+    sortOrder: null
+    sortColumn: null
+    pagination_query: ""
+    enabled: true
+    allowed_params: true
+  - id: humanContext
+    name: Human Context
+    position: offset
+    template: human_context
+    query: ""
+    dataSourceType: knowledgegraph
+    sortOrder: null
+    sortColumn: null
+    pagination_query: ""
+    enabled: true
+view_by: []
+table_filters:
+  - id: queue
+    name: Queue
+    defaultValue: true
+    active: true
+    type: button-group
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      starttime: AND i.generationTime >= $starttime
+      endtime: AND i.generationTime <= $endtime
+
+    query: "
+      CALL {
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      MATCH (acc)-[hi:HAS_ISSUE]->(i:ISSUE)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g:GROUP)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(i)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (i)-[:TRIGGERED]->(action:ACTION)
+
+      return u, e, acc, i as issue, g, application, r, b, p, action
+
+      UNION
+
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      MATCH (acc)-[hi:HAS_ISSUE]->(ih:ISSUE_HISTORY)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g:GROUP)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(ih)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (ih)-[:TRIGGERED]->(action:ACTION)
+      return u, e, acc, ih as issue, g, application, r, b, p, action
+      }
+
+      WITH u, acc, issue as i, r, p, b, issue.status as status, application, action, g
+      WHERE
+      u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      {placeholder}
+      WITH COLLECT (DISTINCT {label: r.name, id: 'issueName_'+r.id, value: r.name}) AS issueNamePre
+      WITH {id: 'issueName_' + apoc.util.md5(['All']), label: 'All', value: 'All'} + issueNamePre AS filters
+      RETURN filters"
+  - id: myqueue
+    name: My Queue
+    defaultValue: false
+    active: true
+    type: button-group
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      starttime: AND i.generationTime >= $starttime
+      endtime: AND i.generationTime <= $endtime
+    query: "
+      CALL {
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      MATCH (acc)-[hi:HAS_ISSUE]->(i:ISSUE)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g:GROUP)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(i)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (i)-[:TRIGGERED]->(action:ACTION)
+
+      return u, e, acc, i as issue, g, application, r, b, p, action
+
+      UNION
+
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      MATCH (acc)-[hi:HAS_ISSUE]->(ih:ISSUE_HISTORY)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g:GROUP)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(ih)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (ih)-[:TRIGGERED]->(action:ACTION)
+      return u, e, acc, ih as issue, g, application, r, b, p, action
+      }
+
+      WITH u, acc, issue as i, r, p, b, issue.status as status, application, action, g
+      WHERE
+      u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      {placeholder}
+      WITH COLLECT (DISTINCT {label: r.name, id: 'issueName_'+r.id, value: r.name}) AS issueNamePre
+      WITH {id: 'issueName_' + apoc.util.md5(['All']), label: 'All', value: 'All'} + issueNamePre AS filters
+      RETURN filters"
+  - id: resolved
+    name: Resolved
+    defaultValue: false
+    active: true
+    type: button-group
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      starttime: AND i.generationTime >= $starttime
+      endtime: AND i.generationTime <= $endtime
+    query: "
+      CALL {
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      MATCH (acc)-[hi:HAS_ISSUE]->(i:ISSUE)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g:GROUP)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(i)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (i)-[:TRIGGERED]->(action:ACTION)
+
+      return u, e, acc, i as issue, g, application, r, b, p, action
+
+      UNION
+
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      MATCH (acc)-[hi:HAS_ISSUE]->(ih:ISSUE_HISTORY)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g:GROUP)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(ih)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (ih)-[:TRIGGERED]->(action:ACTION)
+      return u, e, acc, ih as issue, g, application, r, b, p, action
+      }
+
+      WITH u, acc, issue as i, r, p, b, issue.status as status, application, action, g
+      WHERE
+      u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      {placeholder}
+      WITH COLLECT (DISTINCT {label: r.name, id: 'issueName_'+r.id, value: r.name}) AS issueNamePre
+      WITH {id: 'issueName_' + apoc.util.md5(['All']), label: 'All', value: 'All'} + issueNamePre AS filters
+      RETURN filters"
+  - id: issueName
+    name: Issue Name
+    defaultValue: All
+    active: true
+    type: select
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      starttime: AND i.generationTime >= $starttime
+      endtime: AND i.generationTime <= $endtime
+      queue: AND (i.status = 'open' OR i.assignedto = {token}.id )
+      myqueue: AND i.assignedto = {token}.id
+      resolved: AND i.status = 'closed'
+    query: "
+      CALL {
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      MATCH (acc)-[hi:HAS_ISSUE]->(i:ISSUE)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g:GROUP)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(i)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (i)-[:TRIGGERED]->(action:ACTION)
+
+      return u, e, acc, i as issue, g, application, r, b, p, action
+
+      UNION
+
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      MATCH (acc)-[hi:HAS_ISSUE]->(ih:ISSUE_HISTORY)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g:GROUP)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(ih)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (ih)-[:TRIGGERED]->(action:ACTION)
+      return u, e, acc, ih as issue, g, application, r, b, p, action
+      }
+
+      WITH u, acc, issue as i, r, p, b, issue.status as status, application, action, g
+      WHERE
+      u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      {placeholder}
+      WITH COLLECT (DISTINCT {label: r.name, id: 'issueName_'+r.id, value: r.name}) AS issueNamePre
+      WITH {id: 'issueName_' + apoc.util.md5(['All']), label: 'All', value: 'All'} + issueNamePre AS filters
+      RETURN filters"
+  - id: severity
+    name: Criticality
+    active: true
+    input_params:
+      starttime: AND i.generationTime >= $starttime
+      endtime: AND i.generationTime <= $endtime
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    defaultValue: All
+    type: select
+    query: "
+      CALL {
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      MATCH (acc)-[hi:HAS_ISSUE]->(i:ISSUE)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g:GROUP)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(i)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (i)-[:TRIGGERED]->(action:ACTION)
+
+      return u, e, acc, i as issue, g, application, r, b, p, action
+
+      UNION
+
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      MATCH (acc)-[hi:HAS_ISSUE]->(ih:ISSUE_HISTORY)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g:GROUP)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(ih)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (ih)-[:TRIGGERED]->(action:ACTION)
+      return u, e, acc, ih as issue, g, application, r, b, p, action
+      }
+
+      WITH u, acc, issue as i, r, p, b, issue.status as status, application, action, g
+      WHERE
+      u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      {placeholder}
+      WITH
+      collect(distinct {id: 'criticality_' + apoc.util.md5(['All']), label: 'All', value: 'All'}) +
+      collect(distinct {id: 'criticality_' + apoc.util.md5(['VERYLOW']), label: 'Very Low', value: 'VERYLOW'}) +
+      collect(distinct {id: 'criticality_' + apoc.util.md5(['LOW']), label: 'Low', value: 'LOW'}) +
+      collect(distinct {id: 'criticality_' + apoc.util.md5(['MEDIUM']), label: 'Medium', value: 'MEDIUM'}) +
+      collect(distinct {id: 'criticality_' + apoc.util.md5(['HIGH']), label: 'High', value: 'HIGH'}) +
+      collect(distinct {id: 'criticality_' + apoc.util.md5(['VERYHIGH']), label: 'Very High', value: 'VERYHIGH'}) as filters
+
+      RETURN filters"
+  - id: Apps
+    name: Apps
+    type: select
+    active: true
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      starttime: AND i.generationTime >= $starttime
+      endtime: AND i.generationTime <= $endtime
+    defaultValue: All
+    query:
+      "
+      CALL {
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      MATCH (acc)-[hi:HAS_ISSUE]->(i:ISSUE)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g:GROUP)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(i)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (i)-[:TRIGGERED]->(action:ACTION)
+
+      return u, e, acc, i as issue, g, application, r, b, p, action
+
+      UNION
+
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      MATCH (acc)-[hi:HAS_ISSUE]->(ih:ISSUE_HISTORY)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g:GROUP)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(ih)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (ih)-[:TRIGGERED]->(action:ACTION)
+      return u, e, acc, ih as issue, g, application, r, b, p, action
+      }
+
+      WITH u, acc, issue as i, r, p, b, issue.status as status, application, action, g
+      WHERE
+      u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      {placeholder}
+      WITH collect(DISTINCT {label: application.name, id:coalesce('appName_' + application.id_,'appName_'+apoc.util.md5([application.name])), value: application.name}) as a1
+      WITH {id: 'appName_'+apoc.util.md5(['All']), label: 'All', value: 'All'} + a1 as filters
+      RETURN filters"
+
+      # 541217bf-6576-497a-ba24-fdc268cf7fb0
+  # - id: cf21f158-0dea-4975-816d-ca3e1a2c5d74
+  #   name: Co-Pilot Status
+  #   type: Drop Down Menu
+  #   active: false
+  #   options:
+  #     query_id: ""
+  #     mergeQueryString: ""
+  #     label: ""
+  #     value: ""
+widgets:
+  - id: abb71d36-2e80-4f00-9b06-c53f71c782df
+    name: Issue Distribution
+    label: Widget
+    template: this_template
+    enabled: true
+    type: packedbubble
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    className: col-span-3
+    query_id: ""
+    input_params:
+      starttime: AND i.generationTime >= $starttime
+      endtime: AND i.generationTime <= $endtime
+    queryFilters:
+      - id: 23154174-af03-40c1-ac44-cb8b078c3b0f
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: "
+      CALL {
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      MATCH (acc)-[hi:HAS_ISSUE]->(i:ISSUE)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g:GROUP)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(i)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (i)-[:TRIGGERED]->(action:ACTION)
+
+      return u, e, acc, i as issue, g, application, r, b, p, action
+
+      UNION
+
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      MATCH (acc)-[hi:HAS_ISSUE]->(ih:ISSUE_HISTORY)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g:GROUP)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(ih)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (ih)-[:TRIGGERED]->(action:ACTION)
+      return u, e, acc, ih as issue, g, application, r, b, p, action
+      }
+
+      WITH u, acc, issue as i, r, p, b, issue.status as status, application, action, g
+
+
+      WHERE
+      u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      {placeholder}
+      WITH 'packedbubble' as type,  COALESCE(g.name, '-') as name, count(DISTINCT u) as value, r.name as valName
+      WITH collect({name: valName, value: value }) AS data, name, type
+      RETURN name, type, data"
+  - id: 77c82e9b-0f2d-4c61-8545-d78ef48b6614
+    name: Issue Status
+    label: Widget
+    template: status
+    enabled: true
+    type: polar_graph
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    className: col-span-3
+    query_id: ""
+    input_params:
+      starttime: AND i.generationTime >= $starttime
+      endtime: AND i.generationTime <= $endtime
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: "
+      CALL {
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      MATCH (acc)-[hi:HAS_ISSUE]->(i:ISSUE)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g:GROUP)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(i)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (i)-[:TRIGGERED]->(action:ACTION)
+
+      return u, e, acc, i as issue, g, application, r, b, p, action
+
+      UNION
+
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      MATCH (acc)-[hi:HAS_ISSUE]->(ih:ISSUE_HISTORY)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g:GROUP)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(i)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (i)-[:TRIGGERED]->(action:ACTION)
+      return u, e, acc, ih as issue, g, application, r, b, p, action
+      }
+
+      WITH u, acc, issue as i, r, p, b, issue.status as status, application, action,g
+      WHERE
+      u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      {placeholder}
+      WITH
+      COUNT(DISTINCT CASE WHEN i.status = 'open' THEN i END) AS openCount,
+      COUNT(DISTINCT CASE WHEN i.status = 'closed' THEN i END) AS closedCount,
+      COUNT(DISTINCT CASE WHEN i.status = 'inprogress' THEN i END) AS inprogressCount
+
+      RETURN [
+      { value: closedCount, name: 'Closed' },
+      { value: inprogressCount, name: 'In Progress' },
+      { value: openCount, name: 'Open' }
+      ] AS results"
+  - id: 09bbf5c2-def4-4e3a-bec9-994ff647243d
+    name: Remediation Status
+    label: Widget
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    template: remediationStatus
+    enabled: true
+    type: polar_graph
+    className: col-span-3
+    query_id: ""
+    input_params:
+      starttime: AND i.generationTime >= $starttime
+      endtime: AND i.generationTime <= $endtime
+    queryFilters:
+      - id: c58d1d61-6422-449f-96fd-b2b740bcd6f3
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: "
+      CALL {
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      MATCH (acc)-[hi:HAS_ISSUE]->(i:ISSUE)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g:GROUP)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(i)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (i)-[:TRIGGERED]->(action:ACTION)
+
+      return u, e, acc, i as issue, g, application, r, b, p, action
+
+      UNION
+
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      MATCH (acc)-[hi:HAS_ISSUE]->(ih:ISSUE_HISTORY)
+      OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g:GROUP)
+      OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+      OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(i)
+      OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+      OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+      OPTIONAL MATCH (i)-[:TRIGGERED]->(action:ACTION)
+      return u, e, acc, ih as issue, g, application, r, b, p, action
+      }
+
+      WITH u, acc, issue as i, r, p, b, issue.status as status, application, action,g
+      WHERE
+      u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      {placeholder}
+      WITH
+      COUNT(DISTINCT CASE WHEN i.actionStatus = 'Remediation Required' THEN i END) AS requiredCount,
+      COUNT(DISTINCT CASE WHEN i.actionStatus = 'Auto-Remediated' THEN i END) AS autoRemediatedCount,
+      COUNT(DISTINCT CASE WHEN i.actionStatus = 'Remediated' THEN i END) AS remediatedCount
+
+      RETURN [
+      { value: remediatedCount, name: 'Remediated' },
+      { value: requiredCount, name: 'Remediation Required' },
+      { value: autoRemediatedCount, name: 'Auto-Remediated' }
+
+      ] AS results"
+  - id: 7dc7621b-30c8-4fe8-ad0f-0ad92142290e
+    name: SLA Status
+    label: Widget
+    template: this_template
+    enabled: true
+    type: SLA
+    className: col-span-3
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    query_id: ""
+    input_params:
+      starttime: AND issue.timestamp >= $starttime
+      endtime: AND issue.timestamp <= $endtime
+    queryFilters:
+      - id: bb26f95b-386c-4d77-ae68-5dffb48a7f1f
+        name: Time Filter
+        type: multiselect
+        options: null
+    query: "
+      MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+      MATCH (e)-[]->(acc:ACCOUNT)
+      MATCH (acc)-[hi:HAS_ISSUE]->(issue:ISSUE_HISTORY)
+
+
+      WHERE issue.startTime IS NOT NULL AND issue.endTime IS NOT NULL
+      AND u.subscriber = $subscriber
+      AND u.tenant = $tenant
+      {placeholder}
+
+      WITH issue, issue.severity AS severity,
+      substring(issue.sla, 0, size(issue.sla) - 1) AS slaValueString,
+      substring(issue.sla, size(issue.sla) - 1) AS slaUnit,
+      datetime({epochMillis: issue.startTime}) AS startDateTime,
+      datetime({epochMillis: issue.endTime}) AS endDateTime,
+      toInteger(substring(issue.sla, 0, size(issue.sla) - 1)) AS slaValue
+      WITH issue, severity, slaValue, slaUnit, startDateTime, endDateTime,
+      CASE slaUnit
+      WHEN 'D' THEN slaValue * 24
+      WHEN 'W' THEN slaValue * 24 * 7
+      WHEN 'h' THEN slaValue
+      ELSE 0
+      END AS slaInHours,
+      CASE severity
+      WHEN 'VERYHIGH' THEN [24, 12]
+      WHEN 'HIGH' THEN [36, 24]
+      WHEN 'Moderate' THEN [48, 36]
+      WHEN 'LOW' THEN [60, 48]
+      WHEN 'VERYLOW' THEN [72, 60]
+      ELSE [0, 0]
+      END AS slaThresholds,
+      CASE slaUnit
+      WHEN 'D' THEN toInteger(slaValueString)
+      WHEN 'W' THEN toInteger(slaValueString) * 7
+      WHEN 'h' THEN toInteger(slaValueString)
+      ELSE 0
+      END AS definedSlaInDays
+      WITH issue, severity, slaInHours, slaThresholds,
+      duration.between(startDateTime, endDateTime).days * 24 AS resolutionTimeInHours, definedSlaInDays
+      WITH issue, severity, slaInHours, slaThresholds, resolutionTimeInHours, definedSlaInDays,
+      CASE
+      WHEN resolutionTimeInHours <= slaInHours - slaThresholds[1] THEN '#B8FCAA'
+      WHEN resolutionTimeInHours <= slaInHours - slaThresholds[2] THEN '#FFA2A2'
+      ELSE '#634C4B'
+      END AS status
+      WITH severity, status, resolutionTimeInHours, definedSlaInDays,
+      avg(resolutionTimeInHours) / 24.0 AS avgResolutionTimeInHours,
+      avg(definedSlaInDays * 24) AS avgDefinedSlaInHours,
+      count(issue) AS recordCount
+      WITH severity, avgResolutionTimeInHours, avgDefinedSlaInHours,
+      collect({status: status, recordCount: recordCount}) AS issueSegregation
+      WITH
+      CASE severity
+      WHEN 'VERYHIGH'  THEN 'Very High'
+      WHEN 'HIGH'  THEN 'High'
+      WHEN 'MODERATE'  THEN 'Moderate'
+      WHEN 'LOW'  THEN 'Low'
+      WHEN 'VERYLOW'  THEN 'Very Low'
+      END as severity,
+      avgResolutionTimeInHours,
+      avgDefinedSlaInHours,
+      issueSegregation
+
+      RETURN severity + ' SLA - ' +  toInteger(avgResolutionTimeInHours) + ' hours' as label, toInteger(avgDefinedSlaInHours) + ' hours' as value, issueSegregation as count
+      ORDER BY severity
+      "
+
+table_render:
+  detailedWidgets:
+    accounts:
+      queries:
+        - id: accounts
+          queryParam: id
+          paramValue: id
+        - id: user_interaction
+          queryParam: id
+          paramValue: id
+        - id: final_outcome
+          queryParam: id
+          paramValue: id
+        - id: issue_details
+          queryParam: id
+          paramValue: id
+        - id: user_interaction_identity_protection
+          queryParam: id
+          paramValue: id
+      template: DetailedView
+    humanContext:
+      template: HumanContext
+      queries:
+        - id: human_technical_details
+          queryParam: userId
+          paramValue: users[0].id
+        - id: human_departments
+          queryParam: userId
+          paramValue: users[0].id
+        - id: human_postures
+          queryParam: userId
+          paramValue: users[0].id
+        - id: human_risks
+          queryParam: userId
+          paramValue: users[0].id
+        - id: human_chart
+          queryParam: username
+          paramValue: users[0].name
+  detailed:
+    IssueName:
+      id: IssueName
+      type: text
+      label: Issue Name
+      valuePath: IssueName
+      extraClasses: text-left
+      width: "w-[10%]"
+      sortable: false
+      groupByKey: IssueName
+      order: 1
+  table:
+    severity:
+      order: -1
+      id: severity
+      label: ""
+      type: colorMap
+      valuePath: severity
+      map:
+        "VERYLOW": "#98FB98"
+        "LOW": "#F0E68C"
+        "MEDIUM": "#FFE200"
+        "HIGH": "#FF7A5A"
+        "VERYHIGH": "#E01A01"
+    checkbox:
+      show: true
+      order: 0
+    id:
+      id: id
+      type: boxText
+      label: ID
+      width: w-[5%]
+      sortable: false
+      valuePath: id
+      groupByKey: id
+      order: 1
+    IssueName:
+      id: IssueName
+      type: text
+      label: Issue Name
+      valuePath: IssueName
+      extraClasses: text-left
+      width: "w-[10%]"
+      sortable: false
+      groupByKey: IssueName
+      order: 2
+    createdTime:
+      id: createdTime
+      type: USFormattedDate
+      width: "w-[8%]"
+      label: Created Time
+      extraClasses: text-center
+      valuePath: createdTime
+      sortable: false
+      groupByKey: createdTime
+      order: 3
+    users:
+      id: users
+      type: UserViewOnly
+      label: User
+      width: "w-[10%]"
+      valuePath: Users
+      sortable: false
+      groupByKey: Users
+      order: 4
+    app:
+      id: App
+      type: multi_icon
+      label: App
+      valuePath: App
+      sortable: false
+      groupByKey: App
+      order: 6
+    resolutionStatus:
+      id: resolutionStatus
+      type: status
+      label: Status
+      valuePath: resolutionStatus
+      sortable: false
+      map:
+        open: "#FFDFB4"
+        closed: "#8282F2"
+        inprogress: "#B7FCAA"
+      order: 7
+    actionStatus:
+      id: actionStatus
+      type: remediationStatus
+      label: Remediation Status
+      valuePath: actionStatus
+      sortable: false
+      map:
+        Remediated:
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/Resolved.svg
+          color: "#FFDFB4"
+        "Remediation Required":
+          color: "#8282F2"
+          logo: ""
+        "Auto-Remediated":
+          color: "#B7FCAA"
+          logo: https://staticcontent1.blob.core.windows.net/finding-icons/Resolved.svg
+      order: 8
+    assignedTo:
+      id: assignedTo
+      type: AuthUser
+      className: "text-center capitalize"
+      label: Resolver
+      valuePath: assignedTo
+      sortable: false
+      order: 9
+    slaStatus:
+      id: slaStatus
+      type: coloredText
+      extraClasses: "capitalize text-center"
+      label: SLA Status
+      valuePath: slaStatus
+      sortable: false
+      order: 10
+      map:
+        completed: "#B8FCAA"
+        breached: "#FFA2A2"
+        "on track": "#A2FFFF"
+    dots:
+      show: true
+      order: 11
+      field: resolutionStatus
+      options:
+        open:
+          - id: 43f20a7b-7016-45a8-8578-3132589bd2d1
+            label: Acknowledge
+          - id: 927f861f-ab6e-4e75-9226-b6defe780b3a
+            label: Escalate
+            disabled: true
+        inprogress:
+          - id: 8aaf423d-6608-40ba-9521-416c1e0c7c8c
+            label: Release
+          - id: 4b4b94e0-dafa-4647-a81f-4bc469778b0e
+            label: Resolve
+          - id: df2a0094-eb99-4cac-8b57-39ff755eb1f5
+            label: Assign
+            disabled: true
+        closed: []
+    search:
+      id: search
+      placeholder: "Enter keywords and press enter to search for ID, Issue Name or User"
+
+pagination_query:
+  dataSourceType: knowledgegraph
+  query: "CALL {
+    MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+    MATCH (e)-[]->(acc:ACCOUNT)
+    MATCH (acc)-[hi:HAS_ISSUE]->(i:ISSUE)
+    OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g:GROUP)
+    OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+    OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(i)
+    OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+    OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+    OPTIONAL MATCH (i)-[:TRIGGERED]->(action:ACTION)
+
+    return u, e, acc, i as issue, g, application, r, b, p, action
+
+    UNION
+
+    MATCH (u:USER)-[:HAS_EMAIL]->(e:EMAIL:PRIMARY)
+    MATCH (e)-[]->(acc:ACCOUNT)
+    MATCH (acc)-[hi:HAS_ISSUE]->(ih:ISSUE_HISTORY)
+    OPTIONAL MATCH (acc)-[:BELONGS_TO]->(g:GROUP)
+    OPTIONAL MATCH (acc)-[:USING_APP]-(application:APPLICATION)
+    OPTIONAL MATCH (r:RULE)-[:EVALUATED_TO]->(i)
+    OPTIONAL MATCH (r)-[:BELONGS_TO]->(b:BEHAVIOUR)
+    OPTIONAL MATCH (b)-[:BELONGS_TO]->(p:POSTURE)
+    OPTIONAL MATCH (i)-[:TRIGGERED]->(action:ACTION)
+    return u, e, acc, ih as issue, g, application, r, b, p, action
+    }
+
+    WITH u, acc, issue as i, r, p, b, issue.status as status, application, action,g,
+    right(issue.sla, 1) AS unit,
+    toInteger(substring(issue.sla, 0, size(issue.sla)-1)) AS slaValue,
+    issue.generationTime as genTime,
+    timestamp() as now
+
+    WITH u, acc, i, r, p, b,g, status, application, action, unit, slaValue, genTime, now,
+    CASE
+    WHEN unit = 'W' THEN slaValue * 7 * 24 * 60 * 60 * 1000
+    WHEN unit = 'd' THEN slaValue * 24 * 60 * 60 * 1000
+    WHEN unit = 'h' THEN slaValue * 60 * 60 * 1000
+    WHEN unit = 's' THEN slaValue * 1000
+    ELSE 0
+    END AS slaMillis
+
+    WITH u, acc, i, r, p, b, status, application, action, slaMillis, genTime, now,
+    (slaMillis - (now - genTime)) as diff
+
+    WITH u, acc, i, r, p, b, status, application, action, diff,
+    i.id as id,
+    i.assignedto as assignedTo,
+    collect(DISTINCT action.name) as actionTaken,
+    u.userType as tag,
+    r.name AS IssueName,
+    r.severity as severity,
+    collect(DISTINCT {name: u.displayName, id: u.id}) as users,
+    u.mail as email,
+    collect(DISTINCT b.name) AS behaviourNames,
+    collect(DISTINCT {app: i.source, logo: i.logoUrl}) as Source,
+    p.name as Posture,
+    u.department as Department,
+    i.generationTime as createdTime,
+    status as resolutionStatus,
+    i.actionStatus as actionStatus,
+    i.assignementStatus as assignementStatus,
+    collect(DISTINCT {app: i.appDisplayName, logo: application.logoUrl}) as App,
+    i.copilotStatus as `Co-Pilot`,
+    CASE
+    WHEN diff > 24 * 60 * 60 * 1000 THEN 'on track'
+    WHEN diff <= 24 * 60 * 60 * 1000 AND diff > 0 THEN 'at risk'
+    ELSE 'breached'
+    END AS slaStatus
+    WHERE
+    u.subscriber = $subscriber
+    AND u.tenant = $tenant
+    AND (toLower(u.displayName) =~ '.*{searchText}.*' OR toLower(i.name) =~ '.*{searchText}.*')
+    {placeholder}
+
+    RETURN COUNT(DISTINCT i.id) AS totalCount "
+table_widget:
+  - id: accounts
+    name: Accounts
+    template: FindingsAccount
+    enabled: true
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      id: $id
+    queryFilters: []
+    query:
+      "MATCH (user:USER)-[]-(email:EMAIL)-[]-(account:ACCOUNT)-[:HAS_FINDING]->(finding)-[:RELATED_TO]-(issue {id: $id})
+      OPTIONAL MATCH (account)-[]-(app:APPLICATION)
+      WHERE app.name IS NOT NULL
+      OPTIONAL MATCH (user)-[:BELONGS_TO]-(group {userDefined: true})
+      OPTIONAL MATCH (user)-[:HAS_MANAGER]->(manager:USER)
+      OPTIONAL MATCH (user)-[:HAS_DEPARTMENT]-(department)
+      OPTIONAL MATCH (user)-[:LOCATED_AT]-(location)
+      RETURN
+      user.id as user_id,
+      user.displayName as username,
+      user.subscriber as subscriber,
+      user.tenant as tenant,
+      user.profilePicUrl as profile_pic,
+      user.mail as user_email,
+      CASE
+      WHEN SIZE(COLLECT(DISTINCT group)) = 0 THEN []
+      ELSE
+      COLLECT(DISTINCT {
+      group_name: group.displayName,
+      group_severity: group.severity
+      })
+      END as groups,
+      manager.displayName as manager,
+      department.name as department,
+      location.id as location,
+      app.name as application_name,
+      app.logoUrl as application_logo,
+      issue.id as issue_id,
+      issue.name as issue_name,
+      issue.status as issue_status,
+      issue.findingIds as issue_finding_ids,
+      issue.generationTime as issue_ts"
+  - id: final_outcome
+    name: ""
+    label: Widget
+    template: status
+    enabled: true
+    type: polar_graph
+    className: col-span-3
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      id : $id
+    queryFilters: []
+    query: "
+        CALL {
+          MATCH (user:USER{subscriber : $subscriber , tenant: $tenant})-[]-(email:EMAIL)-[]-(account:ACCOUNT)-[]-(finding:FINDING)
+          OPTIONAL MATCH (finding)-[:TRIGGERED]-(action:ACTION)
+          OPTIONAL MATCH (account)-[:USING_APP]-(app:APPLICATION)
+          OPTIONAL MATCH (finding)-[:RELATED_TO]->(issue:ISSUE)
+          RETURN app, finding, action, issue
+          UNION
+          MATCH (user:USER)-[]-(email:EMAIL)-[]-(account:ACCOUNT)-[]-(finding_history:FINDING_HISTORY)
+          OPTIONAL MATCH (finding_history)-[:TRIGGERED]-(action:ACTION)
+          OPTIONAL MATCH (account)-[:USING_APP]-(app:APPLICATION)
+          OPTIONAL MATCH (finding_history)-[:RELATED_TO]->(issue:ISSUE)
+          RETURN app, finding_history AS finding, action, issue
+        }
+      WITH app, finding, action, issue
+      WHERE issue.id = $id AND action.name IN ['escalate_to_issue', 'close_alert_as_benign', 'resolve_incident', 'block_human_action']
+      WITH app, finding, issue, action
+      RETURN
+          finding.id as findingId,
+          finding.userAction as userAction,
+          action.name as actionTaken,
+          issue.id as issueId  "
+  - id: issue_details
+    name: ""
+    label: Widget
+    template: status
+    enabled: true
+    type: polar_graph
+    className: col-span-3
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      id : $id
+    queryFilters: []
+    query: "CALL {
+            MATCH (vendor_app:APPLICATION)-[]-(:INSTANCE)-[]-(user:USER)-[]-(email:EMAIL)-[]-(account:ACCOUNT)-[]-(finding:FINDING)
+            OPTIONAL MATCH (finding)-[has_artifact:HAS_ARTIFACT]-(artifact)
+            OPTIONAL MATCH (finding)-[:RELATED_TO]->(issue:ISSUE)
+            WHERE has_artifact.displayInUI IS NOT NULL AND toLower(has_artifact.displayInUI) = 'enabled'
+            RETURN vendor_app, finding, artifact, has_artifact, issue
+
+            UNION
+
+            MATCH (vendor_app:APPLICATION)-[]-(:INSTANCE)-[]-(user:USER)-[]-(email:EMAIL)-[]-(account:ACCOUNT)-[]-(finding_history:FINDING_HISTORY)
+            OPTIONAL MATCH (finding_history)-[has_artifact:HAS_ARTIFACT]-(artifact)
+            OPTIONAL MATCH (finding_history)-[:RELATED_TO]->(issue:ISSUE)
+            WHERE has_artifact.displayInUI IS NOT NULL AND toLower(has_artifact.displayInUI) = 'enabled'
+            RETURN vendor_app, finding_history AS finding, artifact, has_artifact, issue
+        }
+
+        WITH vendor_app, finding, artifact, has_artifact
+        WHERE issue.id = $id
+
+        WITH vendor_app, COLLECT(DISTINCT finding) AS findings, 
+            COLLECT(DISTINCT {
+                artifact_value: has_artifact.artifactValue,
+                artifact_type: has_artifact.artifactKey
+            }) AS artifacts, finding
+
+        RETURN 
+        CASE
+            WHEN SIZE(artifacts) > 0 THEN artifacts
+            ELSE []
+        END AS finding_artifacts, finding.promptChanged AS promptChanged"
+  - id: user_interaction_identity_protection
+    name: Identity Protection
+    label: Widget
+    template: 
+    enabled: true
+    type: ""
+    className:
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      id: $id
+    queryFilters: []
+    query:
+      "MATCH (finding:FINDING)-[:RELATED_TO]->(issue:ISSUE{id: $id})
+      OPTIONAL MATCH (finding)-[:TRIGGERED]-(action:ACTION)
+      WITH finding, collect(action) AS actions
+      UNWIND actions AS action
+      RETURN
+          COALESCE(finding.resolutionChannel, action.resolutionChannel) AS resolutionChannel,
+          COALESCE(finding.mode, action.mode) AS mode,
+          action.userJustification AS userMessage,
+          action.userJustificationTime AS userMessageTime,
+          action.summary AS summary,
+          action.summaryTime AS quilrMessageTime,
+          action.name AS actionName,
+          action.summary_description AS summaryDescription
+      ORDER BY quilrMessageTime"
+  - id: user_interaction
+    name: User Interaction
+    label: Widget
+    template: interaction
+    enabled: true
+    type: polar_graph
+    className: col-span-3
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      id : $id
+    queryFilters: []
+    query: "
+      CALL {
+          MATCH (user:USER{subscriber : $subscriber , tenant: $tenant})-[]-(email:EMAIL)-[]-(account:ACCOUNT)-[]-(finding:FINDING)
+          OPTIONAL MATCH (finding)-[:TRIGGERED]-(action:ACTION)
+          OPTIONAL MATCH (account)-[:USING_APP]-(app:APPLICATION)
+          OPTIONAL MATCH (finding)-[:RELATED_TO]->(issue:ISSUE)
+          RETURN app, finding, action, issue
+          UNION
+          MATCH (user:USER)-[]-(email:EMAIL)-[]-(account:ACCOUNT)-[]-(finding_history:FINDING_HISTORY)
+          OPTIONAL MATCH (finding_history)-[:TRIGGERED]-(action:ACTION)
+          OPTIONAL MATCH (account)-[:USING_APP]-(app:APPLICATION)
+          OPTIONAL MATCH (finding_history)-[:RELATED_TO]->(issue:ISSUE)
+          RETURN app, finding_history AS finding, action, issue
+      }
+      WITH app, finding, collect(action) AS actions, issue
+      WHERE issue.id = $id
+      WITH app, finding, issue,
+          REDUCE(result = null, action IN actions | CASE WHEN toLower(action.name) = 'user_interaction' THEN action ELSE result END) AS userInteractionAction,
+          actions
+      RETURN
+          finding.quilrMessage AS quilrMessage,
+          finding.userAction AS userAction,
+          userInteractionAction.userJustification AS userJustification,
+          userInteractionAction.businessJustificationSetting AS businessJustificationSetting,
+          finding.mode AS mode,
+          finding.promptChanged AS promptChanged,
+          app.name as app,
+          issue.id AS issueId,
+          [action IN actions | action.name] AS actionNames"
+  - id: human_technical_details
+    name: human_technical_details
+    template: "a"
+    enabled: true
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    queryFilters: []
+    input_params:
+      userId: $userId
+    query: "MATCH (user:USER)-[]-(persona:PERSONA) WHERE user.id = $userId RETURN persona.devices[-1] as device_details, persona.locations[-1] as location_details"
+  - id: human_departments
+    name: human_departments
+    enabled: true
+    template: "a"
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    queryFilters: []
+    input_params:
+      userId: $userId
+    query: "MATCH (u:USER)-[r:HAS_DEPARTMENT]->(d:DEPARTMENT)
+      WHERE d.score IS NOT NULL
+      AND u.score IS NOT NULL
+      AND u.id = $userId
+      RETURN
+      d.name AS departmentName,
+      u.engagement_profile_metric AS Engagement,
+      u.performance_metric AS Performance,
+      u.risk_metric AS Risk,
+      u.psychological_engagement_factors_metric AS Psychological,
+      u.behavioral_profile_metric AS Behavior,
+      toInteger(d.score) AS department_risk_score,
+      toInteger(u.score) AS user_risk_score"
+  - id: human_chart
+    name: human_chart
+    template: "a"
+    enabled: true
+    allowed_params: true
+    dataSourceType: datalake
+    queryFilters: []
+    input_params:
+      username: $username
+      endtime: $endtime
+    query: "WITH parameters AS (
+          SELECT
+              $subscriber AS subscriber,
+              $tenant AS tenant,
+              $username AS username,
+              $endtime AS endtime,
+              DATEADD(day, -90, TO_DATE(TO_TIMESTAMP($endtime / 1000))) AS start_date,
+              TO_DATE(TO_TIMESTAMP($endtime / 1000)) AS end_date
+      ),
+      date_range AS (
+          SELECT
+              uss.username,
+              uss.risk_score,
+              DATE_FROM_PARTS(uss.year, uss.monthofyear, uss.dayofmonth) AS date
+          FROM
+              kafka_connect.snowdata_schema.userscoresnapshot uss
+          CROSS JOIN parameters p
+          WHERE
+              uss.subscriber = p.subscriber
+              AND uss.tenant = p.tenant
+              AND DATE_FROM_PARTS(uss.year, uss.monthofyear, uss.dayofmonth) BETWEEN p.start_date AND p.end_date
+              AND uss.username = p.username
+              AND uss.risk_score IS NOT NULL
+      ),
+      formatted_risk_trend AS (
+          SELECT
+              dr.username,
+              CAST(dr.risk_score AS NUMBER(10, 2)) AS risk_score,
+              (DATEDIFF(second, '1970-01-01', dr.date) * 1000) AS epoch_millis
+          FROM
+              date_range dr
+      ),
+      ordered_risk_trend AS (
+          SELECT
+              frt.username,
+              OBJECT_CONSTRUCT('date', frt.epoch_millis, 'risk_score', frt.risk_score) AS risk_point
+          FROM
+              formatted_risk_trend frt
+          ORDER BY
+              frt.epoch_millis
+      ),
+      user_risk_trend AS (
+          SELECT
+              ort.username,
+              ARRAY_AGG(ort.risk_point) AS risk_trend
+          FROM
+              ordered_risk_trend ort
+          GROUP BY
+              ort.username
+      )
+      SELECT
+          urt.username,
+          urt.risk_trend
+      FROM
+          user_risk_trend urt
+      ORDER BY
+          urt.username"
+  - id: human_postures
+    name: HumanPostures
+    template: "a"
+    allowed_params: true
+    enabled: true
+    dataSourceType: datalake
+    queryFilters: []
+    input_params:
+      userId: $userId
+    query: "WITH max_risk_index AS (
+      SELECT
+          agg_subtype_name AS name,
+          MAX(TO_NUMBER(ROUND((alert_percentile * 4) + 1))) AS risk_index
+      FROM
+          kafka_connect.snowdata_schema.postureprofileaggregated
+      WHERE
+          subscriber = $subscriber
+          AND tenant = $tenant
+          AND agg_type = 'userid'
+          AND agg_subtype = 'posture'
+          and agg_type_name = $userId
+      GROUP BY
+          agg_subtype_name
+      )
+      SELECT
+          name,
+          risk_index
+      FROM
+          max_risk_index
+      ORDER BY
+          name"
+  - id: human_risks
+    name: Human Risks
+    template: "a"
+    enabled: true
+    allowed_params: true
+    dataSourceType: datalake
+    queryFilters: []
+    input_params:
+      userId: $userId
+    query: "WITH parameters AS (
+          SELECT
+              $subscriber AS subscriber,
+              $tenant AS tenant,
+              $userId AS userid,
+              $endtime AS endtime,
+              DATEADD(month, -3, TO_DATE(TO_TIMESTAMP(1723198215000 / 1000))) AS start_date,
+              TO_DATE(TO_TIMESTAMP(1723198215000 / 1000)) AS end_date
+      ),
+      risk_scores AS (
+          SELECT
+              uss.username,
+              DATE_FROM_PARTS(uss.year, uss.monthofyear, uss.dayofmonth) AS date,
+              uss.risk_score
+          FROM
+              kafka_connect.snowdata_schema.userscoresnapshot uss
+          CROSS JOIN parameters p
+          WHERE
+              uss.subscriber = p.subscriber
+              AND uss.tenant = p.tenant
+              AND uss.USERID = p.userid
+              AND DATE_FROM_PARTS(uss.year, uss.monthofyear, uss.dayofmonth) BETWEEN p.start_date AND p.end_date
+              AND uss.risk_score IS NOT NULL
+      ),
+      first_last_scores AS (
+          SELECT
+              (SELECT risk_score FROM risk_scores WHERE date = (SELECT MIN(date) FROM risk_scores)) AS first_score,
+              (SELECT risk_score FROM risk_scores WHERE date = (SELECT MAX(date) FROM risk_scores)) AS last_score
+      )
+      SELECT
+          CASE
+              WHEN (SELECT COUNT(*) FROM risk_scores) = 0 THEN 0
+              WHEN first_score = last_score THEN 0
+              ELSE ROUND(((first_score - last_score) / NULLIF(first_score, 0)) * 100, 0)
+          END AS risk_score_changed_percentage
+      FROM
+          first_last_scores"
+  - id: summary
+    name: Summary
+    template: FindingsSummary
+    enabled: true
+    allowed_params: true
+    dataSourceType: knowledgegraph
+    input_params:
+      id: $id
+    queryFilters: []
+    query: "
+      CALL {
+      MATCH (vendor_app:APPLICATION)-[]-(:INSTANCE)-[]-(user:USER)-[]-(email:EMAIL)-[]-(account:ACCOUNT)-[]-(base_finding:FINDING)
+      OPTIONAL MATCH (base_finding)-[:TRIGGERED]-(base_action:ACTION)
+      OPTIONAL MATCH (base_finding)-[:RELATED_TO]-(issue)
+      OPTIONAL MATCH (issue)<-[:RELATED_TO]-(finding)
+      OPTIONAL MATCH (issue)-[:TRIGGERED]-(action:ACTION)
+      OPTIONAL MATCH (finding)-[]-(rule:RULE)-[]-(behaviour:BEHAVIOUR)-[]-(posture:POSTURE)
+      OPTIONAL MATCH (account)-[:USING_APP]-(app:APPLICATION)
+      OPTIONAL MATCH (finding)-[:HAS_ARTIFACT]-(artifact)
+      WHERE artifact.displayInUI IS NOT NULL AND toLower(artifact.displayInUI) = 'enabled'
+      RETURN vendor_app, app, base_finding, finding, issue, rule, behaviour, posture, base_action, action, artifact
+
+      UNION
+
+      MATCH (vendor_app:APPLICATION)-[]-(:INSTANCE)-[]-(user:USER)-[]-(email:EMAIL)-[]-(account:ACCOUNT)-[]-(base_finding:FINDING_HISTORY)
+      OPTIONAL MATCH (base_finding)-[:TRIGGERED]-(base_action:ACTION)
+      OPTIONAL MATCH (base_finding)-[:RELATED_TO]-(issue)
+      OPTIONAL MATCH (issue)<-[:RELATED_TO]-(finding)
+      OPTIONAL MATCH (issue)-[:TRIGGERED]-(action:ACTION)
+      OPTIONAL MATCH (finding)-[]-(rule:RULE)-[]-(behaviour:BEHAVIOUR)-[]-(posture:POSTURE)
+      OPTIONAL MATCH (account)-[:USING_APP]-(app:APPLICATION)
+      OPTIONAL MATCH (finding)-[:HAS_ARTIFACT]-(artifact)
+      WHERE artifact.displayInUI IS NOT NULL AND toLower(artifact.displayInUI) = 'enabled'
+      RETURN vendor_app, app, base_finding, finding, issue, rule, behaviour, posture, base_action, action, artifact
+      }
+
+      WITH vendor_app, app, base_finding, finding, issue, rule, behaviour, posture, base_action, action, artifact
+      WHERE issue.id = $id
+
+      WITH vendor_app, app,
+      COLLECT(DISTINCT base_finding)+COLLECT(DISTINCT finding) as findings,
+      issue,
+      COLLECT(DISTINCT rule) as rules,
+      COLLECT(DISTINCT behaviour) as behaviours,
+      COLLECT(DISTINCT posture) as postures,
+      COLLECT(DISTINCT base_action)+COLLECT(DISTINCT action) as actions,
+      COLLECT(DISTINCT artifact) as artifacts
+
+      UNWIND findings as finding
+      UNWIND (CASE WHEN SIZE(rules) > 0 THEN rules ELSE [NULL] END) as rule
+      UNWIND (CASE WHEN SIZE(behaviours) > 0 THEN behaviours ELSE [NULL] END) as behaviour
+      UNWIND (CASE WHEN SIZE(postures) > 0 THEN postures ELSE [NULL] END) as posture
+      UNWIND (CASE WHEN SIZE(actions) > 0 THEN actions ELSE [NULL] END) as action
+      UNWIND (CASE WHEN SIZE(artifacts) > 0 THEN artifacts ELSE [NULL] END) as artifact
+
+      WITH vendor_app, app, finding, issue, rule, behaviour, posture, action,
+      CASE
+      WHEN SIZE(COLLECT(DISTINCT artifact)) > 0 THEN
+      COLLECT(DISTINCT {
+      artifact_value: artifact.artifactValue,
+      artifact_type: labels(artifact)[0]
+      })
+      ELSE []
+      END as finding_artifacts
+
+      WITH
+      {
+      incident_id: COALESCE(MAX(issue.id), MAX(finding.id)),
+      incident_type: CASE WHEN MAX(issue) IS NOT NULL THEN 'issue' ELSE 'finding' END,
+      incident_status: COALESCE(MAX(issue.status), MAX(finding.status)),
+      incident_source: COALESCE(MAX(issue.source), MAX(finding.source)),
+      incident_ts: COALESCE(MAX(issue.generationTime), MAX(finding.generationTime)),
+      summary_title: COALESCE(MAX(issue.summary_title), MAX(finding.summary_title)),
+      summary_description: COALESCE(MAX(issue.summary_description), MAX(finding.summary_description)),
+      incident_description: COALESCE(MAX(issue.incident_details), MAX(finding.incident_details)),
+      incident_severity: COALESCE(MAX(issue.severity), MAX(finding.severity)),
+      vendor_app_name: MAX(vendor_app.name),
+      vendor_app_logo_url: MAX(vendor_app.logoUrl)
+      } as overall_summary,
+      COLLECT(DISTINCT {
+      event_id: finding.id,
+      event_name: finding.name,
+      event_type: 'finding',
+      event_ts: finding.generationTime,
+      summary_title: finding.name,
+      summary_description: finding.incident_details,
+      event_severity: finding.severity,
+      artifact_details: finding_artifacts,
+      app_name: app.name,
+      app_logo_url: app.logoUrl
+      }) +
+      COLLECT(DISTINCT
+      CASE WHEN action.name <> 'create_insecure_human_behavior_object' THEN
+      {
+      event_id: action.id,
+      event_name: action.name,
+      event_type: 'action',
+      event_ts: action.timestamp,
+      event_channel: action.resolutionChannel,
+      awaiting_user_response:
+      CASE WHEN toLower(action.name) in ['user interaction', 'user_interaction'] THEN
+      CASE WHEN action.userJustification IS NULL THEN true ELSE false END
+      ELSE NULL
+      END,
+      user_response:
+      CASE WHEN toLower(action.name) in ['user interaction', 'user_interaction'] THEN
+      CASE WHEN action.userJustification IS NULL THEN NULL ELSE action.userJustification END
+      ELSE NULL
+      END,
+      prompt_message:
+      CASE WHEN toLower(action.name) in ['user interaction', 'user_interaction'] THEN
+      CASE WHEN action.summary IS NULL THEN NULL ELSE action.summary END
+      ELSE NULL
+      END,
+      interaction_mode:
+      CASE WHEN toLower(action.name) in ['user interaction', 'user_interaction'] THEN
+      CASE WHEN action.mode IS NULL THEN NULL ELSE action.mode END
+      ELSE NULL
+      END,
+      summary_title: action.summary_title,
+      summary_description: action.summary_description,
+      }
+      ELSE NULL
+      END) as events_timeline,
+      COLLECT(DISTINCT
+      CASE WHEN action.name = 'create_insecure_human_behavior_object' THEN
+      {
+      event_name: action.name,
+      event_type: 'action',
+      behaviour: behaviour.name,
+      posture: posture.name
+      }
+      ELSE NULL
+      END) as insecure_behaviours
+
+      RETURN overall_summary, apoc.coll.sortMaps(events_timeline, '^event_ts') as events_timeline, insecure_behaviours"

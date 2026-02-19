@@ -1,0 +1,10 @@
+version: 1.0.2
+screen_id: identity-risk
+title: Identity Risks
+tag: Posture Screen
+description: Monitor your organization's security posture
+active: true
+type: options
+iconUrl: https://staticcontent1.blob.core.windows.net/finding-icons/posture-ai-usage.svg
+path: postures/identity-risk
+order: 6

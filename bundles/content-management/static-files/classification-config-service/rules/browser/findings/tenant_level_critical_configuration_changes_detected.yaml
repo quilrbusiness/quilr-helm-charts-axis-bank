@@ -1,0 +1,17 @@
+id: 9f796dd5-ecc4-41bf-a3c6-e74cbcff6b6e
+version: 3.0
+code: Q050
+name: Tenant Level Critical configuration changes detected
+description: 
+type: rule
+view: identity_protection
+impact: veryhigh
+likelihood: veryhigh
+createdon: 1720094794000
+updatedon: 1720094794000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_06
+examples: []
+recommendations: []

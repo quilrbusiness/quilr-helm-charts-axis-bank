@@ -1,0 +1,22 @@
+code: ACT_211
+createdon: 1710504494000
+id: 0878c68c-76b4-4128-af4e-6d4855a48528
+version: 1.3
+actiontype: ACTP_02
+behavior:
+- BID_203
+updatedon: 1758018676721
+name: Block user uploading data
+type: action
+tags:
+- UC033
+config:
+  meta:
+    execution_type: tool
+    browser_action: Block
+    blocked: false
+    engagement_type: templatized
+    execution_module: send_templated_user_message
+    message_template: block-user-uploading-data
+    channel: 
+

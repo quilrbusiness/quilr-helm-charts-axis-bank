@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>PayloadContent</key>
+  <array>
+    <dict>
+      <key>ExtensionInstallForcelist</key>
+      <array>
+        <string>piajhjohgigijkddhdpgbjdcfhmammbk;https://saas-extension.quilr.ai/manifest.xml</string>
+      </array>
+      <key>ExtensionSettings</key>
+      <dict>
+        <key>piajhjohgigijkddhdpgbjdcfhmammbk</key>
+        <dict>
+          <key>installation_mode</key>
+          <string>force_installed</string>
+          <key>override_update_url</key>
+          <true/>
+          <key>update_url</key>
+          <string>https://saas-extension.quilr.ai/manifest.xml</string>
+          <key>toolbar_state</key>
+          <string>force_shown</string>
+        </dict>
+      </dict>
+      <key>PayloadDisplayName</key>
+      <string>Quilr Edge Enterprise Configuration</string>
+      <key>PayloadIdentifier</key>
+      <string>com.company.edge.configuration</string>
+      <key>PayloadType</key>
+      <string>com.microsoft.edge</string>
+      <key>PayloadUUID</key>
+      <string>dc15412a-b169-4db5-b0a3-b88f2f35e3f3</string>
+      <key>PayloadVersion</key>
+      <integer>1</integer>
+    </dict>
+  </array>
+  <key>PayloadDescription</key>
+  <string>Quilr edge extension managed deployment for MAC OS.</string>
+  <key>PayloadDisplayName</key>
+  <string>Quilr Extension MAC Deployment - Edge</string>
+  <key>PayloadIdentifier</key>
+  <string>com.company.edge.configuration</string>
+  <key>PayloadOrganization</key>
+  <string>Quilr AI</string>
+  <key>PayloadType</key>
+  <string>Configuration</string>
+  <key>PayloadUUID</key>
+  <string>059cbda2-6b59-4513-9541-4e3d7bf95ccb</string>
+  <key>PayloadVersion</key>
+  <integer>1</integer>
+</dict>
+</plist>

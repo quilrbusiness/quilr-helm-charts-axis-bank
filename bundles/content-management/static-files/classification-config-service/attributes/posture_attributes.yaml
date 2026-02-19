@@ -1,0 +1,115 @@
+id: c9427f90-31c7-428b-97a5-63f0ac9ffd6c
+version: 5.0.7
+category: Posture
+code: ATTR_PST_001
+tags: [ ]
+type: attributes
+attributes:
+  - name: MFA Risk Level
+    description: Define user's MFA Risk Level
+    duplicate_allowed: false
+    tags: null
+    graph_property: behavior.risklevel
+    extension_property: null
+    expected_datatype: string
+    possible_values:
+      - label: Very High
+        value: Very High
+        tags: null
+      - label: High
+        value: High
+        tags: null
+      - label: Medium
+        value: Medium
+        tags: null
+      - label: Low
+        value: Low
+        tags: null
+      - label: Very Low
+        value: Very Low
+        tags: null
+    supported_operators:
+      - is equal to
+      - is in
+    id: PST-001
+  - name: Password Hygiene Risk Level
+    description: Define user's Password Hygiene Risk Level
+    duplicate_allowed: false
+    tags: null
+    graph_property: behavior.risklevel
+    extension_property: null
+    expected_datatype: string
+    possible_values:
+      - label: Very High
+        value: Very High
+        tags: null
+      - label: High
+        value: High
+        tags: null
+      - label: Medium
+        value: Medium
+        tags: null
+      - label: Low
+        value: Low
+        tags: null
+      - label: Very Low
+        value: Very Low
+        tags: null
+    supported_operators:
+      - is equal to
+      - is in
+    id: PST-002
+  - name: SaaS Risk Level
+    description: Define user's SaaS Risk Level
+    duplicate_allowed: false
+    tags: null
+    graph_property: behavior.risklevel
+    extension_property: null
+    expected_datatype: string
+    possible_values:
+      - label: Very High
+        value: Very High
+        tags: null
+      - label: High
+        value: High
+        tags: null
+      - label: Medium
+        value: Medium
+        tags: null
+      - label: Low
+        value: Low
+        tags: null
+      - label: Very Low
+        value: Very Low
+        tags: null
+    supported_operators:
+      - is equal to
+      - is in
+    id: PST-003
+  - name: AI Risk Level
+    description: Define user's AI Risk Level
+    duplicate_allowed: false
+    tags: null
+    graph_property: behavior.risklevel
+    extension_property: null
+    expected_datatype: string
+    possible_values:
+      - label: Very High
+        value: Very High
+        tags: null
+      - label: High
+        value: High
+        tags: null
+      - label: Medium
+        value: Medium
+        tags: null
+      - label: Low
+        value: Low
+        tags: null
+      - label: Very Low
+        value: Very Low
+        tags: null
+    supported_operators:
+      - is equal to
+      - is in
+    id: PST-004

@@ -1,0 +1,17 @@
+id: c10189bb-276d-4b18-b340-11615d37a8d9
+version: 3.0
+code: Q034
+name: New Account created on an Unapproved Critical SaaS App
+description: A new account was created on an unapproved application that does handle sensitive data or is critical to business operations.
+type: rule
+view: identity_protection
+impact: high
+likelihood: moderate
+createdon: 1720396800000
+updatedon: 1720396800000
+tags: []
+humanfactor: HFID_02
+behavior:
+  - BID_18
+examples: []
+recommendations: []

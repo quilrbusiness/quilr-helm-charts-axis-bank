@@ -1,0 +1,37 @@
+widget_id: c26128b0-ee5f-4b03-89f8-63fb8cd5adfd
+template_id: NotableSecurityIndicators
+active: true
+title: Notable Outcomes
+components:
+  - name: Notable Security Indicators Table
+    type: table
+    data_source_type: knowledgegraph
+    lambda: |
+      def fn(client):
+          data_result = client.fetch_data(
+             "MATCH (user:USER)-[has_violated_rule:HAS_VIOLATED_RULE]->(rule:RULE)-[:BELONGS_TO]->(riskCategory:RISKCATEGORY) "
+             "WHERE has_violated_rule.timestamp >= $starttime and has_violated_rule.timestamp <= $endtime "
+             "WITH Count(DISTINCT user) as userCount, riskCategory.name as title, "
+                   "CASE rule.severity "
+                         "WHEN 'VERYLOW' THEN 'Very Low' "
+                         "WHEN 'VERYHIGH' THEN 'Very High' "
+                         "ELSE rule.severity "
+                   "END as severity "
+             "RETURN title, COLLECT({ label: severity, count: userCount }) as severityData "
+             "ORDER BY title",
+          )
+      
+          count_result = client.total_record_count(
+             "MATCH (user:USER)-[has_violated_rule:HAS_VIOLATED_RULE]->(rule:RULE)-[:BELONGS_TO]->(riskCategory:RISKCATEGORY) "
+             "WHERE has_violated_rule.timestamp >= $starttime AND has_violated_rule.timestamp <= $endtime "
+             "WITH COUNT(DISTINCT  riskCategory.name) AS count "
+             "RETURN count"
+          )
+      
+          total_record_count = 0
+          if count_result:
+              total_record_count = count_result[0].get('count')
+          
+          formatted_data = {"data": data_result, "total_record_count": total_record_count}
+          return formatted_data
+version: 16.0

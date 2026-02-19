@@ -1,0 +1,87 @@
+widget_id: 9430dede-a5cf-450e-ad11-f8c229e50bc6
+template_id: DistributionOfRisk
+active: true
+title: Distribution of Risk
+components:
+  - name: Distribution of Risk
+    type: graph
+    data_source_type: knowledgegraph
+    lambda: |
+      def fn(client):
+        data_result = client.fetch_data(
+            query="MATCH (g:GROUP)"
+                  " WHERE g.score IS NOT NULL"
+                  " AND g.subscriber = $subscriber AND g.tenant = $tenant"
+                  " WITH "
+                  " CASE "
+                  " WHEN g.score >= 0 AND g.score <= 20 THEN 'Very Low'"
+                  " WHEN g.score >= 21 AND g.score <= 40 THEN 'Low'"
+                  " WHEN g.score >= 41 AND g.score <= 60 THEN 'Medium'"
+                  " WHEN g.score >= 61 AND g.score <= 80 THEN 'High'"
+                  " WHEN g.score >= 81 AND g.score <= 100 THEN 'Very High'"
+                  " END AS category," 
+                  " 'Groups' AS type, "
+                  " COUNT(DISTINCT g) AS numberOfNodes"
+                  " RETURN "
+                  " type, COLLECT({category: category, count: numberOfNodes}) AS results"
+                  " UNION ALL"
+                  " MATCH (u:USER)"
+                  " WHERE u.score IS NOT NULL"
+                  " AND u.subscriber = $subscriber AND u.tenant = $tenant"
+                  " WITH "
+                  " CASE "
+                  " WHEN u.score >= 0 AND u.score <= 20 THEN 'Very Low'"
+                  " WHEN u.score >= 21 AND u.score <= 40 THEN 'Low'"
+                  " WHEN u.score >= 41 AND u.score <= 60 THEN 'Medium'"
+                  " WHEN u.score >= 61 AND u.score <= 80 THEN 'High'"
+                  " WHEN u.score >= 81 AND u.score <= 100 THEN 'Very High'"
+                  " END AS category, "
+                  " 'Users' AS type," 
+                  " COUNT(DISTINCT u) AS numberOfNodes"
+                  " RETURN "
+                  " type, COLLECT({category: category, count: numberOfNodes}) AS results"
+                  " UNION ALL"
+                  " MATCH (d:DEPARTMENT)"
+                  " WHERE d.score IS NOT NULL"
+                  " AND d.subscriber = $subscriber AND d.tenant = $tenant"
+                  " WITH "
+                  " CASE "
+                  " WHEN d.score >= 0 AND d.score <= 20 THEN 'Very Low'"
+                  " WHEN d.score >= 21 AND d.score <= 40 THEN 'Low'"
+                  " WHEN d.score >= 41 AND d.score <= 60 THEN 'Medium'"
+                  " WHEN d.score >= 61 AND d.score <= 80 THEN 'High'"
+                  " WHEN d.score >= 81 AND d.score <= 100 THEN 'Very High'"
+                  " END AS category, "
+                  " 'Departments' AS type," 
+                  " COUNT(DISTINCT d) AS numberOfNodes"
+                  " RETURN "
+                  " type, COLLECT({category: category, count: numberOfNodes}) AS results"
+                  " UNION ALL"
+                  " MATCH (l:OFFICE_LOCATION)"
+                  " WHERE l.score IS NOT NULL"
+                  " AND l.subscriber = $subscriber AND l.tenant = $tenant"
+                  " WITH "
+                  " CASE "
+                  " WHEN l.score >= 0 AND l.score <= 20 THEN 'Very Low'"
+                  " WHEN l.score >= 21 AND l.score <= 40 THEN 'Low'"
+                  " WHEN l.score >= 41 AND l.score <= 60 THEN 'Medium'"
+                  " WHEN l.score >= 61 AND l.score <= 80 THEN 'High'"
+                  " WHEN l.score >= 81 AND l.score <= 100 THEN 'Very High'"
+                  " END AS category, "
+                  " 'Locations' AS type," 
+                  " COUNT(DISTINCT l) AS numberOfNodes"
+                  " RETURN "
+                  " type, COLLECT({category: category, count: numberOfNodes}) AS results "
+        )
+        if data_result and isinstance(data_result, list) and data_result[0]:
+            total_record_count = 1
+            formatted_data = {"data": data_result,"total_record_count":total_record_count}
+            return formatted_data
+        else:
+            # Handle case where data_result is empty or doesn't contain expected structure
+            formatted_data = {
+                "data": [],
+                "total_record_count": 0
+            }
+            return formatted_data
+version: 1.0.2

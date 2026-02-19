@@ -1,0 +1,23 @@
+name: justify user uploading data
+type: message
+channel: Browser
+content:
+  header: Hold On!
+  title: |
+    You seem to be uploading data, which may or may not be sensitive.
+    Your company policy does not allow uploading data to this app.
+    Provide a business reason for moving this data:
+  description: ""
+  justification_list:
+    - To upload data to a company-approved storage or collaboration platform.
+    - To back up or archive files in an approved repository.
+    - To submit deliverables or documentation to a client or regulatory portal.
+    - To upload data for internal review, audit, or compliance verification.
+    - To upload training or reference data for an approved AI or ML use case.
+    - To generate reports, analytics, or dashboards in an approved tool.
+    - To migrate data as part of a project or environment upgrade.
+    - To feed approved automation or workflow tools (e.g., ServiceNow, Jira).
+    - To upload test data to a sandbox or staging environment.
+    - To perform a one-time urgent or time-sensitive upload.
+rendered_content_type: application/json
+is_active: true

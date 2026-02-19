@@ -1,0 +1,116 @@
+dashboard_id: b660af1a-b439-4755-813f-97dcd0bb7474
+title: Security Overview
+description: Monitor overall security status
+active: true
+widgets_list:
+  - widget_id: f694edd0-8816-41c5-9bde-76d7012081d8
+    template_id: HumanSecurityIndex
+    dimensions:
+      x_cord: 0
+      y_cord: 8
+      width: 12
+      height: 11
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: d7bac5a0-2eda-473b-b743-1d638281b51b
+    template_id: CyberSecurityScore
+    dimensions:
+      x_cord: 0
+      y_cord: 19
+      width: 12
+      height: 8
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: b7794644-db41-44d2-919e-b116268a654f
+    template_id: NotableRiskPostures
+    dimensions:
+      x_cord: 0
+      y_cord: 27
+      width: 4
+      height: 10
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: 6b24b597-5c9c-4eff-aa05-e8b4a83868bc
+    template_id: NotableBehaviors
+    dimensions:
+      x_cord: 4
+      y_cord: 27
+      width: 8
+      height: 10
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: 31b35a79-daef-4535-ae57-b951aa1b31c1
+    template_id: NotableSegments
+    dimensions:
+      x_cord: 0
+      y_cord: 37
+      width: 6
+      height: 14
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: 0e57c05c-d387-4a6c-bd3d-c96e51cfbfe6
+    template_id: RiskAverted
+    dimensions:
+      x_cord: 6
+      y_cord: 37
+      width: 6
+      height: 14
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: 04580a0c-27ae-4c58-9614-bad7a9d4b7d0
+    template_id: ActionPlan
+    dimensions:
+      x_cord: 8
+      y_cord: 51
+      width: 4
+      height: 16
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: 5c073f05-a0bb-4516-88da-59084b92123f
+    template_id: RiskExposure
+    dimensions:
+      x_cord: 0
+      y_cord: 51
+      width: 8
+      height: 16
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: 60e8cb29-bdbf-4cd7-9c73-24b0a7caea76
+    template_id: TestWidgetPlayground
+    dimensions:
+      x_cord: 0
+      y_cord: 0
+      width: 4
+      height: 8
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: 281e8f20-fe65-4270-8474-34c1224f1e09
+    template_id: ActionableCardTemplate
+    dimensions:
+      x_cord: 8
+      y_cord: 0
+      width: 4
+      height: 8
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+  - widget_id: a4443e61-b87f-4180-9812-14496aace8bf
+    template_id: NotableCategories
+    dimensions:
+      x_cord: 0
+      y_cord: 11
+      width: 6
+      height: 12
+    filter_ids:
+      - 2d1768f5-21f9-4d6d-87a4-3f4645b9c8b8
+      - 13571726-c3ed-4116-8531-2f4238d6ea5b
+version: 6.0

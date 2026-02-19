@@ -1,0 +1,36 @@
+name: block-form-submit
+version: 1.0.0
+sequences:
+  - name: check
+    waiton: []
+    next:
+      - name: END
+actions:
+  - name: check
+    type: effect
+    config:
+      command: "true"
+persona:
+  roles:
+    - PRIVILEGED_ACCESS
+application:
+  urlpattern: "<all_urls>"
+  analysismethod: ""
+browser: true
+args:
+  preventDefault: true
+  target: "form[id*='login' i], form[id*='signin' i], form[id*='signup' i], form[id*='register' i],
+  form[name*='login' i], form[name*='signin' i], form[name*='signup' i], form[name*='register' i],
+  form[class*='login' i], form[class*='signin' i], form[class*='signup' i], form[class*='register' i],
+  form:has(input[type='password']),
+  form:has(input[type='email']),
+  form:has(input[name*='email' i]),
+  form:has(input[name*='password' i]),
+  form:has(input[placeholder*='email' i]),
+  form:has(input[placeholder*='password' i])"
+event: submit
+active: true
+element: window
+  
+chain: true
+configurable: false

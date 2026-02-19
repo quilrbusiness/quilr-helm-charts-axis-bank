@@ -1,0 +1,29 @@
+type: message
+content:
+  acknowledgedButtons:
+  - name: Acknowledge warning
+    id: d08e8316-fd54-4752-90d0-ed6cea1859dc
+    isPrimary: true
+    whitelist: false
+  justification_list:
+  - It’s blocking my productivity.
+  - I can’t do my job without this.
+  - This is an industry-standard app, why is it blocked?
+  - I have approval from my manager to use this app.
+  - The official app doesn't support what I need.
+  - I didn't know it wasn't allowed.
+  - It is just a one-time thing.
+  - We are racing against a deadline.
+  - Everyone else in the team is using it.
+  - Something else.
+  header: Hey there!
+  description: ""
+  title: |
+    <br />Since this is your first time here, we just need a quick justification to make sure everything&#39;s good to go. Feel free to share why you want to use it!
+
+    <br />Your actions matter — help keep your organization safe!
+channel: Browser
+rendered_content_type: application/json
+name: Justify creating an account on an AI app
+is_active: true
+

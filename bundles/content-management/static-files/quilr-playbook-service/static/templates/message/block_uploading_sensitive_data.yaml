@@ -1,0 +1,12 @@
+name: Block uploading sensitive data
+type: message
+channel: Browser
+content:
+  header: Sensitive Upload Blocked!
+  title: |
+    It looks like you are uploading sensitive data into an unsafe app.
+    If you believe this is an error, contact your Security Team for assistance.
+  description: '*Provide business justification?*'
+  acknowledgedButtons: []
+rendered_content_type: application/json
+is_active: true

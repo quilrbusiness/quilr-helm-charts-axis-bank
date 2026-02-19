@@ -1,0 +1,22 @@
+datatype: DICT
+defaultValue:
+  message: |-
+    Please change this password - it was recently found in a breach. You are an admin, this will only take 2 mins.
+  mode: Ask
+entityDescription: |-
+  Login with compromised password to an admin account on an application.
+entityId: Q011
+entityMeta:
+  behavior: Compromised Password
+  category: ISPM
+  posture: Password Hygiene
+  check_id:
+    form_check_ids:
+      - CH-FORM-LOGIN
+      - CH-FORM-ADMIN
+      - CH-FORM-WEAK-PASSWORD
+      - CH-FORM-COMPROMISED-PASSWORD
+entityName: Login with Compromised Password on Admin Account
+entityType: rule
+isDisabled: false
+isModifiable: true

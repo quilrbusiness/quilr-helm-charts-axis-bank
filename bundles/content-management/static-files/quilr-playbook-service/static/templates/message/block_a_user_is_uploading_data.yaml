@@ -1,0 +1,13 @@
+name: block user uploading data
+type: message
+channel: Browser
+content:
+  header: Upload Blocked!
+  title: |
+    You seem to be uploading data, which may or may not be sensitive.
+    <br />Your company policy does not allow uploading data from this app.
+    <br />If you believe this is an error, contact your Security Team for assistance.
+  description: ""
+  acknowledgedButtons: []
+rendered_content_type: application/json
+is_active: true

@@ -1,0 +1,57 @@
+id: 523dde78-c101-4a90-99a0-4a84a98ed4a9
+version: 1.16
+code: BID_103
+name: Overprivileged Accounts
+type: behavior
+createdon: 1734307616901
+updatedon: 1738211759448
+posture:
+  - PID_05
+browser_enabled: false
+description: Improperly configured devices pose significant security challenges, leaving systems and networks vulnerable to exploitation.
+query: | 
+  MATCH (device:DEVICE {subscriber: $subscriber, tenant: $tenant}) WHERE device.timestamp >= $starttime AND device.timestamp <= $endtime
+  OPTIONAL MATCH (device)-[devicebelongto:OWNS_DEVICE]-(user:USER)
+  OPTIONAL MATCH (user)-[]-(department:DEPARTMENT)
+  OPTIONAL MATCH (device)-[compliancesetting:COMPLIES_WITH]->(compliancepolicy:COMPLIANCE)
+  WITH device, compliancesetting, compliancepolicy, user, department
+  RETURN DISTINCT
+        device.deviceName as DeviceName,
+        device.id as DeviceId,
+        collect(distinct compliancepolicy.displayName) as PolicyName,
+        collect(distinct compliancepolicy.id) as PolicyId,
+        user.displayName as DeviceOwnedBy, 
+        user.id as DeviceOwnerId, 
+        user.mail as DeviceOwnerMail, 
+        device.lastSyncDatetime as EVENTTIME, 
+        COLLECT(DISTINCT department.id) as MemberOf, 
+        device.tenant as TENANT,
+        device.subscriber AS SUBSCRIBER
+config:
+  status: open
+  sla: 1W
+  expression: "def fn(message): return True if message.get('DeviceName') else False "
+  sourceofalert: Quilr
+  type: finding
+  artifacts:
+    - artifactproperties:
+        artifactValue: $DeviceOwnedBy
+        artifactKey: DeviceOwner
+        displayInUI: enabled
+      type: DEVICE
+      property: id
+      value: $DeviceId
+  template: 'Received an alert for the device: ${DeviceName}'
+  subtype: status
+  properties:
+    deviceId: $DeviceId
+    SUBSCRIBER: $SUBSCRIBER
+    TENANT: $TENANT
+    time: $EVENTTIME
+    userId: $DeviceOwnerId
+    policyId: $PolicyId
+  entity: deviceName
+  entitytype: device
+  tags:
+    - insecure_behavior
+lambda: ""

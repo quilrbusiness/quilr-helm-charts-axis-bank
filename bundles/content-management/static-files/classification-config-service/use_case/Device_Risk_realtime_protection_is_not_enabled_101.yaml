@@ -1,0 +1,23 @@
+id: f45bfc1a-729f-45e2-b22f-db87b32ad2b6
+name: real-time protection is disabled
+updatedon: 1738216014669
+condition:
+- filter_condition:
+    condition: is equal to
+    value: "False"
+    attribute_id: DEV-008
+    attribute_type: ATTR_DEV_001
+  filter_group: 
+  operator: 
+  editable: false
+createdon: 1738216014669
+version: 1.7
+description: Detects devices where real-time protection is disabled, potentially leaving them vulnerable to malware and other security threats.
+posture:
+- PID_05
+code: UC101
+disabled: false
+type: use-case
+behavior:
+- BID_105
+
