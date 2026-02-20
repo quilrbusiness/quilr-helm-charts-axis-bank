@@ -1,0 +1,43 @@
+Total tables
+----------------------------------------------
+
+accounts
+app_admin_users
+app_tenant_settings
+apps_db
+compromised_password_status_tracker
+cred_shared_status_tracker
+password_reuse_status_tracker
+quilr_action_master
+quilr_action_status_audit
+quilr_action_type_master
+quilr_alert_action
+quilr_alert_events
+quilr_alert_status
+quilr_asset_inventory
+quilr_assets_metrics
+quilr_audit_logs
+quilr_interaction_logs
+quilr_tenant_action_rel
+rai_policy_details
+raw_alert_responses
+redteaming_results
+smart_groups
+users
+week_password_status_tracker
+accounts_mv  (Materialized View)
+
+Not present
+----------------------------------------------
+
+compromised_password_status_tracker
+cred_shared_status_tracker
+quilr_alert_action
+quilr_alert_events
+quilr_alert_status
+quilr_audit_logs
+quilr_interaction_logs
+raw_alert_responses
+redteaming_results
+week_password_status_tracker
+accounts_mv  (Materialized View)
