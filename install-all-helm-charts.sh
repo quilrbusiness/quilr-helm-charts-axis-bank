@@ -1,7 +1,7 @@
 #!/bin/bash
 
 BASE_DIR="$(pwd)"
-SKIP_DIR=("services-scale-down-or-in-progress" "dependencies" )
+SKIP_DIR=("services-scale-down-or-in-progress" "dependencies" "bundles" )
 NAMESPACE="quilr"
 
 echo " Switching to base directory: $BASE_DIR"
